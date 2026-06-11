@@ -2755,12 +2755,7 @@ function applyRecMode(newMode){
 applyRecMode('stt');
 
 /* ════════════ 패널 내 ④ 텍스트 추출 버튼 이벤트 연결 ════════════ */
-document.getElementById('btn-clova-transcribe2').addEventListener('click', function(){
-  document.getElementById('btn-clova-transcribe2').click();
-});
-document.getElementById('btn-whisper-transcribe2').addEventListener('click', function(){
-  document.getElementById('btn-whisper-transcribe2').click();
-});
+// btn-clova-transcribe2, btn-whisper-transcribe2 는 아래에서 직접 이벤트 등록
 // 모달 내 버튼 상태변화를 패널 버튼에도 반영 (MutationObserver)
 (function(){
   function syncBtn(srcId, dstId, labelSrcId, labelDstId, statusSrcId){
