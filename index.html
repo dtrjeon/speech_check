@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0e0f11" id="meta-theme-color">
-<title>전도폭발훈련 전문 구두점검</title>
+<title>전도폭발훈련 전문 구두점검 v2.5</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 /* ══ 다크 스킨 (기본) ══ */
@@ -623,53 +623,6 @@ html.skin-warm .btn-fontsize:hover{border-color:#5b4fcf;color:#5b4fcf;}
   .progress-fill  { border-radius: 1.5mm !important; }
 }
 
-/* ════════════ 녹음 방식 설정 패널 ════════════ */
-.rec-mode-panel-overlay{
-  display:none;position:fixed;top:0;left:0;right:0;bottom:0;
-  background:rgba(0,0,0,.7);z-index:9999;
-  align-items:flex-start;justify-content:center;
-  padding:60px 16px 20px;overflow-y:auto;
-}
-.rec-mode-panel-overlay.open{ display:flex; }
-.rec-mode-panel-card{
-  background:#1e2127;border-radius:16px;
-  width:100%;max-width:360px;overflow:hidden;
-  box-shadow:0 8px 40px rgba(0,0,0,.6);
-}
-html.skin-light .rec-mode-panel-card{ background:#ffffff; }
-.rec-mode-panel-header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:14px 16px;border-bottom:1px solid var(--border);
-  background:var(--surface2);
-}
-.rec-mode-panel-title{ font-size:14px;font-weight:600;color:var(--text); }
-.rec-mode-panel-close-btn{
-  background:transparent;border:none;cursor:pointer;
-  color:var(--text-muted);font-size:18px;line-height:1;padding:0 4px;
-}
-.rec-mode-panel-section{
-  padding:14px 16px;border-bottom:1px solid var(--border);
-}
-.rec-mode-panel-label{
-  font-size:11px;color:var(--text-muted);margin-bottom:8px;letter-spacing:.04em;
-}
-.rec-mode-panel-btns{ display:flex;gap:8px; }
-.rec-mode-btn{
-  flex:1;padding:9px 4px;border-radius:8px;
-  font-size:12px;font-weight:500;cursor:pointer;
-  border:1.5px solid var(--border2);background:transparent;color:var(--text-muted);
-}
-.rec-mode-btn.active{
-  border-color:var(--accent);background:var(--accent-glow);color:var(--accent);font-weight:600;
-}
-.rec-mode-btn.active-clova{
-  border-color:#03c75a;background:rgba(3,199,90,.12);color:#03c75a;font-weight:600;
-}
-.rec-mode-panel-confirm{
-  width:100%;padding:10px;border:none;border-radius:8px;
-  background:var(--accent);color:#fff;font-size:13px;font-weight:500;cursor:pointer;
-}
-
 /* ════════════ 미리보기 모달 ════════════ */
 .preview-modal{
   display:none;position:fixed;inset:0;z-index:9999;
@@ -817,40 +770,6 @@ html.skin-light .rec-mode-panel-card{ background:#ffffff; }
 .rec-mode-panel{display:none;}
 .rec-mode-panel.active{display:block;}
 
-/* ── 설정 버튼 (헤더 우측) ── */
-.rec-mode-setting-btn{
-  position:absolute;top:14px;right:16px;
-  background:transparent;border:1px solid var(--border2);
-  border-radius:7px;padding:4px 9px;cursor:pointer;
-  color:var(--text-muted);display:flex;align-items:center;gap:4px;font-size:11px;
-}
-/* ── 설정 설명 박스 공통 ── */
-.setting-desc-box{
-  border-radius:10px;padding:12px 14px;
-  font-size:12px;line-height:1.7;
-}
-.setting-desc-box-title{font-size:12px;font-weight:600;margin-bottom:6px;}
-.setting-desc-box-body{font-size:12px;color:var(--text-muted);line-height:1.7;margin-bottom:10px;}
-.setting-desc-box.stt{background:var(--red-bg);border:1px solid var(--red-border);}
-.setting-desc-box.stt .setting-desc-box-title{color:var(--red);}
-.setting-desc-box.api{background:var(--surface2);border:1px solid var(--border);}
-.setting-desc-box.api .setting-desc-box-title{color:var(--text);}
-.setting-desc-box.clova{background:var(--surface2);border:1px solid var(--border);}
-.setting-desc-box.clova .setting-desc-box-title{color:#03c75a;}
-/* STT 실시간 텍스트 박스 */
-.stt-live-box{
-  font-size:13px;color:var(--text-muted);min-height:40px;
-  background:var(--surface2);border-radius:8px;
-  padding:8px 12px;line-height:1.6;margin-bottom:10px;
-}
-
-/* ── btn-clova-transcribe2 전용 색상 ── */
-.btn-clova-transcribe{
-  border:1.5px solid #03c75a !important;
-  background:rgba(3,199,90,.12) !important;
-  color:#03c75a !important;
-}
-
 /* ════ Whisper API ════ */
 .whisper-section{
   margin-top:10px;padding:12px 14px;
@@ -921,6 +840,10 @@ html.skin-light .rec-mode-panel-card{ background:#ffffff; }
 .stt-bubble strong{ font-weight:600; color:#fff; }
 
 /* ════════════ 원본 텍스트 전체보기 ════════════ */
+.input-card-header{
+  display:flex;align-items:center;gap:8px;padding:10px 14px;
+  border-bottom:1px solid var(--border);background:var(--surface2);
+}
 .btn-fulltext{
   margin-left:auto;
   background:none;border:none;
@@ -987,8 +910,9 @@ html.skin-light .fulltext-body{color:var(--text);}
   <div class="header">
     <div class="tag">전도폭발훈련 · 전문 구두점검</div>
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련</p>
-    <button id="rec-mode-setting-btn" class="rec-mode-setting-btn" onclick="toggleRecModeSetting()" title="녹음 방식 설정">
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.5 (2026.06.12)</span></p>
+    <button id="rec-mode-setting-btn" onclick="toggleRecModeSetting()" title="녹음 방식 설정"
+      style="position:absolute;top:14px;right:16px;background:transparent;border:1px solid var(--border2);border-radius:7px;padding:4px 9px;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;gap:4px;font-size:11px;">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="3"/>
         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -998,32 +922,45 @@ html.skin-light .fulltext-body{color:var(--text);}
   </div>
 
   <!-- 녹음 방식 설정 모달 -->
-  <div id="rec-mode-setting-panel" class="rec-mode-panel-overlay" onclick="if(event.target===this)closeRecModeSetting()">
-    <div class="rec-mode-panel-card">
+  <div id="rec-mode-setting-panel" onclick="if(event.target===this)closeRecModeSetting()"
+    style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:9999;align-items:flex-start;justify-content:center;padding:60px 16px 20px;overflow-y:auto;">
+    <div style="background:#1e2127;border-radius:16px;width:100%;max-width:360px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.6);">
       <!-- 모달 헤더 -->
-      <div class="rec-mode-panel-header">
-        <span class="rec-mode-panel-title">⚙ 녹음 방식 설정</span>
-        <button class="rec-mode-panel-close-btn" onclick="closeRecModeSetting()">✕</button>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--surface2);">
+        <span style="font-size:14px;font-weight:600;color:var(--text);">⚙ 녹음 방식 설정</span>
+        <button onclick="closeRecModeSetting()" style="background:transparent;border:none;cursor:pointer;color:var(--text-muted);font-size:18px;line-height:1;padding:0 4px;">✕</button>
       </div>
       <!-- 방식 선택 버튼 3개 -->
-      <div class="rec-mode-panel-section">
-        <div class="rec-mode-panel-label">녹음 방식 선택</div>
-        <div class="rec-mode-panel-btns">
-          <button id="mode-btn-stt"   onclick="applyRecMode('stt')"   class="rec-mode-btn active">🎙️ 실시간 STT</button>
-          <button id="mode-btn-api"   onclick="applyRecMode('api')"   class="rec-mode-btn">🤖 Whisper</button>
-          <button id="mode-btn-clova" onclick="applyRecMode('clova')" class="rec-mode-btn">🟢 CLOVA</button>
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;letter-spacing:.04em;">녹음 방식 선택</div>
+        <div style="display:flex;gap:8px;">
+          <button id="mode-btn-stt" onclick="applyRecMode('stt')"
+            style="flex:1;padding:9px 4px;border-radius:8px;border:1.5px solid var(--accent);background:var(--accent-glow);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;">
+            🎙️ 실시간 STT
+          </button>
+          <button id="mode-btn-api" onclick="applyRecMode('api')"
+            style="flex:1;padding:9px 4px;border-radius:8px;border:1.5px solid var(--border2);background:transparent;color:var(--text-muted);font-size:12px;font-weight:500;cursor:pointer;">
+            🤖 Whisper
+          </button>
+          <button id="mode-btn-clova" onclick="applyRecMode('clova')"
+            style="flex:1;padding:9px 4px;border-radius:8px;border:1.5px solid var(--border2);background:transparent;color:var(--text-muted);font-size:12px;font-weight:500;cursor:pointer;">
+            🟢 CLOVA
+          </button>
         </div>
+        <!-- hidden 호환용 -->
       </div>
       <!-- STT 설명 박스 -->
-      <div id="setting-desc-stt" class="rec-mode-panel-section">
-        <div class="setting-desc-box stt">
-          <div class="setting-desc-box-title">🎙️ 실시간 STT</div>
-          <div class="setting-desc-box-body">
+      <div id="setting-desc-stt" style="padding:14px 16px;border-bottom:1px solid var(--border);">
+        <div style="background:var(--red-bg);border:1px solid var(--red-border);border-radius:10px;padding:12px 14px;">
+          <div style="font-size:12px;font-weight:600;color:var(--red);margin-bottom:6px;">🎙️ 실시간 STT</div>
+          <div style="font-size:12px;color:var(--text-muted);line-height:1.7;margin-bottom:10px;">
             녹음 시작하면 말하는 내용이 실시간으로 텍스트 변환됩니다.<br>
             <span style="color:var(--amber);">⚠ 아이폰(iOS)은 STT를 지원하지 않습니다. 클로바노트 탭 또는 Whisper API를 사용하세요.</span>
           </div>
           <!-- 실시간 텍스트 표시 -->
-          <div id="stt-live-text" class="stt-live-box">녹음 시작 후 여기에 텍스트가 표시됩니다</div>
+          <div id="stt-live-text" style="font-size:13px;color:var(--text-muted);min-height:40px;background:var(--surface2);border-radius:8px;padding:8px 12px;line-height:1.6;margin-bottom:10px;">
+            녹음 시작 후 여기에 텍스트가 표시됩니다
+          </div>
           <!-- 클로바노트 안내 -->
           <div class="stt-bubble show" id="stt-fail-bubble">
             STT가 안 될 경우 (아이폰 등)<br>
@@ -1033,10 +970,12 @@ html.skin-light .fulltext-body{color:var(--text);}
         </div>
       </div>
       <!-- API 설명 박스 -->
-      <div id="setting-desc-api" class="rec-mode-panel-section" style="display:none;">
-        <div class="setting-desc-box api">
-          <div class="setting-desc-box-title">🤖 Whisper API 설정</div>
-          <div class="setting-desc-box-body">OpenAI Whisper API를 사용해 높은 정확도로 음성을 텍스트로 변환합니다.</div>
+      <div id="setting-desc-api" style="display:none;padding:14px 16px;border-bottom:1px solid var(--border);">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;">🤖 Whisper API 설정</div>
+          <div style="font-size:12px;color:var(--text-muted);line-height:1.7;margin-bottom:10px;">
+            OpenAI Whisper API를 사용해 높은 정확도로 음성을 텍스트로 변환합니다.
+          </div>
           <!-- API 키 입력 -->
           <div class="whisper-key-row">
             <input type="password" class="whisper-key-input" id="whisper-key-input"
@@ -1047,10 +986,10 @@ html.skin-light .fulltext-body{color:var(--text);}
         </div>
       </div>
       <!-- CLOVA 설명 박스 -->
-      <div id="setting-desc-clova" class="rec-mode-panel-section" style="display:none;">
-        <div class="setting-desc-box clova">
-          <div class="setting-desc-box-title">🟢 CLOVA Speech API 설정</div>
-          <div class="setting-desc-box-body">
+      <div id="setting-desc-clova" style="display:none;padding:14px 16px;border-bottom:1px solid var(--border);">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+          <div style="font-size:12px;font-weight:600;color:#03c75a;margin-bottom:8px;">🟢 CLOVA Speech API 설정</div>
+          <div style="font-size:12px;color:var(--text-muted);line-height:1.7;margin-bottom:10px;">
             네이버 CLOVA Speech API로 한국어 음성을 텍스트로 변환합니다.<br>
             한국어 정확도가 매우 높고 긴 녹음도 인식 가능합니다.
           </div>
@@ -1064,13 +1003,11 @@ html.skin-light .fulltext-body{color:var(--text);}
         </div>
       </div>
       <!-- 닫기 버튼 -->
-      <div class="rec-mode-panel-section" style="border-bottom:none;">
-        <button class="rec-mode-panel-confirm" onclick="closeRecModeSetting()">확인</button>
+      <div style="padding:12px 16px;">
+        <button onclick="closeRecModeSetting()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;font-weight:500;cursor:pointer;">확인</button>
       </div>
     </div>
   </div>
-  <div id="banner" class="banner"></div>
-
   <!-- 챕터 선택 -->
   <div class="chapter-section">
     <div class="slabel">원본 챕터 선택</div>
@@ -1182,8 +1119,8 @@ html.skin-light .fulltext-body{color:var(--text);}
 
       <!-- ③/ⓑ 텍스트 추출 -->
       <div id="btn-transcribe-wrap" style="display:none;margin-top:8px;">
-        <button class="btn-whisper-transcribe btn-clova-transcribe btn-aligned" id="btn-clova-transcribe2" disabled
-          style="width:100%;min-height:56px;border-radius:10px;display:none;touch-action:manipulation;">
+        <button class="btn-whisper-transcribe btn-aligned" id="btn-clova-transcribe2" disabled
+          style="width:100%;min-height:56px;border-radius:10px;border:1.5px solid #03c75a;background:rgba(3,199,90,.12);color:#03c75a;font-family:'Noto Sans KR',sans-serif;font-size:16px;font-weight:500;cursor:pointer;display:none;touch-action:manipulation;">
           <span class="btn-icon"></span>
           <span class="btn-num" id="clova-btn-num">③</span>
           <span id="clova-btn-label2" class="btn-text">텍스트 추출 (CLOVA)</span>
@@ -1274,6 +1211,7 @@ html.skin-light .fulltext-body{color:var(--text);}
       <button class="btn-sm" id="btn-clear-rec">녹음 지우기</button>
       <button class="btn-sm" id="btn-clear-all">전체 초기화</button>
     </div>
+    <div id="banner" class="banner"></div>
     <div class="status-bar" id="status">마이크 또는 클로바노트로 텍스트를 입력하세요</div>
   </div>
 
@@ -2388,16 +2326,14 @@ function makeTimestamp(){
     +now.getHours().toString().padStart(2,'0')
     +now.getMinutes().toString().padStart(2,'0');
 }
-function downloadBlob(blob, filename){
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a); URL.revokeObjectURL(url);
-}
 function saveTxtFile(ts, text){
   if(!text || !text.trim()) return false;
-  downloadBlob(new Blob([text], {type:'text/plain;charset=utf-8'}), '녹음_' + ts + '.txt');
+  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = '녹음_' + ts + '.txt';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
   return true;
 }
 
@@ -2419,7 +2355,11 @@ document.getElementById('btn-save-audio').addEventListener('click', function(){
 
   // ── Whisper 모드: 음성만 저장 후 Whisper 추출 안내 ──
   if(recMode === 'api'){
-    downloadBlob(audioBlob, audioFilename);
+    const url = URL.createObjectURL(audioBlob);
+    const a = document.createElement('a');
+    a.href = url; a.download = audioFilename;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
     setStatus('음성 저장 완료 ✓ — ④ 텍스트 추출(Whisper) 버튼을 누르세요');
     showBanner('✓ 음성(.'+audioExt+') 저장 완료!<br>이제 아래 <strong>④ 텍스트 추출(Whisper)</strong> 버튼을 눌러 텍스트를 추출하세요.', 'ok');
     return;
@@ -2428,7 +2368,11 @@ document.getElementById('btn-save-audio').addEventListener('click', function(){
   // ── STT 모드: txt 먼저 저장 → 1초 후 오디오 저장 (브라우저 연속 다운로드 차단 방지) ──
   const savedText = transcript.trim() || recordedText.trim();
   if(!savedText){
-    downloadBlob(audioBlob, audioFilename);
+    const url = URL.createObjectURL(audioBlob);
+    const a = document.createElement('a');
+    a.href = url; a.download = audioFilename;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
     setStatus('음성 저장 완료 ✓ (STT 텍스트 없음)');
     showBanner('✓ 음성(.'+audioExt+') 저장 완료.', 'ok');
     return;
@@ -2439,7 +2383,11 @@ document.getElementById('btn-save-audio').addEventListener('click', function(){
   setStatus('텍스트 저장 중... 잠시 후 음성 파일이 저장됩니다');
   // 1초 후 오디오 저장
   setTimeout(() => {
-    downloadBlob(audioBlob, audioFilename);
+    const url = URL.createObjectURL(audioBlob);
+    const a = document.createElement('a');
+    a.href = url; a.download = audioFilename;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
     setStatus('음성 + 텍스트 저장 완료 ✓ — 비교 분석 버튼을 누르세요');
     showBanner('✓ 녹음_' + ts + '.txt 및 녹음_' + ts + '.' + (audioExt||'webm') + ' 저장 완료!', 'ok');
   }, 1000);
@@ -2804,11 +2752,16 @@ function compare(){
 /* ════════════ 녹음 방식 토글 ════════════ */
 function toggleRecModeSetting(){
   const p = document.getElementById('rec-mode-setting-panel');
-  if(p) p.classList.toggle('open');
+  if(p){
+    const isLight = document.documentElement.classList.contains('skin-light');
+    const card = p.querySelector('div');
+    if(card) card.style.background = isLight ? '#ffffff' : '#1e2127';
+    p.style.display = p.style.display === 'none' ? 'flex' : 'none';
+  }
 }
 function closeRecModeSetting(){
   const p = document.getElementById('rec-mode-setting-panel');
-  if(p) p.classList.remove('open');
+  if(p) p.style.display = 'none';
 }
 function applyRecMode(newMode){
   recMode = newMode;
@@ -2820,24 +2773,28 @@ function applyRecMode(newMode){
   const lbl = document.getElementById('rec-mode-setting-label');
   if(lbl) lbl.textContent = isStt ? 'STT' : isApi ? 'API' : 'CLOVA';
 
-  // 3버튼 클래스 토글
+  // 3버튼 하이라이트
+  const accent = 'var(--accent)', accentGlow = 'var(--accent-glow)', clovaGreen = '#03c75a', clovaGreenBg = 'rgba(3,199,90,.12)';
+  const border2 = 'var(--border2)', transp = 'transparent', muted = 'var(--text-muted)';
   const bStt   = document.getElementById('mode-btn-stt');
   const bApi   = document.getElementById('mode-btn-api');
   const bClova = document.getElementById('mode-btn-clova');
-  if(bStt){   bStt.classList.toggle('active',        isStt);  bStt.classList.remove('active-clova'); }
-  if(bApi){   bApi.classList.toggle('active',        isApi);  bApi.classList.remove('active-clova'); }
-  if(bClova){ bClova.classList.toggle('active-clova',isClova); bClova.classList.toggle('active',false); }
+  if(bStt){   bStt.style.borderColor   = isStt  ? accent      : border2; bStt.style.background   = isStt  ? accentGlow   : transp; bStt.style.color   = isStt  ? accent      : muted; bStt.style.fontWeight   = isStt  ? '600':'500'; }
+  if(bApi){   bApi.style.borderColor   = isApi  ? accent      : border2; bApi.style.background   = isApi  ? accentGlow   : transp; bApi.style.color   = isApi  ? accent      : muted; bApi.style.fontWeight   = isApi  ? '600':'500'; }
+  if(bClova){ bClova.style.borderColor = isClova? clovaGreen  : border2; bClova.style.background = isClova? clovaGreenBg : transp; bClova.style.color = isClova? clovaGreen  : muted; bClova.style.fontWeight = isClova? '600':'500'; }
 
   // 설명 박스 전환
-  ['stt','api','clova'].forEach(m => {
-    const el = document.getElementById('setting-desc-'+m);
-    if(el) el.style.display = (newMode === m) ? 'block' : 'none';
-  });
+  const dStt   = document.getElementById('setting-desc-stt');
+  const dApi   = document.getElementById('setting-desc-api');
+  const dClova = document.getElementById('setting-desc-clova');
+  if(dStt)   dStt.style.display   = isStt   ? 'block' : 'none';
+  if(dApi)   dApi.style.display   = isApi   ? 'block' : 'none';
+  if(dClova) dClova.style.display = isClova ? 'block' : 'none';
 
-  // 음성 저장 / 파일 업로드 버튼 전환
-  const saveRow      = document.getElementById('save-audio-row');
-  const uploadRow    = document.getElementById('clova-upload-row');
-  const whisperUpRow = document.getElementById('whisper-upload-row');
+  // 음성 저장 버튼 / 파일 업로드 버튼 전환
+  const saveRow        = document.getElementById('save-audio-row');
+  const uploadRow      = document.getElementById('clova-upload-row');
+  const whisperUpRow   = document.getElementById('whisper-upload-row');
   if(saveRow)      saveRow.style.display      = (isClova || isApi) ? 'none' : '';
   if(uploadRow)    uploadRow.style.display    = isClova ? 'block' : 'none';
   if(whisperUpRow) whisperUpRow.style.display = isApi   ? 'block' : 'none';
@@ -2847,13 +2804,21 @@ function applyRecMode(newMode){
   if(isApi)   setStatus('Whisper API 방식\n① 권한 → ② 녹음 → ③ 텍스트추출 → 비교분석\nⓐ 파일업로드 → ⓑ 텍스트추출 → 비교분석');
   if(isClova) setStatus('CLOVA Speech 방식\n① 권한 → ② 녹음 → ③ 텍스트추출 → 비교분석\nⓐ 파일업로드 → ⓑ 텍스트추출 → 비교분석');
 
-  // ④ 텍스트 추출 버튼 표시 전환
-  const wrap     = document.getElementById('btn-transcribe-wrap');
-  const b2clova  = document.getElementById('btn-clova-transcribe2');
-  const b2whisper= document.getElementById('btn-whisper-transcribe2');
-  if(wrap)     wrap.style.display      = (isClova || isApi) ? 'block' : 'none';
-  if(b2clova){  b2clova.style.display  = isClova ? 'flex' : 'none'; if(isClova) b2clova.disabled = !clovaGasUrl; }
-  if(b2whisper){ b2whisper.style.display= isApi  ? 'flex' : 'none'; if(isApi) b2whisper.disabled = !whisperApiKey; }
+  // 패널 내 ④ 텍스트 추출 버튼 표시 전환
+  const wrap = document.getElementById('btn-transcribe-wrap');
+  const b2clova   = document.getElementById('btn-clova-transcribe2');
+  const b2whisper = document.getElementById('btn-whisper-transcribe2');
+  if(wrap){
+    wrap.style.display = (isClova || isApi) ? 'block' : 'none';
+  }
+  if(b2clova){
+    b2clova.style.display   = isClova ? 'flex' : 'none';
+    if(isClova) b2clova.disabled = !clovaGasUrl;
+  }
+  if(b2whisper){
+    b2whisper.style.display = isApi   ? 'flex' : 'none';
+    if(isApi) b2whisper.disabled = !whisperApiKey;
+  }
 }
 
 // 초기 상태 적용 (기본: stt)
@@ -2954,20 +2919,27 @@ document.getElementById('btn-clova-transcribe2').addEventListener('click', async
     if(!response.ok) throw new Error('GAS 요청 실패: ' + response.status);
 
     const data = await response.json();
-    if(data.error) throw new Error('CLOVA 오류: ' + data.error);
+
+    // GAS 레벨 오류
+    if(data.error) throw new Error('GAS 오류: ' + data.error);
+
+    // CLOVA result 확인 (ERROR / FAILED 등)
+    if(data.result && data.result !== 'COMPLETED') {
+      throw new Error('CLOVA 변환 실패: ' + data.result + (data.message ? ' — ' + data.message : ''));
+    }
 
     // CLOVA Speech 응답 파싱
-    // 응답 구조: { result:'COMPLETED', segments:[{text:'...',textEdited:'...'},...] }
+    // 정상: { result:'COMPLETED', segments:[{textEdited:'...', text:'...'},...], text:'...' }
     let text = '';
     if(data.segments && data.segments.length > 0) {
       text = data.segments.map(s => s.textEdited || s.text || '').join(' ').trim();
-    } else if(data.text) {
+    }
+    if(!text && data.text) {
       text = data.text.trim();
     }
     if(!text){
-      // 실패 원인을 구체적으로 표시
-      const reason = data.message || data.result || JSON.stringify(data).slice(0, 100);
-      throw new Error('텍스트 변환 결과가 없습니다. (' + reason + ')');
+      const dump = JSON.stringify(data).slice(0, 300);
+      throw new Error('텍스트 변환 결과가 없습니다.\n응답: ' + dump);
     }
 
     transcript = numToKor(text);
