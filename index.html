@@ -213,7 +213,6 @@ textarea::placeholder{color:var(--text-dim);}
 .btn-num{display:inline-block;width:28px;flex-shrink:0;font-weight:600;}
 .btn-text{flex:1;text-align:left;}
 
-
 .clova-guide{
   background:var(--clova-bg);border:1px solid var(--clova-border);
   border-radius:10px;padding:12px 14px;margin-bottom:10px;
@@ -329,7 +328,6 @@ textarea::placeholder{color:var(--text-dim);}
 .progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text-dim);margin-bottom:6px;}
 .progress-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
 .progress-fill{height:100%;border-radius:3px;transition:width .7s ease;}
-
 
 /* ════════════ 라이트 스킨 추가 오버라이드 ════════════ */
 html.skin-light body{background:var(--bg);}
@@ -993,7 +991,6 @@ html.skin-light .fulltext-body{color:var(--text);}
 
     </div>
 
-
     <!-- 마이크 패널 -->
     <div class="tab-panel active" id="panel-mic">
 
@@ -1022,12 +1019,12 @@ html.skin-light .fulltext-body{color:var(--text);}
 
       <!-- ⓐ CLOVA 모드: 파일 업로드 -->
       <div id="clova-upload-row" style="display:none;margin-top:8px;">
-        <label for="clova-file-input" class="btn-save btn-aligned" style="width:100%;box-sizing:border-box;border:1.5px solid var(--accent);background:var(--accent-glow);color:var(--accent);cursor:pointer;">
+        <label for="audio-file-input" class="btn-save btn-aligned" style="width:100%;box-sizing:border-box;border:1.5px solid var(--accent);background:var(--accent-glow);color:var(--accent);cursor:pointer;">
           <span class="btn-icon"></span>
           <span class="btn-num">ⓐ</span>
           <span class="btn-text">녹음 파일 업로드 (.m4a / .webm)</span>
         </label>
-        <input type="file" id="clova-file-input" accept="audio/*" style="position:fixed;top:-100px;left:-100px;width:1px;height:1px;opacity:0;">
+        <input type="file" id="audio-file-input" accept="audio/*" style="position:fixed;top:-100px;left:-100px;width:1px;height:1px;opacity:0;">
         <div id="clova-file-name" style="font-size:12px;color:var(--text-muted);margin-top:4px;padding-left:52px;"></div>
       </div>
 
@@ -1164,7 +1161,6 @@ html.skin-light .fulltext-body{color:var(--text);}
   </div>
   <div class="preview-a4" id="preview-a4-content"></div>
 </div>
-
 
 <script>
 /* ════════════ 챕터 데이터 ════════════ */
@@ -1630,10 +1626,6 @@ let recMode = 'stt'; // 'api' | 'stt' | 'clova'
 let clovaGasUrl = (function(){
   try{ return localStorage.getItem('clova_gas_url')||'https://script.google.com/macros/s/AKfycbzQsG-6a-OjFs2ex20IOFVcTTAHc5UdUa8bXQF034hMQIM5QoakVapATNi9wb83TB62KA/exec'; }catch(e){return '';}
 })();
-let clovaSecretKey = (function(){
-  try{ const v=localStorage.getItem('clova_secret_key')||''; if(!v)return ''; try{return atob(v);}catch(e){return v;} }catch(e){return '';}
-})();
-
 /* ════════════ 유틸 ════════════ */
 function setStatus(msg){ 
   const el = document.getElementById('status');
@@ -2230,7 +2222,7 @@ function stopRec(){
   if(recognition){ recognition.onend=null; try{ recognition.stop(); }catch(e){} }
   if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
   document.getElementById('btn-rec').classList.remove('recording');
-  document.getElementById('rec-label').textContent = '② 녹음 시작';
+  document.getElementById('rec-label').textContent = '녹음 시작';
   if(transcript.trim()) recordedText = transcript;
   updateRecordedPreview();
   if(transcript.trim()){
@@ -2238,7 +2230,9 @@ function stopRec(){
     btn.disabled = false; btn.classList.add('ready');
   }
   if(recMode === 'api'){
-    setStatus('녹음 완료 ✓ — ④ 텍스트 추출(Whisper) 버튼을 누르세요');
+    setStatus('녹음 완료 ✓ — ③ 텍스트 추출(Whisper) 버튼을 누르세요');
+  } else if(recMode === 'clova'){
+    setStatus('녹음 완료 ✓ — ③ 텍스트 추출(CLOVA) 버튼을 누르세요');
   } else {
     setStatus('녹음 완료 ✓ — ③ 음성저장 버튼을 누르세요');
   }
@@ -2718,7 +2712,6 @@ function applyRecMode(newMode){
   if(dApi)   dApi.style.display   = isApi   ? 'block' : 'none';
   if(dClova) dClova.style.display = isClova ? 'block' : 'none';
 
-
   // 음성 저장 버튼 / 파일 업로드 버튼 전환
   const saveRow        = document.getElementById('save-audio-row');
   const uploadRow      = document.getElementById('clova-upload-row');
@@ -2749,47 +2742,20 @@ function applyRecMode(newMode){
   }
 }
 
-
-
 // 초기 상태 적용 (기본: stt)
 applyRecMode('stt');
 
-/* ════════════ 패널 내 ④ 텍스트 추출 버튼 이벤트 연결 ════════════ */
-// btn-clova-transcribe2, btn-whisper-transcribe2 는 아래에서 직접 이벤트 등록
-// 모달 내 버튼 상태변화를 패널 버튼에도 반영 (MutationObserver)
-(function(){
-  function syncBtn(srcId, dstId, labelSrcId, labelDstId, statusSrcId){
-    const src = document.getElementById(srcId);
-    const dst = document.getElementById(dstId);
-    if(!src||!dst) return;
-    const obs = new MutationObserver(function(){
-      dst.disabled = src.disabled;
-      dst.className = src.className;
-      const lSrc = document.getElementById(labelSrcId);
-      const lDst = document.getElementById(labelDstId);
-      if(lSrc && lDst) lDst.textContent = lSrc.textContent;
-      const sSrc = document.getElementById(statusSrcId);
-      const sDst = document.getElementById('transcribe-status2');
-      if(sSrc && sDst) sDst.textContent = sSrc.textContent;
-    });
-    obs.observe(src, {attributes:true, childList:true, subtree:true});
-  }
-  syncBtn('btn-clova-transcribe',   'btn-clova-transcribe2',   'clova-btn-label',   'clova-btn-label2',   'clova-status');
-  syncBtn('btn-whisper-transcribe', 'btn-whisper-transcribe2', 'whisper-btn-label', 'whisper-btn-label2', 'whisper-status');
-})();
+/* ── btn-clova-transcribe2 / btn-whisper-transcribe2 이벤트는 아래에서 직접 등록 ── */
 
 /* ════════════ CLOVA Speech API ════════════ */
 
 // CLOVA GAS URL 자동 로드
 (function(){
-  if(clovaGasUrl){
-    const inp = document.getElementById('clova-gas-url-input');
-    if(inp) inp.value = clovaGasUrl.length > 40 ? clovaGasUrl.slice(0,40)+'…' : clovaGasUrl;
-    
-    document.getElementById('btn-clova-transcribe2').disabled = false;
-    const cb2 = document.getElementById('btn-clova-transcribe2');
-    if(cb2) cb2.disabled = false;
-  }
+  if(!clovaGasUrl) return;
+  const inp = document.getElementById('clova-gas-url-input');
+  if(inp) inp.value = clovaGasUrl.length > 40 ? clovaGasUrl.slice(0,40)+'…' : clovaGasUrl;
+  const cb2 = document.getElementById('btn-clova-transcribe2');
+  if(cb2) cb2.disabled = false;
 })();
 
 // CLOVA GAS URL 저장
@@ -2800,15 +2766,12 @@ document.getElementById('btn-clova-gas-url-save').addEventListener('click', func
   clovaGasUrl = url;
   try{ localStorage.setItem('clova_gas_url', url); }catch(e){}
   document.getElementById('clova-gas-url-input').value = url.length > 40 ? url.slice(0,40)+'…' : url;
-  
-  document.getElementById('btn-clova-transcribe2').disabled = false;
   const cb2 = document.getElementById('btn-clova-transcribe2');
   if(cb2) cb2.disabled = false;
   showBanner('✓ GAS URL이 저장되었습니다. 녹음 후 텍스트 추출 버튼을 누르세요.', 'ok');
 });
 
-// CLOVA 텍스트 추출
-// Whisper 파일 업로드 → audioBlob 세팅
+/* ════════════ Whisper 파일 업로드 → audioBlob 세팅 ════════════ */
 document.getElementById('whisper-file-input').addEventListener('change', function(){
   const file = this.files[0];
   if(!file) return;
@@ -2826,8 +2789,8 @@ document.getElementById('whisper-file-input').addEventListener('change', functio
   showBanner('✓ 파일이 로드됐습니다. ⓑ 텍스트 추출(Whisper) 버튼을 누르세요.', 'ok');
 });
 
-// CLOVA 파일 업로드 → audioBlob 세팅
-document.getElementById('clova-file-input').addEventListener('change', function(){
+// CLOVA 모드 오디오 파일 업로드 → audioBlob 세팅
+document.getElementById('audio-file-input').addEventListener('change', function(){
   const file = this.files[0];
   if(!file) return;
   audioBlob = file;
@@ -2835,7 +2798,6 @@ document.getElementById('clova-file-input').addEventListener('change', function(
   audioExt  = ext || 'm4a';
   audioMime = file.type || 'audio/mp4';
   document.getElementById('clova-file-name').textContent = '✓ ' + file.name;
-  // 텍스트 추출 버튼 번호 ⓑ로 변경
   const numEl = document.getElementById('clova-btn-num');
   if(numEl) numEl.textContent = 'ⓑ';
   const cb2 = document.getElementById('btn-clova-transcribe2');
@@ -2915,15 +2877,12 @@ document.getElementById('btn-clova-transcribe2').addEventListener('click', async
 
 /* ════════════ Whisper API ════════════ */
 
-// 저장된 키 자동 로드
+// 저장된 Whisper 키 자동 로드
 (function(){
-  if(whisperApiKey){
-    document.getElementById('whisper-key-input').value = '••••••••••••••••';
-    
-    document.getElementById('btn-whisper-transcribe2').disabled = false;
-    const wb2 = document.getElementById('btn-whisper-transcribe2');
-    if(wb2) wb2.disabled = false;
-  }
+  if(!whisperApiKey) return;
+  document.getElementById('whisper-key-input').value = '••••••••••••••••';
+  const wb2 = document.getElementById('btn-whisper-transcribe2');
+  if(wb2) wb2.disabled = false;
 })();
 
 // API 키 저장
@@ -2936,8 +2895,8 @@ document.getElementById('btn-whisper-key-save').addEventListener('click', functi
   whisperApiKey = key;
   try{ localStorage.setItem('whisper_api_key', btoa(key)); }catch(e){}
   document.getElementById('whisper-key-input').value = '••••••••••••••••';
-  
-  document.getElementById('btn-whisper-transcribe2').disabled = false;
+  const wb2 = document.getElementById('btn-whisper-transcribe2');
+  if(wb2) wb2.disabled = false;
   showBanner('✓ API 키가 저장되었습니다. 녹음 후 텍스트 추출 버튼을 누르세요.', 'ok');
 });
 
@@ -3165,8 +3124,7 @@ document.getElementById('preview-modal').addEventListener('click', function(e){
   }
 });
 
-/* ════════════ 초기화 ════════════ */
-/* 프린트 버튼 */
+/* ════════════ 프린트 버튼 ════════════ */
 document.getElementById('btn-print').addEventListener('click', function(){
   // 머리글 정보 채우기
   const chInfo = selected.length > 0
@@ -3196,9 +3154,6 @@ document.getElementById('btn-print').addEventListener('click', function(){
   window.addEventListener('afterprint', handler2);
   window.print();
 });
-
-
-
 
 /* ════════════ 원본 텍스트 전체보기 ════════════ */
 (function(){
