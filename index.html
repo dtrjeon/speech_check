@@ -2830,10 +2830,10 @@ document.getElementById('btn-clova-transcribe2').addEventListener('click', async
       reader.readAsDataURL(audioBlob);
     });
 
-    // GAS로 전송 (JSON body — GAS는 e.postData.contents로 수신)
+    // GAS로 전송 (text/plain으로 CORS preflight 우회, body는 JSON 문자열)
     const response = await fetch(clovaGasUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ audio: base64Audio, mime, ext })
     });
 
