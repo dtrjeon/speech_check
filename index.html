@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0e0f11" id="meta-theme-color">
-<title>전도폭발훈련 전문 구두점검 v2.8</title>
+<title>전도폭발훈련 전문 구두점검 v2.9</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 /* ══ 다크 스킨 (기본) ══ */
@@ -910,7 +910,7 @@ html.skin-light .fulltext-body{color:var(--text);}
   <div class="header">
     <div class="tag">전도폭발훈련 · 전문 구두점검</div>
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.8 (2026.06.13)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.9 (2026.06.13)</span></p>
     <button id="rec-mode-setting-btn" onclick="toggleRecModeSetting()" title="녹음 방식 설정"
       style="position:absolute;top:14px;right:16px;background:transparent;border:1px solid var(--border2);border-radius:7px;padding:4px 9px;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;gap:4px;font-size:11px;">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -2923,8 +2923,10 @@ document.getElementById('btn-clova-transcribe2').addEventListener('click', async
     // GAS 레벨 오류
     if(data.error) throw new Error('GAS 오류: ' + data.error);
 
-    // CLOVA result 확인 (ERROR / FAILED 등)
-    if(data.result && data.result !== 'COMPLETED') {
+    // CLOVA result 확인
+    // 폴링: COMPLETED, OBS 결과파일: SUCCEEDED
+    const okResults = ['COMPLETED', 'SUCCEEDED'];
+    if(data.result && !okResults.includes(data.result)) {
       throw new Error('CLOVA 변환 실패: ' + data.result + (data.message ? ' — ' + data.message : ''));
     }
 
