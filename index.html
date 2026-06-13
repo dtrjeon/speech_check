@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0e0f11" id="meta-theme-color">
-<title>전도폭발훈련 전문 구두점검 v2.6</title>
+<title>전도폭발훈련 전문 구두점검 v2.7</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 /* ══ 다크 스킨 (기본) ══ */
@@ -910,7 +910,7 @@ html.skin-light .fulltext-body{color:var(--text);}
   <div class="header">
     <div class="tag">전도폭발훈련 · 전문 구두점검</div>
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.6 (2026.06.13)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.7 (2026.06.13)</span></p>
     <button id="rec-mode-setting-btn" onclick="toggleRecModeSetting()" title="녹음 방식 설정"
       style="position:absolute;top:14px;right:16px;background:transparent;border:1px solid var(--border2);border-radius:7px;padding:4px 9px;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;gap:4px;font-size:11px;">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1703,7 +1703,7 @@ let whisperApiKey = (function(){
 })();
 let recMode = 'stt'; // 'api' | 'stt' | 'clova'
 let clovaGasUrl = (function(){
-  try{ return localStorage.getItem('clova_gas_url')||'https://script.google.com/macros/s/AKfycbzQsG-6a-OjFs2ex20IOFVcTTAHc5UdUa8bXQF034hMQIM5QoakVapATNi9wb83TB62KA/exec'; }catch(e){return '';}
+  try{ return localStorage.getItem('clova_gas_url')||'https://script.google.com/macros/s/AKfycbwc9LjCdlwXiQUoC71Oo6MaE3LcGU4MB6Cxr2ONp-mnkem4EihQJPwr-3PoMrlA8H8Yvw/exec'; }catch(e){return '';}
 })();
 /* ════════════ 유틸 ════════════ */
 function setStatus(msg){ 
