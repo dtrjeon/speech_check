@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0e0f11" id="meta-theme-color">
-<title>전도폭발훈련 전문 구두점검 v2.5</title>
+<title>전도폭발훈련 전문 구두점검 v2.6</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 /* ══ 다크 스킨 (기본) ══ */
@@ -910,7 +910,7 @@ html.skin-light .fulltext-body{color:var(--text);}
   <div class="header">
     <div class="tag">전도폭발훈련 · 전문 구두점검</div>
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.5 (2026.06.12)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.6 (2026.06.13)</span></p>
     <button id="rec-mode-setting-btn" onclick="toggleRecModeSetting()" title="녹음 방식 설정"
       style="position:absolute;top:14px;right:16px;background:transparent;border:1px solid var(--border2);border-radius:7px;padding:4px 9px;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;gap:4px;font-size:11px;">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -2898,8 +2898,8 @@ document.getElementById('btn-clova-transcribe2').addEventListener('click', async
 
   try {
     const ext = audioExt || 'webm';
-    const mimeMap = { m4a:'audio/mp4', webm:'audio/webm', ogg:'audio/ogg' };
-    const mime = mimeMap[ext] || 'audio/webm';
+    const mimeMap = { m4a:'audio/mpeg', mp3:'audio/mpeg', webm:'audio/webm', ogg:'audio/ogg', wav:'audio/wav', flac:'audio/flac', aac:'audio/aac' };
+    const mime = mimeMap[ext] || 'audio/mpeg';
 
     // audioBlob → base64
     const base64Audio = await new Promise((resolve, reject) => {
@@ -3002,8 +3002,8 @@ document.getElementById('btn-whisper-transcribe2').addEventListener('click', asy
   try {
     // audioBlob → File 객체로 변환
     const ext = audioExt || 'webm';
-    const mimeMap = { m4a:'audio/mp4', webm:'audio/webm', ogg:'audio/ogg' };
-    const mime = mimeMap[ext] || 'audio/webm';
+    const mimeMap = { m4a:'audio/mpeg', mp3:'audio/mpeg', webm:'audio/webm', ogg:'audio/ogg', wav:'audio/wav', flac:'audio/flac', aac:'audio/aac' };
+    const mime = mimeMap[ext] || 'audio/mpeg';
     const audioFile = new File([audioBlob], '녹음.' + ext, { type: mime });
 
     const formData = new FormData();
