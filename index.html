@@ -1090,10 +1090,7 @@ html.skin-light .fulltext-body{color:var(--text);}
       <!-- 설명서 -->
       <a href="manual_guducheckv218.html" style="background:transparent;border:1px solid var(--border2);border-radius:7px;padding:0 10px;color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;gap:4px;font-size:12px;height:32px;text-decoration:none;">📖 설명서</a>
       <!-- 온라인 상태 -->
-      <div id="online-badge" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);height:32px;padding:0 6px;">
-        <span id="online-dot" style="width:8px;height:8px;border-radius:50%;background:var(--text-dim);flex-shrink:0;transition:background .4s;"></span>
-        <span id="online-label" style="white-space:nowrap;"></span>
-      </div>
+      <span id="online-dot" title="온라인 연결" style="width:10px;height:10px;border-radius:50%;background:var(--text-dim);flex-shrink:0;transition:background .4s;display:inline-block;"></span>
       <!-- 로그아웃 -->
       <button class="btn-logout" id="btn-logout">로그아웃</button>
     </div>
@@ -3733,19 +3730,17 @@ document.getElementById('btn-print').addEventListener('click', function(){
 
 /* ════════════ 온라인 상태 표시 ════════════ */
 (function(){
-  const dot   = document.getElementById('online-dot');
-  const label = document.getElementById('online-label');
+  const dot = document.getElementById('online-dot');
   function setOnline(on){
+    if(!dot) return;
     if(on){
-      dot.style.background   = '#4ade80';
-      dot.style.boxShadow    = '0 0 0 2px rgba(74,222,128,.25)';
-      label.textContent      = '온라인 연결';
-      label.style.color      = '#4ade80';
+      dot.style.background = '#4ade80';
+      dot.style.boxShadow  = '0 0 0 2px rgba(74,222,128,.25)';
+      dot.title = '온라인 연결';
     } else {
-      dot.style.background   = '#f87171';
-      dot.style.boxShadow    = '0 0 0 2px rgba(248,113,113,.2)';
-      label.textContent      = '오프라인';
-      label.style.color      = '#f87171';
+      dot.style.background = '#f87171';
+      dot.style.boxShadow  = '0 0 0 2px rgba(248,113,113,.2)';
+      dot.title = '오프라인';
     }
   }
   function check(){
