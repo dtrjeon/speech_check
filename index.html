@@ -1024,10 +1024,10 @@ html.skin-light .fulltext-body{color:var(--text);}
 .btn-login{width:100%;height:50px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-family:'Noto Sans KR',sans-serif;font-size:16px;font-weight:500;cursor:pointer;margin-top:4px;touch-action:manipulation;}
 .btn-login:active{opacity:.85;}
 .login-err{font-size:12px;color:var(--red);text-align:center;margin-top:10px;min-height:18px;}
-#user-bar{display:none;align-items:center;justify-content:space-between;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:14px;}
+#user-bar{display:none;align-items:center;justify-content:space-between;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;margin-bottom:12px;word-break:keep-all;overflow:hidden;}
 #user-bar-name{color:var(--text);font-weight:500;}
 #user-bar-class{font-size:11px;color:var(--text-muted);margin-left:6px;}
-.btn-logout{background:transparent;border:1px solid var(--border2);border-radius:7px;padding:4px 10px;color:var(--text-muted);font-family:'Noto Sans KR',sans-serif;font-size:11px;cursor:pointer;touch-action:manipulation;}
+.btn-logout{background:transparent;border:1px solid var(--border2);border-radius:7px;padding:0 12px;color:var(--text-muted);font-family:'Noto Sans KR',sans-serif;font-size:12px;cursor:pointer;touch-action:manipulation;height:32px;display:inline-flex;align-items:center;justify-content:center;}
 .btn-logout:hover{border-color:var(--red);color:var(--red);}
 
 </style>
@@ -1064,17 +1064,13 @@ html.skin-light .fulltext-body{color:var(--text);}
 <div class="page">
 
   <div id="user-bar">
-    <div style="flex:1;min-width:0;">
-      <div style="font-size:13px;font-weight:500;color:var(--text);">
-        <span id="user-bar-name">—</span>
-      </div>
-      <div style="font-size:11px;color:var(--text-dim);margin-top:1px;">
-        <span id="user-bar-class"></span><span id="user-bar-stage"></span>
-      </div>
+    <div style="flex:1;min-width:0;overflow:hidden;">
+      <span id="user-bar-name" style="font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;display:block;overflow:hidden;text-overflow:ellipsis;"></span>
+      <span id="user-bar-class" style="font-size:11px;color:var(--text-dim);white-space:nowrap;"></span><span id="user-bar-stage" style="font-size:11px;color:var(--text-dim);white-space:nowrap;"></span>
     </div>
     <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-      <a href="admin.html" id="admin-link" style="display:none;align-items:center;gap:3px;background:var(--accent-glow);border:1px solid var(--accent);border-radius:7px;padding:4px 8px;color:var(--accent);font-size:11px;font-weight:500;text-decoration:none;">📊 관리</a>
-      <button id="rec-mode-setting-btn" onclick="toggleRecModeSetting()" title="녹음 방식 설정" style="background:transparent;border:1px solid var(--border2);border-radius:7px;padding:4px 8px;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;gap:3px;font-size:11px;">
+      <a href="admin.html" id="admin-link" style="display:none;align-items:center;justify-content:center;gap:4px;background:var(--accent-glow);border:1px solid var(--accent);border-radius:7px;padding:0 12px;color:var(--accent);font-size:12px;font-weight:500;text-decoration:none;height:32px;">📊 관리</a>
+      <button id="rec-mode-setting-btn" onclick="toggleRecModeSetting()" title="녹음 방식 설정" style="background:transparent;border:1px solid var(--border2);border-radius:7px;padding:0 10px;cursor:pointer;color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;gap:4px;font-size:12px;height:32px;">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         <span id="rec-mode-setting-label">STT</span>
       </button>
