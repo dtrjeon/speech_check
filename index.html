@@ -1089,17 +1089,16 @@ html.skin-light .fulltext-body{color:var(--text);}
       </div>
       <!-- 설명서 -->
       <a href="manual_guducheckv218.html" style="background:transparent;border:1px solid var(--border2);border-radius:7px;padding:0 10px;color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;gap:4px;font-size:12px;height:32px;text-decoration:none;">📖 설명서</a>
+      <!-- 온라인 상태 -->
+      <div id="online-badge" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);height:32px;padding:0 6px;">
+        <span id="online-dot" style="width:8px;height:8px;border-radius:50%;background:var(--text-dim);flex-shrink:0;transition:background .4s;"></span>
+        <span id="online-label" style="white-space:nowrap;"></span>
+      </div>
       <!-- 로그아웃 -->
       <button class="btn-logout" id="btn-logout">로그아웃</button>
     </div>
   </div>
-  <!-- 온라인 상태 -->
-  <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
-    <div id="online-badge" style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);">
-      <span id="online-dot" style="width:8px;height:8px;border-radius:50%;background:var(--text-dim);flex-shrink:0;transition:background .4s;"></span>
-      <span id="online-label">확인 중...</span>
-    </div>
-  </div>
+
 
   <div class="header">
     <div class="tag">전도폭발훈련 · 전문 구두점검</div>
