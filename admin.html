@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>구두점검 관리자</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e0f11;--surface:#17191d;--surface2:#1e2127;
+  --border:#2a2d35;--border2:#363a45;
+  --text:#e8eaf0;--text-muted:#7a7f8e;--text-dim:#4a4f5e;
+  --green:#4ade80;--green-bg:rgba(74,222,128,.13);--green-border:rgba(74,222,128,.3);
+  --red:#f87171;--red-bg:rgba(248,113,113,.13);--red-border:rgba(248,113,113,.3);
+  --amber:#fbbf24;--amber-bg:rgba(251,191,36,.12);--amber-border:rgba(251,191,36,.25);
+  --blue:#60a5fa;--blue-bg:rgba(96,165,250,.12);--blue-border:rgba(96,165,250,.25);
+  --accent:#7c6aff;--accent-glow:rgba(124,106,255,.22);
+  --clova:#00c471;--clova-bg:rgba(0,196,113,.12);--clova-border:rgba(0,196,113,.3);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-weight:300;line-height:1.6;-webkit-font-smoothing:antialiased;}
+.page{max-width:640px;margin:0 auto;padding:16px 14px 60px;}
+
+/* 상단 */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.topbar-left{display:flex;align-items:center;gap:8px;}
+.back-btn{background:transparent;border:1px solid var(--border2);border-radius:7px;padding:5px 10px;color:var(--text-muted);font-size:12px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
+.back-btn:hover{border-color:var(--accent);color:var(--accent);}
+.page-title{font-size:15px;font-weight:700;}
+.page-sub{font-size:10px;color:var(--text-dim);}
+.icon-btn{background:transparent;border:1px solid var(--border2);border-radius:7px;padding:5px 10px;color:var(--text-muted);font-family:'Noto Sans KR',sans-serif;font-size:11px;cursor:pointer;}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* 토큰 */
+.token-box{display:flex;gap:8px;margin-bottom:12px;}
+.token-input{flex:1;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;outline:none;}
+.token-input:focus{border-color:var(--accent);}
+.token-btn{padding:9px 16px;border-radius:8px;border:1px solid var(--accent);background:var(--accent-glow);color:var(--accent);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;}
+
+/* 요약 카드 */
+.sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px;}
+.sum-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
+.sum-lbl{font-size:9px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px;}
+.sum-val{font-size:24px;font-weight:700;line-height:1;}
+.sum-sub{font-size:10px;color:var(--text-muted);margin-top:2px;}
+
+/* 탭 */
+.tabs{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px;}
+.tab{flex:1;padding:10px 4px;text-align:center;font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:400;color:var(--text-dim);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--surface);font-weight:500;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* 검색 */
+.search-row{display:flex;gap:6px;margin-bottom:10px;}
+.search-input{flex:1;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:7px 12px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none;}
+.search-input:focus{border-color:var(--accent);}
+.filter-btn{padding:6px 12px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text-muted);font-family:'Noto Sans KR',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;}
+.filter-btn.active{border-color:var(--accent);background:var(--accent-glow);color:var(--accent);}
+
+/* 유저 카드 */
+.user-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;}
+.user-card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;gap:8px;}
+.user-card-header:hover{background:var(--surface2);}
+.user-name-row{display:flex;align-items:center;gap:8px;}
+.user-name{font-size:14px;font-weight:500;}
+.user-meta{font-size:11px;color:var(--text-dim);}
+.user-stats{display:flex;gap:10px;align-items:center;}
+.u-stat{text-align:right;}
+.u-stat-val{font-size:13px;font-weight:600;}
+.u-stat-lbl{font-size:9px;color:var(--text-dim);}
+.chevron{font-size:12px;color:var(--text-dim);transition:transform .2s;flex-shrink:0;}
+.user-card.open .chevron{transform:rotate(180deg);}
+.user-detail{display:none;border-top:1px solid var(--border);padding:10px 14px;}
+.user-card.open .user-detail{display:block;}
+
+/* 챕터 바 */
+.ch-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.ch-bar-label{font-size:12px;color:var(--text-muted);min-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ch-bar-wrap{flex:1;background:var(--surface2);border-radius:4px;height:8px;overflow:hidden;}
+.ch-bar-fill{height:100%;border-radius:4px;background:var(--accent);}
+.ch-bar-count{font-size:11px;color:var(--text-dim);min-width:24px;text-align:right;}
+.ch-time-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px;}
+.ch-time-chip{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;text-align:center;}
+.ch-time-val{font-size:15px;font-weight:600;color:var(--clova);}
+.ch-time-lbl{font-size:9px;color:var(--text-dim);margin-top:2px;}
+
+/* 챕터 탭 */
+.chapter-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;}
+.chapter-card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;}
+.chapter-card-header:hover{background:var(--surface2);}
+.ch-title-row{display:flex;align-items:center;gap:8px;}
+.ch-badge{font-size:10px;color:var(--accent);background:var(--accent-glow);border:1px solid var(--accent);border-radius:4px;padding:1px 7px;}
+.ch-name{font-size:13px;font-weight:500;}
+.ch-stats{display:flex;gap:12px;align-items:center;}
+.ch-stat-val{font-size:13px;font-weight:600;}
+.ch-stat-lbl{font-size:9px;color:var(--text-dim);}
+.ch-user-list{display:none;border-top:1px solid var(--border);padding:10px 14px;}
+.chapter-card.open .ch-user-list{display:block;}
+.ch-user-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);}
+.ch-user-row:last-child{border-bottom:none;}
+.ch-user-name{font-size:12px;font-weight:500;}
+.ch-user-cls{font-size:11px;color:var(--text-dim);margin-left:4px;}
+.ch-user-cnt{font-size:12px;color:var(--clova);font-weight:500;}
+
+/* 상세 로그 */
+.log-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:6px;}
+.log-item-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.log-ts{font-size:11px;color:var(--text-dim);}
+.log-name{font-size:13px;font-weight:500;}
+.log-cls{font-size:11px;color:var(--text-dim);margin-left:4px;}
+.log-detail{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.log-chip{font-size:11px;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 7px;}
+.act-badge{display:inline-block;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:500;}
+.act-login{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);}
+.act-logout{background:var(--surface2);color:var(--text-dim);border:1px solid var(--border2);}
+.act-stt_start{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+.act-stt_save{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);}
+.act-clova_start,.act-clova_done{background:var(--clova-bg);color:var(--clova);border:1px solid var(--clova-border);}
+.act-clova_error{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+.act-analyze{background:var(--accent-glow);color:var(--accent);border:1px solid rgba(124,106,255,.3);}
+
+.empty{text-align:center;padding:32px;color:var(--text-dim);font-size:13px;}
+.loading{text-align:center;padding:32px;color:var(--text-muted);font-size:13px;}
+.err-box{background:var(--red-bg);border:1px solid var(--red-border);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--red);margin-bottom:10px;display:none;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- 상단 -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <a href="index.html" class="back-btn">← 앱으로</a>
+      <div>
+        <div class="page-title">📊 사용 현황</div>
+        <div class="page-sub">전문 구두점검 관리자</div>
+      </div>
+    </div>
+    <button class="icon-btn" id="btn-refresh">↻ 새로고침</button>
+  </div>
+
+  <!-- 관리자 로그인 -->
+  <div class="token-box">
+    <input class="token-input" id="admin-name" type="text" placeholder="이름" autocomplete="username" enterkeyhint="next" style="max-width:100px;">
+    <input class="token-input" id="admin-pw" type="password" placeholder="비밀번호" autocomplete="current-password" enterkeyhint="done">
+    <button class="token-btn" id="btn-load">조회</button>
+  </div>
+  <div class="err-box" id="err-box"></div>
+
+  <!-- 요약 카드 -->
+  <div class="sum-grid" id="summary-area" style="display:none;">
+    <div class="sum-card"><div class="sum-lbl">총 로그인</div><div class="sum-val" style="color:var(--green);" id="s-login">0</div><div class="sum-sub">회</div></div>
+    <div class="sum-card"><div class="sum-lbl">CLOVA 변환</div><div class="sum-val" style="color:var(--clova);" id="s-clova">0</div><div class="sum-sub">회 성공</div></div>
+    <div class="sum-card"><div class="sum-lbl">CLOVA 총시간</div><div class="sum-val" style="color:var(--amber);" id="s-sec">0</div><div class="sum-sub">초</div></div>
+    <div class="sum-card"><div class="sum-lbl">STT 녹음</div><div class="sum-val" style="color:var(--red);" id="s-stt">0</div><div class="sum-sub">회</div></div>
+    <div class="sum-card"><div class="sum-lbl">비교 분석</div><div class="sum-val" style="color:var(--blue);" id="s-analyze">0</div><div class="sum-sub">회</div></div>
+    <div class="sum-card"><div class="sum-lbl">사용자 수</div><div class="sum-val" style="color:var(--accent);" id="s-users">0</div><div class="sum-sub">명</div></div>
+  </div>
+
+  <!-- 탭 -->
+  <div class="tabs" id="main-tabs" style="display:none;">
+    <button class="tab active" data-tab="user">👤 유저별</button>
+    <button class="tab" data-tab="chapter">📖 챕터별</button>
+    <button class="tab" data-tab="detail">📋 상세 로그</button>
+    <button class="tab" data-tab="device">📱 디바이스</button>
+  </div>
+
+  <div id="loading-area" class="loading" style="display:none;">⏳ 로그 불러오는 중...</div>
+
+  <!-- ── 탭1: 유저별 ── -->
+  <div class="tab-panel active" id="panel-user">
+    <div class="search-row">
+      <input class="search-input" id="user-search" placeholder="이름 검색...">
+    </div>
+    <div id="user-list"></div>
+  </div>
+
+  <!-- ── 탭2: 챕터별 ── -->
+  <div class="tab-panel" id="panel-chapter">
+    <div id="chapter-list"></div>
+  </div>
+
+  <!-- ── 탭4: 디바이스 ── -->
+  <div class="tab-panel" id="panel-device">
+    <div class="section-title" style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;">디바이스 · OS · 브라우저별 접속 현황</div>
+    <div id="device-summary"></div>
+  </div>
+
+  <!-- ── 탭3: 상세 로그 ── -->
+  <div class="tab-panel" id="panel-detail">
+    <div class="search-row">
+      <input class="search-input" id="detail-search" placeholder="이름 검색...">
+      <button class="filter-btn active" data-act="all">전체</button>
+      <button class="filter-btn" data-act="clova_done">CLOVA</button>
+      <button class="filter-btn" data-act="stt_start">STT</button>
+      <button class="filter-btn" data-act="analyze">분석</button>
+    </div>
+    <div id="detail-list"></div>
+  </div>
+
+</div>
+<script>
+
+/* ── UA 파서 ── */
+function parseUA(ua) {
+  if (!ua) return { os: '알 수 없음', browser: '', device: '기타' };
+  let os = '', browser = '', device = '';
+
+  // OS
+  if (/iPhone/.test(ua))              { os = 'iOS(iPhone)';  device = '📱 모바일'; }
+  else if (/iPad/.test(ua))           { os = 'iOS(iPad)';    device = '📱 태블릿'; }
+  else if (/Android/.test(ua)) {
+    os = 'Android ' + (ua.match(/Android ([\d.]+)/)||[])[1];
+    device = /Mobile/.test(ua) ? '📱 모바일' : '📱 태블릿';
+  }
+  else if (/Windows/.test(ua))        { os = 'Windows';      device = '🖥 PC'; }
+  else if (/Macintosh/.test(ua))      { os = 'macOS';        device = '🖥 Mac'; }
+  else                                { os = ua.slice(0,20);  device = '🖥 기타'; }
+
+  // 브라우저
+  if (/CriOS/.test(ua))       browser = 'Chrome(iOS)';
+  else if (/FxiOS/.test(ua))  browser = 'Firefox(iOS)';
+  else if (/EdgA/.test(ua))   browser = 'Edge(Android)';
+  else if (/SamsungBrowser/.test(ua)) browser = '삼성 인터넷';
+  else if (/Chrome/.test(ua) && !/Chromium/.test(ua)) browser = 'Chrome';
+  else if (/Safari/.test(ua) && !/Chrome/.test(ua))   browser = 'Safari';
+  else if (/Firefox/.test(ua))  browser = 'Firefox';
+  else if (/Edge/.test(ua))     browser = 'Edge';
+  else browser = '기타';
+
+  return { os, browser, device };
+}
+
+const GAS_URL   = 'https://script.google.com/macros/s/AKfycby404YrDV4qCQBOqkFv4S9jQz6nOTX_9zdjXKIoKav0C2O3RIdq4Z-gBVpVtk_8bwjbXQ/exec';
+const ADMIN_KEY = 'admin_cred';
+
+let allRows = [];
+let detailFilter = 'all';
+
+// 저장된 관리자 정보 복원
+try{
+  const s=localStorage.getItem(ADMIN_KEY);
+  if(s){ const c=JSON.parse(s);
+    document.getElementById('admin-name').value=c.name||'';
+    document.getElementById('admin-pw').value=c.pw||'';
+  }
+}catch(e){}
+
+/* ── 데이터 로드 ── */
+async function loadLogs(){
+  const name = document.getElementById('admin-name').value.trim();
+  const pw   = document.getElementById('admin-pw').value.trim();
+  if(!name||!pw){ showErr('이름과 비밀번호를 입력하세요.'); return; }
+  try{ localStorage.setItem(ADMIN_KEY, JSON.stringify({name,pw})); }catch(e){}
+  hideErr();
+  document.getElementById('summary-area').style.display='none';
+  document.getElementById('main-tabs').style.display='none';
+  document.getElementById('loading-area').style.display='block';
+  try{
+    const res  = await fetch(GAS_URL+'?act=logs',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({name,pw})});
+    const data = await res.json();
+    if(!data.ok){ showErr(data.message||'오류 발생'); return; }
+    allRows = data.rows||[];
+    renderAll();
+    document.getElementById('summary-area').style.display='grid';
+    document.getElementById('main-tabs').style.display='flex';
+  }catch(e){ showErr('서버 연결 오류: '+e.message); }
+  finally{ document.getElementById('loading-area').style.display='none'; }
+}
+
+/* ── 전체 렌더 ── */
+function renderAll(){
+  renderSummary();
+  renderUserTab();
+  renderChapterTab();
+  renderDetailTab();
+}
+
+/* ── 요약 ── */
+function renderSummary(){
+  const F = (act) => allRows.filter(r=>r['액션']===act).length;
+  const users = new Set(allRows.map(r=>r['이름']).filter(Boolean));
+  const totalSec = allRows.filter(r=>r['액션']==='clova_done').reduce((s,r)=>s+Number(r['소요시간(초)']||0),0);
+  document.getElementById('s-login').textContent   = F('login');
+  document.getElementById('s-clova').textContent   = F('clova_done');
+  document.getElementById('s-sec').textContent     = totalSec;
+  document.getElementById('s-stt').textContent     = F('stt_start');
+  document.getElementById('s-analyze').textContent = F('analyze');
+  document.getElementById('s-users').textContent   = users.size;
+
+  // 디바이스 현황 (summary 카드 아래 별도 렌더)
+  const dmap={};
+  allRows.forEach(r=>{
+    const ua=r['User-Agent']||''; if(!ua) return;
+    const d=parseUA(ua);
+    const key=d.device+' / '+d.os+' / '+d.browser;
+    if(!dmap[key]) dmap[key]={count:0,users:new Set()};
+    dmap[key].count++;
+    if(r['이름']) dmap[key].users.add(r['이름']);
+  });
+  const dvEl=document.getElementById('device-summary');
+  if(dvEl){
+    dvEl.innerHTML=Object.entries(dmap).sort((a,b)=>b[1].count-a[1].count).map(([k,v])=>
+      `<div class="user-row" style="padding:8px 14px;">
+        <div style="flex:1;font-size:13px;color:var(--text-muted);">${k}</div>
+        <div style="text-align:right;">
+          <div style="font-size:13px;font-weight:600;color:var(--accent);">${v.count}회</div>
+          <div style="font-size:10px;color:var(--text-dim);">${v.users.size}명</div>
+        </div>
+      </div>`).join('') || '<div class="empty">기록 없음</div>';
+  }
+}
+
+/* ── 탭1: 유저별 ── */
+function renderUserTab(filter=''){
+  // 사용자별 집계
+  const umap = {};
+  allRows.forEach(r=>{
+    const name = r['이름']||'(unknown)';
+    if(filter && !name.includes(filter)) return;
+    if(!umap[name]) umap[name]={ cls:r['반']||'', stage:r['단계']||'', loginCnt:0, clovaCnt:0, clovaSec:0, sttCnt:0, analyzeCnt:0, chapters:{}, rows:[] };
+    const act = r['액션']||'';
+    if(act==='login')       umap[name].loginCnt++;
+    if(act==='clova_done'){ umap[name].clovaCnt++; umap[name].clovaSec+=Number(r['소요시간(초)']||0); }
+    if(act==='stt_start')   umap[name].sttCnt++;
+    if(act==='analyze')     umap[name].analyzeCnt++;
+    if(r['챕터']){
+      const chs = r['챕터'].split(',').map(s=>s.trim()).filter(Boolean);
+      chs.forEach(ch=>{ umap[name].chapters[ch]=(umap[name].chapters[ch]||0)+1; });
+    }
+    umap[name].rows.push(r);
+  });
+
+  const entries = Object.entries(umap).sort((a,b)=>b[1].clovaSec-a[1].clovaSec);
+  if(!entries.length){ document.getElementById('user-list').innerHTML='<div class="empty">데이터 없음</div>'; return; }
+
+  const maxSec = Math.max(...entries.map(e=>e[1].clovaSec),1);
+
+  document.getElementById('user-list').innerHTML = entries.map(([name,u])=>{
+    // 챕터 바
+    const chEntries = Object.entries(u.chapters).sort((a,b)=>b[1]-a[1]);
+    const maxCh = Math.max(...chEntries.map(e=>e[1]),1);
+    const chBars = chEntries.map(([ch,cnt])=>`
+      <div class="ch-bar-row">
+        <div class="ch-bar-label">${ch}</div>
+        <div class="ch-bar-wrap"><div class="ch-bar-fill" style="width:${Math.round(cnt/maxCh*100)}%"></div></div>
+        <div class="ch-bar-count">${cnt}</div>
+      </div>`).join('') || '<div style="font-size:12px;color:var(--text-dim);padding:4px 0;">챕터 기록 없음</div>';
+
+    return `
+    <div class="user-card" id="uc-${name.replace(/\s/g,'')}">
+      <div class="user-card-header" onclick="toggleCard('uc-${name.replace(/\s/g,'')}')">
+        <div class="user-name-row">
+          <div>
+            <div class="user-name">${name}</div>
+            <div class="user-meta">${u.cls}${u.stage?' · '+u.stage:''}</div>
+          </div>
+        </div>
+        <div class="user-stats">
+          <div class="u-stat"><div class="u-stat-val" style="color:var(--clova);">${u.clovaSec}초</div><div class="u-stat-lbl">CLOVA</div></div>
+          <div class="u-stat"><div class="u-stat-val" style="color:var(--accent);">${u.analyzeCnt}</div><div class="u-stat-lbl">분석</div></div>
+          <div class="u-stat"><div class="u-stat-val" style="color:var(--red);">${u.sttCnt}</div><div class="u-stat-lbl">STT</div></div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="user-detail">
+        <div class="ch-time-row" style="margin-bottom:12px;">
+          <div class="ch-time-chip"><div class="ch-time-val" style="color:var(--green);">${u.loginCnt}</div><div class="ch-time-lbl">로그인</div></div>
+          <div class="ch-time-chip"><div class="ch-time-val" style="color:var(--clova);">${u.clovaCnt}회</div><div class="ch-time-lbl">CLOVA 변환</div></div>
+          <div class="ch-time-chip"><div class="ch-time-val" style="color:var(--clova);">${u.clovaSec}초</div><div class="ch-time-lbl">CLOVA 시간</div></div>
+        </div>
+        <div style="font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;">챕터별 분석 횟수</div>
+        ${chBars}
+        <div style="font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin:12px 0 6px;">사용 디바이스</div>
+        ${(()=>{
+          const dmap={};
+          u.rows.forEach(r=>{
+            const ua=r['User-Agent']||'';
+            if(!ua) return;
+            const d=parseUA(ua);
+            const key=d.device+' '+d.os+' / '+d.browser;
+            dmap[key]=(dmap[key]||0)+1;
+          });
+          return Object.entries(dmap).map(([k,v])=>
+            `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);">
+              <span style="color:var(--text-muted);">${k}</span>
+              <span style="color:var(--text-dim);">${v}회</span>
+            </div>`).join('') || '<div style="font-size:12px;color:var(--text-dim);">기록 없음</div>';
+        })()}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── 탭2: 챕터별 ── */
+function renderChapterTab(){
+  const cmap = {};
+  allRows.filter(r=>r['챕터']&&r['액션']==='analyze').forEach(r=>{
+    const chs = r['챕터'].split(',').map(s=>s.trim()).filter(Boolean);
+    chs.forEach(ch=>{
+      if(!cmap[ch]) cmap[ch]={ cnt:0, users:{}, totalSec:0 };
+      cmap[ch].cnt++;
+      const name = r['이름']||'(unknown)';
+      cmap[ch].users[name]=(cmap[ch].users[name]||0)+1;
+    });
+  });
+  // CLOVA 시간도 챕터별 집계
+  allRows.filter(r=>r['챕터']&&r['액션']==='clova_done').forEach(r=>{
+    const chs = r['챕터'].split(',').map(s=>s.trim()).filter(Boolean);
+    const sec = Number(r['소요시간(초)']||0)/Math.max(chs.length,1);
+    chs.forEach(ch=>{ if(cmap[ch]) cmap[ch].totalSec+=sec; });
+  });
+
+  const entries = Object.entries(cmap).sort((a,b)=>b[1].cnt-a[1].cnt);
+  if(!entries.length){ document.getElementById('chapter-list').innerHTML='<div class="empty">데이터 없음</div>'; return; }
+
+  document.getElementById('chapter-list').innerHTML = entries.map(([ch,c])=>{
+    const userRows = Object.entries(c.users).sort((a,b)=>b[1]-a[1]).map(([name,cnt])=>{
+      const uRow = allRows.find(r=>r['이름']===name);
+      const cls  = uRow ? uRow['반']||'' : '';
+      return `<div class="ch-user-row">
+        <div><span class="ch-user-name">${name}</span><span class="ch-user-cls">${cls}</span></div>
+        <div class="ch-user-cnt">${cnt}회</div>
+      </div>`;
+    }).join('');
+    const id = 'cc-'+ch.replace(/\s/g,'');
+    return `
+    <div class="chapter-card" id="${id}">
+      <div class="chapter-card-header" onclick="toggleCard('${id}')">
+        <div class="ch-title-row">
+          <span class="ch-badge">${ch}</span>
+        </div>
+        <div class="ch-stats">
+          <div class="u-stat"><div class="ch-stat-val" style="color:var(--accent);">${c.cnt}회</div><div class="ch-stat-lbl">분석</div></div>
+          <div class="u-stat"><div class="ch-stat-val" style="color:var(--clova);">${Math.round(c.totalSec)}초</div><div class="ch-stat-lbl">CLOVA</div></div>
+          <div class="u-stat"><div class="ch-stat-val" style="color:var(--text-muted);">${Object.keys(c.users).length}명</div><div class="ch-stat-lbl">사용자</div></div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="ch-user-list">${userRows}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ── 탭3: 상세 로그 ── */
+function renderDetailTab(nameFilter='', actFilter='all'){
+  const filtered = allRows.filter(r=>{
+    const matchName = !nameFilter || (r['이름']||'').includes(nameFilter);
+    const matchAct  = actFilter==='all' || r['액션']===actFilter;
+    return matchName && matchAct;
+  });
+  if(!filtered.length){ document.getElementById('detail-list').innerHTML='<div class="empty">데이터 없음</div>'; return; }
+
+  document.getElementById('detail-list').innerHTML = filtered.map(r=>{
+    const act = r['액션']||'';
+    const ts  = (r['타임스탬프(KST)']||'').slice(0,16);
+    const chips = [];
+    if(r['챕터'])       chips.push(r['챕터']);
+    if(r['소요시간(초)']) chips.push(r['소요시간(초)']+'초');
+    if(r['글자수'])      chips.push(r['글자수']+'자');
+    if(r['파일크기(KB)']) chips.push(r['파일크기(KB)']+'KB');
+    if(r['녹음방식'])    chips.push(r['녹음방식']);
+    if(r['오류내용'])    chips.push('⚠ '+r['오류내용'].slice(0,40));
+    if(r['User-Agent']){ const d=parseUA(r['User-Agent']); chips.push(d.device+' '+d.os); chips.push(d.browser); }
+    return `
+    <div class="log-item">
+      <div class="log-item-top">
+        <div><span class="log-name">${r['이름']||''}</span><span class="log-cls">${r['반']||''}</span></div>
+        <span class="act-badge act-${act}">${act}</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px;">${ts}</div>
+      ${chips.length ? '<div class="log-detail">'+chips.map(c=>`<span class="log-chip">${c}</span>`).join('')+'</div>' : ''}
+    </div>`;
+  }).join('');
+}
+
+/* ── 공통 ── */
+function toggleCard(id){
+  document.getElementById(id).classList.toggle('open');
+}
+
+// 탭 전환
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    this.classList.add('active');
+    document.getElementById('panel-'+this.dataset.tab).classList.add('active');
+  });
+});
+
+// 유저 검색
+document.getElementById('user-search').addEventListener('input',function(){
+  renderUserTab(this.value.trim());
+});
+
+// 상세 검색 + 필터
+document.getElementById('detail-search').addEventListener('input',function(){
+  renderDetailTab(this.value.trim(), detailFilter);
+});
+document.querySelectorAll('.filter-btn[data-act]').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.filter-btn[data-act]').forEach(b=>b.classList.remove('active'));
+    this.classList.add('active');
+    detailFilter = this.dataset.act;
+    renderDetailTab(document.getElementById('detail-search').value.trim(), detailFilter);
+  });
+});
+
+document.getElementById('btn-load').addEventListener('click', loadLogs);
+document.getElementById('btn-refresh').addEventListener('click', loadLogs);
+document.getElementById('admin-pw').addEventListener('keydown',e=>{ if(e.key==='Enter') loadLogs(); });
+document.getElementById('admin-name').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('admin-pw').focus(); });
+
+function showErr(msg){ const b=document.getElementById('err-box'); b.textContent=msg; b.style.display='block'; }
+function hideErr(){ document.getElementById('err-box').style.display='none'; }
+
+// 저장된 정보 있으면 자동 조회
+try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
+</script>
+</body>
+</html>

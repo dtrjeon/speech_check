@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>전문 구두점검 — 사용설명서</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e0f11;--surface:#17191d;--surface2:#1e2127;
+  --border:#2a2d35;--border2:#363a45;
+  --text:#e8eaf0;--text-muted:#7a7f8e;--text-dim:#4a4f5e;
+  --green:#4ade80;--green-bg:rgba(74,222,128,.13);--green-border:rgba(74,222,128,.3);
+  --red:#f87171;--red-bg:rgba(248,113,113,.13);--red-border:rgba(248,113,113,.3);
+  --amber:#fbbf24;--amber-bg:rgba(251,191,36,.12);--amber-border:rgba(251,191,36,.25);
+  --blue:#60a5fa;--blue-bg:rgba(96,165,250,.12);--blue-border:rgba(96,165,250,.25);
+  --accent:#7c6aff;--accent-glow:rgba(124,106,255,.22);
+  --clova:#00c471;--clova-bg:rgba(0,196,113,.12);--clova-border:rgba(0,196,113,.3);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100%;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-weight:300;line-height:1.7;-webkit-font-smoothing:antialiased;}
+.page{max-width:520px;margin:0 auto;padding:24px 16px 64px;}
+.app-tag{display:inline-block;font-size:10px;letter-spacing:.12em;color:var(--accent);border:1px solid var(--accent-glow);background:var(--accent-glow);padding:3px 10px;border-radius:20px;margin-bottom:12px;text-transform:uppercase;}
+h1{font-size:22px;font-weight:700;line-height:1.2;margin-bottom:6px;}
+.ver{font-size:12px;color:var(--text-dim);margin-bottom:20px;}
+.toc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:28px;}
+.toc-title{font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;}
+.toc a{display:block;font-size:13px;color:var(--text-muted);text-decoration:none;padding:4px 0;border-bottom:1px solid var(--border);}
+.toc a:last-child{border-bottom:none;}
+.toc a:hover{color:var(--accent);}
+.toc-num{display:inline-block;width:24px;font-size:11px;color:var(--text-dim);}
+.section{margin-bottom:32px;}
+.sec-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+h2{font-size:17px;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+h3{font-size:14px;font-weight:500;color:var(--text);margin:18px 0 8px;}
+p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+.card-title{font-size:11px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;}
+.steps{list-style:none;counter-reset:step;}
+.steps li{counter-increment:step;display:flex;gap:12px;margin-bottom:14px;align-items:flex-start;}
+.steps li::before{content:counter(step);flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px;}
+.steps li p{margin:0;font-size:13px;color:var(--text-muted);line-height:1.7;}
+.badge{display:inline-block;border-radius:5px;padding:1px 8px;font-size:11px;font-weight:500;margin:1px 2px;}
+.b-ok{background:rgba(255,255,255,.07);color:var(--text);border:1px solid rgba(255,255,255,.12);}
+.b-miss{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+.b-extra{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);}
+.b-sub{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border);}
+.info-box{border-radius:10px;padding:12px 14px;font-size:13px;margin-bottom:12px;line-height:1.7;}
+.info-warn{background:var(--amber-bg);border:1px solid var(--amber-border);color:var(--amber);}
+.info-ok{background:var(--green-bg);border:1px solid var(--green-border);color:var(--green);}
+.info-clova{background:var(--clova-bg);border:1px solid var(--clova-border);color:var(--clova);}
+.info-blue{background:var(--blue-bg);border:1px solid var(--blue-border);color:var(--blue);}
+.info-red{background:var(--red-bg);border:1px solid var(--red-border);color:var(--red);}
+.ch-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
+.ch-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
+.ch-num{font-size:10px;color:var(--text-dim);margin-bottom:2px;}
+.ch-name{font-size:14px;font-weight:500;color:var(--text);}
+.kv{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px;}
+.kv td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+.kv td:first-child{color:var(--text-dim);white-space:nowrap;min-width:90px;}
+.kv td:last-child{color:var(--text-muted);}
+.divider{border:none;border-top:1px solid var(--border);margin:24px 0;}
+.btn-ex{display:inline-flex;align-items:center;gap:5px;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:500;border:1px solid;margin:2px;}
+.btn-ex.accent{border-color:var(--accent);background:var(--accent-glow);color:var(--accent);}
+.btn-ex.green{border-color:var(--green-border);background:var(--green-bg);color:var(--green);}
+.btn-ex.red{border-color:var(--red-border);background:var(--red-bg);color:var(--red);}
+.btn-ex.clova{border-color:var(--clova-border);background:var(--clova-bg);color:var(--clova);}
+.btn-ex.muted{border-color:var(--border2);background:var(--surface2);color:var(--text-muted);}
+.btn-ex.amber{border-color:var(--amber-border);background:var(--amber-bg);color:var(--amber);}
+.skin-row{display:flex;gap:8px;margin-bottom:10px;}
+.skin-swatch{flex:1;border-radius:8px;padding:10px;text-align:center;font-size:12px;border:1px solid;}
+.s-dark{background:#0e0f11;color:#e8eaf0;border-color:#2a2d35;}
+.s-warm{background:#faf8f5;color:#1a1a1a;border-color:rgba(120,80,20,.2);}
+.s-light{background:#f0f3f8;color:#1a1f2e;border-color:rgba(26,58,176,.15);}
+.checklist{list-style:none;}
+.checklist li{display:flex;gap:8px;font-size:13px;color:var(--text-muted);padding:5px 0;border-bottom:1px solid var(--border);}
+.checklist li:last-child{border-bottom:none;}
+.checklist li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0;}
+.act-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.act-row:last-child{border-bottom:none;}
+.act-badge{display:inline-block;border-radius:4px;padding:1px 8px;font-size:11px;font-weight:500;white-space:nowrap;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="app-tag">전도폭발훈련 · 전문 구두점검</div>
+  <h1>전문 구두점검<br>사용설명서</h1>
+  <div class="ver">v2.18 (2026.06) &nbsp;·&nbsp; 지구촌교회 JUST EE</div>
+
+  <div class="toc">
+    <div class="toc-title">목차</div>
+    <a href="#s1"><span class="toc-num">1</span>앱 개요 및 화면 구성</a>
+    <a href="#s2"><span class="toc-num">2</span>로그인 · 로그아웃</a>
+    <a href="#s3"><span class="toc-num">3</span>챕터 선택</a>
+    <a href="#s4"><span class="toc-num">4</span>원본 텍스트 확인</a>
+    <a href="#s5"><span class="toc-num">5</span>음성 입력 — 실시간 STT</a>
+    <a href="#s6"><span class="toc-num">6</span>음성 입력 — 클로바노트</a>
+    <a href="#s7"><span class="toc-num">7</span>비교 분석 실행</a>
+    <a href="#s8"><span class="toc-num">8</span>결과 화면 보는 법</a>
+    <a href="#s9"><span class="toc-num">9</span>미리보기 · 프린트 출력</a>
+    <a href="#s10"><span class="toc-num">10</span>스킨(화면 테마) 변경</a>
+    <a href="#s11"><span class="toc-num">11</span>홈화면 설치 (PWA)</a>
+    <a href="#s13"><span class="toc-num">13</span>자주 묻는 질문 (FAQ)</a>
+  </div>
+
+  <!-- ── 1. 개요 ── -->
+  <div class="section" id="s1">
+    <div class="sec-label">Section 01</div>
+    <h2>앱 개요 및 화면 구성</h2>
+    <p>전도폭발(EE) 훈련생이 복음제시 대사를 <strong>소리 내어 연습</strong>하고, 녹음된 음성과 원본 텍스트를 <strong>단어 단위로 비교</strong>하여 암기 정확도를 점검하는 도구입니다.</p>
+
+    <div class="card">
+      <div class="card-title">화면 구성</div>
+      <table class="kv">
+        <tr><td>사용자 바</td><td>로그인 이름·반·단계 표시, 로그아웃 버튼</td></tr>
+        <tr><td>① 챕터 선택</td><td>암기할 장(章)을 1개 이상 선택</td></tr>
+        <tr><td>② 원본 텍스트</td><td>선택된 챕터의 정답 대사 자동 로드</td></tr>
+        <tr><td>③ 음성 입력</td><td>STT 또는 클로바노트로 녹음 텍스트 입력</td></tr>
+        <tr><td>④ 비교 분석</td><td>원본과 녹음 텍스트를 단어 단위로 비교</td></tr>
+        <tr><td>⑤ 결과 패널</td><td>일치율·누락·추가·대체 단어 색상 표시</td></tr>
+      </table>
+    </div>
+
+    <div class="info-box info-blue">
+      💡 우측 상단 <strong>🟢 온라인 연결</strong> 표시로 인터넷 연결 상태를 확인할 수 있습니다.<br>
+      우측 하단 <strong>🌙</strong> 버튼으로 화면 테마를 변경합니다.
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 2. 로그인 ── -->
+  <div class="section" id="s2">
+    <div class="sec-label">Section 02</div>
+    <h2>로그인 · 로그아웃</h2>
+    <p>앱을 열면 로그인 화면이 표시됩니다. <strong>관리자(2단계 교사)에게 발급받은 이름과 비밀번호</strong>를 입력해야 사용할 수 있습니다.</p>
+
+    <ul class="steps">
+      <li><p>이름 입력 후 <strong>엔터</strong> → 비밀번호 칸으로 이동합니다.</p></li>
+      <li><p>비밀번호 입력 후 <strong>로그인</strong> 버튼을 탭하거나 엔터를 누릅니다.</p></li>
+      <li><p>성공하면 상단 사용자 바에 <strong>이름 · 반 · 단계</strong>가 표시됩니다.</p></li>
+    </ul>
+
+    <div class="info-box info-ok">
+      ✅ 로그인 정보는 <strong>브라우저 세션 동안</strong> 유지됩니다. 브라우저를 완전히 닫으면 자동 로그아웃됩니다.
+    </div>
+
+    <div class="info-box info-warn">
+      ⚠ 비밀번호는 2단계 교사에게 문의해주세요.
+    </div>
+
+    <h3>로그아웃</h3>
+    <p>상단 사용자 바 오른쪽 <span class="btn-ex muted">로그아웃</span> 버튼을 탭하면 즉시 로그아웃됩니다.</p>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 3. 챕터 선택 ── -->
+  <div class="section" id="s3">
+    <div class="sec-label">Section 03</div>
+    <h2>챕터 선택</h2>
+
+    <div class="ch-grid">
+      <div class="ch-item"><div class="ch-num">1장</div><div class="ch-name">서론(아니요)</div></div>
+      <div class="ch-item"><div class="ch-num">2장</div><div class="ch-name">은혜</div></div>
+      <div class="ch-item"><div class="ch-num">3장</div><div class="ch-name">인간</div></div>
+      <div class="ch-item"><div class="ch-num">4장</div><div class="ch-name">하나님</div></div>
+      <div class="ch-item"><div class="ch-num">5장</div><div class="ch-name">그리스도</div></div>
+      <div class="ch-item"><div class="ch-num">6장</div><div class="ch-name">믿음</div></div>
+      <div class="ch-item"><div class="ch-num">7장</div><div class="ch-name">결신</div></div>
+      <div class="ch-item"><div class="ch-num">8장</div><div class="ch-name">즉석양육</div></div>
+    </div>
+
+    <ul class="steps">
+      <li><p>원하는 챕터 카드를 <strong>탭</strong>하면 선택됩니다. 카드 우측 상단에 선택 순서가 표시됩니다.</p></li>
+      <li><p>여러 챕터를 연속으로 탭하면 <strong>다중 선택</strong>이 가능합니다. 선택 순서대로 원본 텍스트가 이어집니다.</p></li>
+      <li><p>선택된 챕터 아래 <strong>암기개요 미리보기</strong> 박스가 나타납니다.</p></li>
+    </ul>
+
+    <div class="info-box info-blue">
+      💡 암기개요에서 각 줄을 탭하면 <em>필수 암기(흰색)</em>와 <em>참고(회색)</em>로 토글할 수 있습니다. <strong>저장</strong> 버튼으로 설정을 보존하세요.
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 4. 원본 텍스트 ── -->
+  <div class="section" id="s4">
+    <div class="sec-label">Section 04</div>
+    <h2>원본 텍스트 확인</h2>
+    <p>챕터를 선택하면 원본 텍스트 카드에 정답 대사가 자동으로 채워집니다.</p>
+
+    <div class="card">
+      <div class="card-title">카드 조작 버튼</div>
+      <table class="kv">
+        <tr><td>접기/펼치기</td><td>헤더 오른쪽 버튼으로 텍스트 영역을 숨기거나 표시</td></tr>
+        <tr><td>전체보기</td><td>↗ 아이콘 → 전체화면 모달로 크게 표시</td></tr>
+        <tr><td>글자 크기</td><td><strong>가%</strong> 버튼 반복 탭 → 100%~150% 5%씩 증가</td></tr>
+      </table>
+    </div>
+
+    <div class="info-ok info-box">
+      ✅ 성경 구절(<code>[SKIP]...[/SKIP]</code>)은 비교 분석 시 자동 제외되며, 삭제된 자리에는 공백 1칸이 유지됩니다.
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 5. STT ── -->
+  <div class="section" id="s5">
+    <div class="sec-label">Section 05</div>
+    <h2>음성 입력 — 실시간 STT</h2>
+
+    <div class="info-box info-warn">
+      ⚠ <strong>아이폰(iOS)</strong>은 STT를 지원하지 않습니다. 6절 클로바노트 방식을 사용하세요.
+    </div>
+
+    <ul class="steps">
+      <li><p>우측 상단 <strong>⚙ STT</strong> 설정 → <strong>🎙️ 실시간 STT</strong> 선택합니다.</p></li>
+      <li><p><span class="btn-ex accent">🎤 마이크 권한 허용</span> 버튼을 눌러 마이크 접근을 허용합니다.</p></li>
+      <li><p><span class="btn-ex red">● 녹음 시작</span> 버튼을 누르고 복음 대사를 또렷하게 읽습니다. 버튼이 빨간 맥박 애니메이션으로 변하면 녹음 중입니다.</p></li>
+      <li><p>말하는 내용이 <strong>실시간으로 텍스트 변환</strong>되어 미리보기에 표시됩니다.</p></li>
+      <li><p>읽기가 끝나면 <span class="btn-ex red">■ 녹음 중지</span>를 누릅니다.</p></li>
+      <li><p><span class="btn-ex green">저장</span> 버튼으로 녹음 텍스트를 확정합니다.</p></li>
+    </ul>
+
+    <div class="info-box info-blue">
+      💡 저장 방식: <strong>둘 다</strong>(기본) / <strong>덮어쓰기</strong> / <strong>추가</strong> 선택 가능
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 6. 클로바노트 ── -->
+  <div class="section" id="s6">
+    <div class="sec-label">Section 06</div>
+    <h2>음성 입력 — 클로바노트</h2>
+
+    <div class="info-box info-clova">
+      📱 네이버 <strong>클로바노트</strong> 앱(무료)을 이용하면 아이폰에서도 고품질 음성-텍스트 변환이 가능합니다.
+    </div>
+
+    <div class="card">
+      <div class="card-title">방법 A — 파일 저장 후 불러오기</div>
+      <ul class="steps">
+        <li><p>클로바노트 앱 → 녹음 → 변환 완료 → <strong>공유 → .txt 저장</strong></p></li>
+        <li><p>앱 클로바노트 탭 → <span class="btn-ex clova">📂 파일 불러오기</span></p></li>
+        <li><p><span class="btn-ex clova">녹음 텍스트로 적용하기</span></p></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">방법 B — 직접 붙여넣기</div>
+      <ul class="steps">
+        <li><p>클로바노트 앱 → 녹음 완료 → <strong>전체 선택 → 복사</strong></p></li>
+        <li><p>이 앱 → 클로바노트 탭 텍스트 칸 → <strong>길게 탭 → 붙여넣기</strong></p></li>
+        <li><p><span class="btn-ex clova">녹음 텍스트로 적용하기</span></p></li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 7. 비교 분석 ── -->
+  <div class="section" id="s7">
+    <div class="sec-label">Section 07</div>
+    <h2>비교 분석 실행</h2>
+
+    <ul class="steps">
+      <li><p>챕터 선택 → 원본 텍스트 확인 → 녹음 텍스트 입력을 완료합니다.</p></li>
+      <li><p><span class="btn-ex accent">＋ 비교 분석</span> 버튼을 누릅니다.</p></li>
+      <li><p>화면 하단에 <strong>결과 패널</strong>이 펼쳐집니다.</p></li>
+    </ul>
+
+    <div class="info-box info-blue">
+      💡 <span class="btn-ex muted">녹음 지우기</span> 녹음 텍스트만 초기화<br>
+      &nbsp;&nbsp;&nbsp;<span class="btn-ex muted">전체 초기화</span> 원본·녹음·결과 모두 초기화
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 8. 결과 화면 ── -->
+  <div class="section" id="s8">
+    <div class="sec-label">Section 08</div>
+    <h2>결과 화면 보는 법</h2>
+
+    <h3>일치율 점수</h3>
+    <p>결과 패널 상단에 <strong>% 일치율</strong>과 등급이 표시됩니다. 4개 통계 칩으로 전체·일치·누락·추가 단어 수를 확인하세요.</p>
+
+    <h3>색상 범례</h3>
+    <div class="card">
+      <table class="kv">
+        <tr><td><span class="badge b-ok">단어</span></td><td><strong>일치</strong> — 원본과 정확히 일치</td></tr>
+        <tr><td><span class="badge b-miss">단어</span></td><td><strong>누락</strong> — 원본에 있지만 말하지 않음 (취소선)</td></tr>
+        <tr><td><span class="badge b-extra">단어</span></td><td><strong>추가</strong> — 원본에 없는데 말한 단어</td></tr>
+        <tr><td><span class="badge b-sub">단어</span></td><td><strong>대체</strong> — 비슷하지만 다른 단어</td></tr>
+      </table>
+    </div>
+
+    <h3>2단 비교 보기</h3>
+    <p><strong>원본(좌)</strong>과 <strong>내 발화(우)</strong>를 나란히 표시하여 오류 위치를 한눈에 파악할 수 있습니다.</p>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 9. 프린트 ── -->
+  <div class="section" id="s9">
+    <div class="sec-label">Section 09</div>
+    <h2>미리보기 · 프린트 출력</h2>
+    <p>비교 분석 완료 후 아래 버튼이 활성화됩니다.</p>
+
+    <div class="card">
+      <table class="kv">
+        <tr><td><span class="btn-ex accent">👁 미리보기</span></td><td>A4 인쇄본을 화면에서 먼저 확인. 모달 상단 🖨️로 바로 출력</td></tr>
+        <tr><td><span class="btn-ex muted">🖨️ 프린트</span></td><td>브라우저 인쇄 대화상자 바로 실행. 출력일시·일치율 자동 삽입</td></tr>
+      </table>
+    </div>
+
+    <div class="info-box info-warn">
+      ⚠ Chrome: 인쇄 설정 → 더보기 → <strong>배경 그래픽 체크</strong>해야 색상이 정상 출력됩니다.
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 10. 스킨 ── -->
+  <div class="section" id="s10">
+    <div class="sec-label">Section 10</div>
+    <h2>스킨(화면 테마) 변경</h2>
+    <p>화면 우측 하단 원형 버튼을 탭할 때마다 순환됩니다. 선택한 테마는 다음 방문 시에도 유지됩니다.</p>
+
+    <div class="skin-row">
+      <div class="skin-swatch s-dark">🌙<br>다크<br>(기본)</div>
+      <div class="skin-swatch s-warm">☀️<br>웜 화이트</div>
+      <div class="skin-swatch s-light">💙<br>라이트</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 11. PWA ── -->
+  <div class="section" id="s11">
+    <div class="sec-label">Section 11</div>
+    <h2>홈화면 설치 (PWA)</h2>
+    <p>앱을 스마트폰 홈화면에 설치하면 일반 앱처럼 아이콘으로 실행할 수 있습니다.</p>
+
+    <div class="card">
+      <div class="card-title">🍎 아이폰 — Safari</div>
+      <ul class="steps">
+        <li><p>Safari에서 앱 주소를 엽니다.</p></li>
+        <li><p>하단 가운데 <strong>공유 버튼 (□↑)</strong>을 탭합니다.</p></li>
+        <li><p><strong>"홈 화면에 추가"</strong>를 선택합니다.</p></li>
+        <li><p>이름 확인 후 <strong>추가</strong>를 탭합니다.</p></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🤖 안드로이드 갤럭시 — Chrome</div>
+      <ul class="steps">
+        <li><p>Chrome에서 앱 주소를 엽니다.</p></li>
+        <li><p>우측 상단 <strong>⋮ 메뉴</strong>를 탭합니다.</p></li>
+        <li><p><strong>"홈 화면에 추가"</strong> 또는 <strong>"앱 설치"</strong>를 선택합니다.</p></li>
+        <li><p><strong>추가</strong>를 탭합니다.</p></li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 13. FAQ ── -->
+  <div class="section" id="s13">
+    <div class="sec-label">Section 13</div>
+    <h2>자주 묻는 질문 (FAQ)</h2>
+
+    <h3>Q. 아이폰에서 녹음이 안 됩니다</h3>
+    <p>iOS Safari는 Web Speech API를 지원하지 않습니다. <strong>클로바노트</strong> 탭을 이용하세요.</p>
+
+    <h3>Q. 비밀번호를 모릅니다</h3>
+    <p>2단계 교사(관리자)에게 문의하세요. 관리자는 Google Sheets <code>user_list</code> 시트에서 직접 변경할 수 있습니다.</p>
+
+    <h3>Q. 여러 챕터를 한 번에 점검하려면?</h3>
+    <p>챕터 카드를 순서대로 탭하여 다중 선택하면 원본 텍스트가 연결됩니다.</p>
+
+    <h3>Q. 성경 구절이 틀렸다고 표시됩니다</h3>
+    <p>앱 원본 텍스트의 성경 구절은 <code>[SKIP]</code> 태그로 자동 제외됩니다. 직접 입력한 텍스트에는 동일하게 태그를 추가하거나 해당 구절을 삭제하세요.</p>
+
+    <h3>Q. 분석 결과를 파일로 저장하려면?</h3>
+    <p>프린트 출력 시 브라우저 인쇄 대화상자에서 <strong>"PDF로 저장"</strong>을 선택하면 됩니다.</p>
+
+    <h3>Q. 암기개요 설정이 초기화됩니다</h3>
+    <p>암기개요 변경 후 반드시 <strong>저장</strong> 버튼을 눌러야 브라우저에 보존됩니다.</p>
+
+    <hr class="divider">
+
+    <h3>전체 사용 흐름</h3>
+    <ul class="checklist">
+      <li>로그인 (이름 + 비밀번호)</li>
+      <li>챕터 선택 (1개 이상)</li>
+      <li>원본 텍스트 확인 (자동 로드)</li>
+      <li>녹음 방식 선택 (STT / 클로바노트)</li>
+      <li>복음 대사 낭독 및 텍스트 저장</li>
+      <li>비교 분석 버튼 실행</li>
+      <li>색상 강조로 오류 확인</li>
+      <li>(필요 시) 미리보기 · 프린트 출력</li>
+      <li>사용 종료 시 로그아웃</li>
+    </ul>
+  </div>
+
+  <div style="text-align:center;font-size:11px;color:var(--text-dim);margin-top:32px;">
+    전도폭발훈련 전문 구두점검 사용설명서<br>
+    지구촌교회 JUST EE · 2026.06 최종판
+  </div>
+
+</div>
+</body>
+</html>
