@@ -1069,21 +1069,36 @@ html.skin-light .fulltext-body{color:var(--text);}
       <span id="user-bar-class" style="font-size:11px;color:var(--text-dim);white-space:nowrap;"></span><span id="user-bar-stage" style="font-size:11px;color:var(--text-dim);white-space:nowrap;"></span>
     </div>
     <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-      <button id="rec-mode-setting-btn" onclick="toggleRecModeSetting()" title="녹음 방식 설정" style="background:transparent;border:1px solid var(--border2);border-radius:7px;padding:0 10px;cursor:pointer;color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;gap:4px;font-size:12px;height:32px;">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <span id="rec-mode-setting-label">설정</span>
-      </button>
-      <a href="admin.html" id="admin-link" style="display:none;align-items:center;justify-content:center;gap:4px;background:var(--accent-glow);border:1px solid var(--accent);border-radius:7px;padding:0 12px;color:var(--accent);font-size:12px;font-weight:500;text-decoration:none;height:32px;">📊 관리</a>
+      <!-- 설정 드롭다운 -->
+      <div style="position:relative;" id="setting-dropdown-wrap">
+        <button id="rec-mode-setting-btn" onclick="toggleSettingDropdown(event)" title="설정" style="background:transparent;border:1px solid var(--border2);border-radius:7px;padding:0 10px;cursor:pointer;color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;gap:4px;font-size:12px;height:32px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>설정</span> <span style="font-size:9px;">▼</span>
+        </button>
+        <div id="setting-dropdown" style="display:none;position:absolute;right:0;top:36px;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:9000;min-width:140px;overflow:hidden;">
+          <!-- STT 설정 항목 -->
+          <div style="padding:8px 12px;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);border-bottom:1px solid var(--border);">녹음 방식</div>
+          <div id="setting-dropdown-stt-items"></div>
+          <!-- 관리자 전용 -->
+          <div id="setting-dropdown-admin" style="display:none;border-top:1px solid var(--border);">
+            <a href="admin.html" style="display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:13px;color:var(--accent);text-decoration:none;font-weight:500;">
+              📊 <span>관리자 대시보드</span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <!-- 설명서 -->
+      <a href="manual_guducheckv218.html" style="background:transparent;border:1px solid var(--border2);border-radius:7px;padding:0 10px;color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;gap:4px;font-size:12px;height:32px;text-decoration:none;">📖 설명서</a>
+      <!-- 로그아웃 -->
       <button class="btn-logout" id="btn-logout">로그아웃</button>
     </div>
   </div>
-  <!-- 온라인 + 설명서 -->
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+  <!-- 온라인 상태 -->
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
     <div id="online-badge" style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);">
       <span id="online-dot" style="width:8px;height:8px;border-radius:50%;background:var(--text-dim);flex-shrink:0;transition:background .4s;"></span>
       <span id="online-label">확인 중...</span>
     </div>
-    <a href="manual_guducheckv218.html" style="font-size:11px;color:var(--text-dim);text-decoration:none;border:1px solid var(--border2);border-radius:5px;padding:2px 8px;white-space:nowrap;background:var(--surface2);">📖 사용설명서</a>
   </div>
 
   <div class="header">
@@ -1951,12 +1966,9 @@ function showApp(){
     const n  = document.getElementById('user-bar-name');
     const c  = document.getElementById('user-bar-class');
     const sg = document.getElementById('user-bar-stage');
-    const al = document.getElementById('admin-link');
     if(n)  n.textContent  = currentUser.name;
     if(c)  c.textContent  = currentUser.cls   ? currentUser.cls   : '';
     if(sg) sg.textContent = currentUser.stage ? (currentUser.cls ? ' · ' : '') + currentUser.stage : '';
-    // 전태룡만 📊 관리 버튼 표시
-    if(al) al.style.display = (currentUser.name === '전태룡') ? 'flex' : 'none';
   }
 }
 function showLogin(){
@@ -3100,6 +3112,47 @@ function toggleOrigCard(){
 }
 
 /* ════════════ 녹음 방식 토글 ════════════ */
+
+/* ════════════ 설정 드롭다운 ════════════ */
+function toggleSettingDropdown(e){
+  e.stopPropagation();
+  const dd = document.getElementById('setting-dropdown');
+  if(dd.style.display === 'none'){
+    // STT 항목 동적 생성
+    buildSettingDropdownItems();
+    dd.style.display = 'block';
+  } else {
+    dd.style.display = 'none';
+  }
+}
+function buildSettingDropdownItems(){
+  const wrap = document.getElementById('setting-dropdown-stt-items');
+  const modes = [
+    { key:'stt',   label:'🎙 실시간 STT' },
+    { key:'clova', label:'📱 클로바노트' },
+  ];
+  wrap.innerHTML = modes.map(m=>`
+    <div onclick="setRecModeFromDropdown('${m.key}')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;font-size:13px;color:var(--text);cursor:pointer;${recMode===m.key?'background:var(--surface2);':''}" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='${recMode===m.key?'var(--surface2)':'transparent'}'">
+      <span>${m.label}</span>
+      ${recMode===m.key ? '<span style="color:var(--accent);font-size:12px;">✓</span>' : ''}
+    </div>`).join('');
+  // 관리자 메뉴
+  const adminWrap = document.getElementById('setting-dropdown-admin');
+  if(adminWrap) adminWrap.style.display = (currentUser && currentUser.name==='전태룡') ? 'block' : 'none';
+}
+function setRecModeFromDropdown(mode){
+  recMode = mode;
+  try{ localStorage.setItem('recMode', mode); }catch(e){}
+  document.getElementById('setting-dropdown').style.display = 'none';
+  // 기존 탭 전환 로직 호출
+  if(typeof switchInputMode === 'function') switchInputMode(mode);
+}
+// 외부 클릭 시 닫기
+document.addEventListener('click', function(){
+  const dd = document.getElementById('setting-dropdown');
+  if(dd) dd.style.display = 'none';
+});
+
 function toggleRecModeSetting(){
   const p = document.getElementById('rec-mode-setting-panel');
   if(p){
