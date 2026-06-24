@@ -3137,11 +3137,9 @@ function buildSettingDropdownItems(){
   if(adminWrap) adminWrap.style.display = (currentUser && currentUser.name==='전태룡') ? 'block' : 'none';
 }
 function setRecModeFromDropdown(mode){
-  recMode = mode;
-  try{ localStorage.setItem('recMode', mode); }catch(e){}
   document.getElementById('setting-dropdown').style.display = 'none';
-  // 기존 탭 전환 로직 호출
-  if(typeof switchInputMode === 'function') switchInputMode(mode);
+  applyRecMode(mode);
+  try{ localStorage.setItem('recMode', mode); }catch(e){}
 }
 // 외부 클릭 시 닫기
 document.addEventListener('click', function(){
