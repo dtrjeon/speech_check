@@ -1064,9 +1064,12 @@ html.skin-light .fulltext-body{color:var(--text);}
 <div class="page">
 
   <div id="user-bar">
-    <div style="flex:1;min-width:0;overflow:hidden;">
-      <div style="font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-        <span id="user-bar-name">—</span><span id="user-bar-class" style="font-size:11px;color:var(--text-dim);"></span><span id="user-bar-stage" style="font-size:11px;color:var(--text-dim);"></span>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:13px;font-weight:500;color:var(--text);">
+        <span id="user-bar-name">—</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-dim);margin-top:1px;">
+        <span id="user-bar-class"></span><span id="user-bar-stage"></span>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
@@ -1954,8 +1957,8 @@ function showApp(){
     const sg = document.getElementById('user-bar-stage');
     const al = document.getElementById('admin-link');
     if(n)  n.textContent  = currentUser.name;
-    if(c)  c.textContent  = currentUser.cls   ? ' · '+currentUser.cls   : '';
-    if(sg) sg.textContent = currentUser.stage ? ' · '+currentUser.stage : '';
+    if(c)  c.textContent  = currentUser.cls   ? currentUser.cls   : '';
+    if(sg) sg.textContent = currentUser.stage ? (currentUser.cls ? ' · ' : '') + currentUser.stage : '';
     // 전태룡만 📊 관리 버튼 표시
     if(al) al.style.display = (currentUser.name === '전태룡') ? 'flex' : 'none';
   }
