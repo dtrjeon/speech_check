@@ -1194,7 +1194,10 @@ html.skin-light .fulltext-body{color:var(--text);}
   <div class="input-card collapsed" id="orig-card">
     <div class="input-card-header" onclick="toggleOrigCard()" style="cursor:pointer;">
       <div class="card-dot" style="background:var(--blue);"></div>
-      <span class="card-title">원본 텍스트</span>
+      <div style="display:flex;flex-direction:column;gap:1px;">
+        <span class="card-title">원본 텍스트</span>
+        <span style="font-size:10px;color:var(--text-dim);letter-spacing:.01em;">녹음 텍스트와 비교 기준 — 챕터 선택 시 자동 입력</span>
+      </div>
       <button class="btn-toggle-orig" id="btn-toggle-orig" title="펼치기/접기">▶ 펼치기</button>
       <button class="btn-fontsize" id="btn-fontsize" title="글자 크기 증가 (100~125%)" onclick="event.stopPropagation()">가<sup>+</sup></button>
       <button class="btn-fulltext" id="btn-fulltext" title="전체 화면으로 보기" aria-label="전체 화면으로 보기" onclick="event.stopPropagation()">
