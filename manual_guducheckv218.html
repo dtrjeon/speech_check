@@ -100,9 +100,10 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
     <a href="#s6"><span class="toc-num">6</span>음성 입력 — 클로바노트</a>
     <a href="#s7"><span class="toc-num">7</span>비교 분석 실행</a>
     <a href="#s8"><span class="toc-num">8</span>결과 화면 보는 법</a>
-    <a href="#s9"><span class="toc-num">9</span>미리보기 · 프린트 출력</a>
-    <a href="#s10"><span class="toc-num">10</span>스킨(화면 테마) 변경</a>
-    <a href="#s11"><span class="toc-num">11</span>홈화면 설치 (PWA)</a>
+    <a href="#s-audio"><span class="toc-num">9</span>오디오 플레이어</a>
+    <a href="#s9"><span class="toc-num">10</span>미리보기 · 프린트 출력</a>
+    <a href="#s10"><span class="toc-num">11</span>스킨(화면 테마) 변경</a>
+    <a href="#s11"><span class="toc-num">12</span>홈화면 설치 (PWA)</a>
     <a href="#s13"><span class="toc-num">13</span>자주 묻는 질문 (FAQ)</a>
   </div>
 
@@ -218,8 +219,17 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
       ⚠ <strong>아이폰(iOS)</strong>은 STT를 지원하지 않습니다. 6절 클로바노트 방식을 사용하세요.
     </div>
 
+    <div class="card">
+      <div class="card-title">음성인식 설정 선택</div>
+      <table class="kv">
+        <tr><td>🎙️ 실시간 STT</td><td>마이크로 실시간 음성 인식 (안드로이드 권장)</td></tr>
+        <tr><td><span style="color:var(--clova);font-weight:500;">🟢 CLOVA</span></td><td>네이버 CLOVA Speech API 기반 고품질 인식 (갤럭시 권장)</td></tr>
+      </table>
+      <p style="font-size:12px;color:var(--text-dim);margin-top:4px;">우측 상단 <strong>⚙ STT</strong> 버튼 → 원하는 방식 선택</p>
+    </div>
+
     <ul class="steps">
-      <li><p>우측 상단 <strong>⚙ STT</strong> 설정 → <strong>🎙️ 실시간 STT</strong> 선택합니다.</p></li>
+      <li><p>우측 상단 <strong>⚙ STT</strong> 설정 → <strong>🎙️ 실시간 STT</strong> 또는 <strong>🟢 CLOVA</strong> 선택합니다.</p></li>
       <li><p><span class="btn-ex accent">🎤 마이크 권한 허용</span> 버튼을 눌러 마이크 접근을 허용합니다.</p></li>
       <li><p><span class="btn-ex red">● 녹음 시작</span> 버튼을 누르고 복음 대사를 또렷하게 읽습니다. 버튼이 빨간 맥박 애니메이션으로 변하면 녹음 중입니다.</p></li>
       <li><p>말하는 내용이 <strong>실시간으로 텍스트 변환</strong>되어 미리보기에 표시됩니다.</p></li>
@@ -229,6 +239,21 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
 
     <div class="info-box info-blue">
       💡 저장 방식: <strong>둘 다</strong>(기본) / <strong>덮어쓰기</strong> / <strong>추가</strong> 선택 가능
+    </div>
+
+    <h3>🟢 CLOVA STT 사용법</h3>
+    <div class="info-box info-clova">
+      📱 네이버 CLOVA Speech API를 사용하여 높은 정확도로 음성을 인식합니다. 녹음 후 서버로 전송하여 변환합니다.
+    </div>
+    <ul class="steps">
+      <li><p><strong>⚙ STT</strong> 설정 → <strong>🟢 CLOVA</strong> 선택합니다.</p></li>
+      <li><p><span class="btn-ex red">● 녹음 시작</span> 버튼을 누르고 복음 대사를 읽습니다.</p></li>
+      <li><p>읽기가 끝나면 <span class="btn-ex red">■ 녹음 중지</span>를 누릅니다.</p></li>
+      <li><p>자동으로 CLOVA 서버에 전송되어 텍스트로 변환됩니다.</p></li>
+      <li><p><span class="btn-ex green">저장</span> 버튼으로 결과를 확정합니다.</p></li>
+    </ul>
+    <div class="info-box info-warn">
+      ⚠ CLOVA STT는 인터넷 연결이 필요하며, 변환에 수 초가 소요될 수 있습니다.
     </div>
   </div>
 
@@ -303,13 +328,109 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
 
     <h3>2단 비교 보기</h3>
     <p><strong>원본(좌)</strong>과 <strong>내 발화(우)</strong>를 나란히 표시하여 오류 위치를 한눈에 파악할 수 있습니다.</p>
-  </div>
+
+    <h3>A4 미리보기 사용 예시</h3>
+    <p>아래는 실제 A4 미리보기 화면입니다. 좌측은 <strong>원본</strong>, 우측은 <strong>내 발화</strong>를 단어 단위로 비교한 결과입니다.</p>
+
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="background:#111;color:#eee;font-size:11px;font-weight:500;padding:8px 14px;letter-spacing:.05em;">📄 A4 미리보기 — 2단 비교 예시</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;font-size:12px;line-height:1.9;color:var(--text-muted);">
+        <!-- 헤더 -->
+        <div style="background:var(--surface2);padding:8px 12px;border-bottom:1px solid var(--border);font-weight:500;color:var(--text-dim);font-size:11px;letter-spacing:.06em;">원본</div>
+        <div style="background:var(--surface2);padding:8px 12px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);font-weight:500;color:var(--text-dim);font-size:11px;letter-spacing:.06em;">내 발화</div>
+        <!-- 행 4 -->
+        <div style="padding:10px 12px;border-bottom:1px solid var(--border);display:flex;gap:6px;align-items:flex-start;">
+          <span style="color:var(--red);font-weight:700;font-size:13px;flex-shrink:0;">4</span>
+          <span>행위에서 난 것이 아니니 이는 누구든지 자랑하지 못하게 <span style="text-decoration:line-through;color:var(--red-border);">—</span> 함이라 라고 말씀하십니다</span>
+        </div>
+        <div style="padding:10px 12px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);display:flex;gap:6px;align-items:flex-start;">
+          <span style="color:var(--red);font-weight:700;font-size:13px;flex-shrink:0;">4</span>
+          <span>행위에서 난 것이 아니니 이는 누구든지 자랑하지 못하게 <span class="badge b-sub" style="font-size:11px;">하려</span> 함이라 라고 말씀하십니다</span>
+        </div>
+        <!-- 행 5 -->
+        <div style="padding:10px 12px;border-bottom:1px solid var(--border);display:flex;gap:6px;align-items:flex-start;">
+          <span style="color:var(--red);font-weight:700;font-size:13px;flex-shrink:0;">5</span>
+          <span>사실 우리가 살면서 생명과 관계되는 가장 중요한 것은 <span class="badge b-miss" style="font-size:11px;">값없이</span> — 다 선물로 받았어요</span>
+        </div>
+        <div style="padding:10px 12px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);display:flex;gap:6px;align-items:flex-start;">
+          <span style="color:var(--red);font-weight:700;font-size:13px;flex-shrink:0;">5</span>
+          <span>사실 우리가 살면서 생명과 관계되는 가장 중요한 것은 <span class="badge b-sub" style="font-size:11px;">값</span> <span class="badge b-sub" style="font-size:11px;">없이</span> 다 선물로 받았어요</span>
+        </div>
+        <!-- 행 6 -->
+        <div style="padding:10px 12px;display:flex;gap:6px;align-items:flex-start;">
+          <span style="color:var(--text-dim);font-weight:500;font-size:13px;flex-shrink:0;">6</span>
+          <span style="color:var(--text-dim);">예를 들면 밝은 햇빛 공기 물 등은 값없이 다 선물로 거저 받았습니다</span>
+        </div>
+        <div style="padding:10px 12px;border-left:1px solid var(--border);display:flex;gap:6px;align-items:flex-start;">
+          <span style="color:var(--text-dim);font-weight:500;font-size:13px;flex-shrink:0;">6</span>
+          <span style="color:var(--text-dim);">예를 들면 밝은 햇빛 공기 물 등은 값없이 다 선물로 거저 받았습니다</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:8px;">
+      <div class="card-title">읽는 법</div>
+      <table class="kv">
+        <tr><td><span style="color:var(--red);font-weight:700;">빨간 번호</span></td><td>오류가 있는 문장 번호</td></tr>
+        <tr><td><span style="color:var(--text-dim);">회색 번호</span></td><td>정확히 일치한 문장</td></tr>
+        <tr><td><span class="badge b-sub">하려</span></td><td>대체 단어 — 원본과 다르게 말한 단어 (보라색)</td></tr>
+        <tr><td><span class="badge b-miss" style="text-decoration:line-through;">값없이</span></td><td>누락 단어 — 말하지 않은 단어 (빨간색 취소선)</td></tr>
+        <tr><td><span style="text-decoration:line-through;color:var(--border2);">—</span></td><td>원본의 해당 위치 (발화에서 누락)</td></tr>
+      </table>
+    </div>
 
   <hr class="divider">
 
+  <hr class="divider">
+
+  <!-- ── 오디오 플레이어 ── -->
+  <div class="section" id="s-audio">
+    <div class="sec-label">Section 09</div>
+    <h2>오디오 플레이어</h2>
+    <p>챕터를 선택하면 해당 챕터의 <strong>전문 낭독 오디오</strong>가 자동으로 로드됩니다. 오디오를 들으며 원본 텍스트와 함께 연습할 수 있습니다.</p>
+
+    <div class="card">
+      <div class="card-title">플레이어 구성</div>
+      <table class="kv">
+        <tr><td>🎧 챕터명</td><td>현재 로드된 챕터 이름 표시</td></tr>
+        <tr><td>▶ 재생 버튼</td><td>오디오 재생 / 일시정지</td></tr>
+        <tr><td>진행 바</td><td>현재 재생 위치 표시 및 탭으로 이동 가능</td></tr>
+        <tr><td><span class="btn-ex accent">ON</span> / <span class="btn-ex red">OFF</span></td><td>오디오 사용 여부 토글 — OFF 시 오디오 숨김</td></tr>
+      </table>
+    </div>
+
+    <div class="info-box info-blue">
+      💡 오디오 재생 중 암기개요 미리보기 패널에서 <strong>현재 낭독 중인 라인이 자동 하이라이트</strong>됩니다.
+    </div>
+
+    <div class="info-box info-ok">
+      ✅ <strong>단일 챕터 선택</strong> 시에만 오디오 플레이어가 표시됩니다. 복수 챕터 선택 시 플레이어는 숨겨집니다.
+    </div>
+
+    <div class="card">
+      <div class="card-title">챕터별 오디오 현황</div>
+      <div class="ch-grid">
+        <div class="ch-item"><div class="ch-num">1장</div><div class="ch-name">서론(아니요) ✅</div></div>
+        <div class="ch-item"><div class="ch-num">2장</div><div class="ch-name">은혜 ✅</div></div>
+        <div class="ch-item"><div class="ch-num">3장</div><div class="ch-name">인간 ✅</div></div>
+        <div class="ch-item"><div class="ch-num">4장</div><div class="ch-name">하나님 ✅</div></div>
+        <div class="ch-item"><div class="ch-num">5장</div><div class="ch-name">그리스도 ✅</div></div>
+        <div class="ch-item"><div class="ch-num">6장</div><div class="ch-name">믿음 ✅</div></div>
+        <div class="ch-item"><div class="ch-num">7장</div><div class="ch-name">결신 ✅</div></div>
+        <div class="ch-item"><div class="ch-num">8장</div><div class="ch-name">즉석양육 ✅</div></div>
+        <div class="ch-item"><div class="ch-num">9장</div><div class="ch-name">암기개요 —</div></div>
+        <div class="ch-item"><div class="ch-num">10장</div><div class="ch-name">요약 복음 ✅</div></div>
+      </div>
+    </div>
+
+    <div class="info-box info-warn">
+      ⚠ 오디오는 인터넷 연결 상태에서만 재생됩니다. 오프라인 환경에서는 재생이 되지 않습니다.
+    </div>
+  </div>
+
   <!-- ── 9. 프린트 ── -->
   <div class="section" id="s9">
-    <div class="sec-label">Section 09</div>
+    <div class="sec-label">Section 10</div>
     <h2>미리보기 · 프린트 출력</h2>
     <p>비교 분석 완료 후 아래 버튼이 활성화됩니다.</p>
 
@@ -329,7 +450,7 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
 
   <!-- ── 10. 스킨 ── -->
   <div class="section" id="s10">
-    <div class="sec-label">Section 10</div>
+    <div class="sec-label">Section 11</div>
     <h2>스킨(화면 테마) 변경</h2>
     <p>화면 우측 하단 원형 버튼을 탭할 때마다 순환됩니다. 선택한 테마는 다음 방문 시에도 유지됩니다.</p>
 
@@ -344,7 +465,7 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
 
   <!-- ── 11. PWA ── -->
   <div class="section" id="s11">
-    <div class="sec-label">Section 11</div>
+    <div class="sec-label">Section 12</div>
     <h2>홈화면 설치 (PWA)</h2>
     <p>앱을 스마트폰 홈화면에 설치하면 일반 앱처럼 아이콘으로 실행할 수 있습니다.</p>
 
