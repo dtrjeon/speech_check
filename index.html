@@ -2152,47 +2152,78 @@ function saveAudioDisabled(){
   try{ localStorage.setItem('ee-audio-off', JSON.stringify(audioDisabled)); }catch(e){}
 }
 
+/* 복수 선택 순차 재생용 큐 */
+var _audioQueue = [];   // 재생할 챕터 id 순서
+var _audioQueueIdx = 0; // 현재 재생 중인 큐 인덱스
+
+function _loadAudioByQueueIdx(idx){
+  const audioEl = document.getElementById('audio-el');
+  const label   = document.getElementById('audio-ch-label');
+  if(idx >= _audioQueue.length){ clearAudioSync(); return; }
+  const ch = CHAPTERS.find(c => c.id === _audioQueue[idx]);
+  if(!ch || !ch.audio){ _loadAudioByQueueIdx(idx + 1); return; }
+  _audioQueueIdx = idx;
+  label.textContent = '🎧 ' + ch.num + ' ' + ch.title +
+    (_audioQueue.length > 1 ? '  (' + (idx+1) + '/' + _audioQueue.length + ')' : '');
+  const newSrc = ch.audio;
+  if(audioEl.getAttribute('src') !== newSrc){
+    audioEl.pause();
+    audioEl.setAttribute('src', newSrc);
+    audioEl.load();
+  }
+  audioEl._syncChId = ch.id;
+  audioEl.removeEventListener('timeupdate', audioSyncHandler);
+  audioEl.addEventListener('timeupdate', audioSyncHandler);
+}
+
 function updateAudioPlayer(){
   const player    = document.getElementById('audio-player');
   const audioEl   = document.getElementById('audio-el');
   const label     = document.getElementById('audio-ch-label');
   const toggleBtn = document.getElementById('audio-toggle-btn');
 
-  if(selected.length === 1){
-    const ch = CHAPTERS.find(c => c.id === selected[0]);
-    if(ch && ch.audio){
-      const isOff = !!audioDisabled[ch.id];
-      label.textContent = '🎧 ' + ch.num + ' ' + ch.title;
-      // 토글 버튼 상태
+  // audio 있는 챕터만 필터링
+  const audioChs = selected.map(id => CHAPTERS.find(c => c.id === id)).filter(c => c && c.audio);
+
+  if(audioChs.length > 0){
+    const firstCh = audioChs[0];
+    const isOff   = !!audioDisabled[firstCh.id];
+
+    // 토글 버튼: 단일일 때만 표시 (복수일 때는 숨김)
+    toggleBtn.style.display = selected.length === 1 ? '' : 'none';
+    if(selected.length === 1){
       toggleBtn.textContent = isOff ? 'OFF' : 'ON';
       toggleBtn.className   = 'audio-toggle-btn ' + (isOff ? 'off' : 'on');
-      if(isOff){
-        // OFF: 정지 후 src 제거, 플레이어는 표시하되 audio 숨김
-        audioEl.pause();
-        audioEl.removeAttribute('src');
-        audioEl.style.display = 'none';
-        clearAudioSync();
-      } else {
-        audioEl.style.display = '';
-        // 테스트 모드: 로컬 파일 선택 시 blob URL 유지, 아니면 GitHub 경로
-        const newSrc = ch.audio;
-        if(audioEl.getAttribute('src') !== newSrc){
-          audioEl.pause();
-          audioEl.setAttribute('src', newSrc);
-          audioEl.load();
-        }
-        // timeupdate 싱크: 이전 리스너 제거 후 재등록
-        audioEl._syncChId = ch.id;
-        audioEl.removeEventListener('timeupdate', audioSyncHandler);
-        audioEl.addEventListener('timeupdate', audioSyncHandler);
-        audioEl.addEventListener('ended', clearAudioSync);
-      }
-      player.classList.add('visible');
+    }
 
+    if(isOff && selected.length === 1){
+      audioEl.pause();
+      audioEl.removeAttribute('src');
+      audioEl.style.display = 'none';
+      clearAudioSync();
+      label.textContent = '🎧 ' + firstCh.num + ' ' + firstCh.title;
+      player.classList.add('visible');
       return;
     }
+
+    audioEl.style.display = '';
+
+    // 큐 업데이트
+    const newQueue = audioChs.map(c => c.id);
+    const queueChanged = JSON.stringify(newQueue) !== JSON.stringify(_audioQueue);
+    _audioQueue = newQueue;
+
+    if(queueChanged){
+      _audioQueueIdx = 0;
+      _loadAudioByQueueIdx(0);
+    }
+
+    player.classList.add('visible');
+    return;
   }
-  // 챕터 미선택 or 복수 or audio 없음 → 숨기고 정지
+
+  // 챕터 미선택 or audio 없음 → 숨기고 정지
+  _audioQueue = [];
   audioEl.pause();
   audioEl.removeAttribute('src');
   audioEl.style.display = '';
@@ -2216,6 +2247,14 @@ document.getElementById('audio-toggle-btn').addEventListener('click', function()
 function clearAudioSync(){
   document.querySelectorAll('.outline-line-sync').forEach(el => el.classList.remove('outline-line-sync'));
 }
+function _onAudioEnded(){
+  clearAudioSync();
+  if(_audioQueueIdx + 1 < _audioQueue.length){
+    _loadAudioByQueueIdx(_audioQueueIdx + 1);
+    document.getElementById('audio-el').play();
+  }
+}
+document.getElementById('audio-el').addEventListener('ended', _onAudioEnded);
 function audioSyncHandler(){
   const audioEl = document.getElementById('audio-el');
   const chId = audioEl._syncChId;
