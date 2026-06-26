@@ -1007,7 +1007,7 @@ html.skin-warm .btn-fontsize:hover{border-color:#5b4fcf;color:#5b4fcf;}
 .rec-grid-status.active{ color:#03c75a;border-color:#03c75a;border-style:solid; }
 
 /* ════════════ 녹음 입력 행 레이아웃 ════════════ */
-.rec-row-wrap{ padding:12px; display:flex; flex-direction:column; gap:10px; }
+.rec-row-wrap{ padding:12px; display:flex; flex-direction:column; gap:10px; overflow:hidden; }
 .rec-row{
   display:flex; align-items:center; gap:6px;
   background:var(--surface2); border:1px solid var(--border);
@@ -1019,13 +1019,13 @@ html.skin-warm .btn-fontsize:hover{border-color:#5b4fcf;color:#5b4fcf;}
 }
 .rec-row-btns{ display:flex; align-items:center; gap:6px; flex:1; }
 .rec-row-btn{
-  flex:1; padding:9px 4px; border-radius:8px;
+  flex:1; min-width:0; padding:9px 4px; border-radius:8px;
   font-size:12px; font-weight:500; cursor:pointer;
   border:1.5px solid var(--border2); background:transparent;
   color:var(--text-muted); touch-action:manipulation;
   transition:all .15s; text-align:center; min-height:44px;
   display:flex; align-items:center; justify-content:center; gap:4px;
-  white-space:nowrap;
+  overflow:hidden;
 }
 .rec-row-btn.blue{ border-color:var(--accent); background:var(--accent-glow); color:var(--accent); }
 .rec-row-btn.green{ border-color:#03c75a; background:rgba(3,199,90,.10); color:#03c75a; }
@@ -1320,7 +1320,7 @@ html.skin-light .fulltext-body{color:var(--text);}
     </div>
     <div class="chapters-grid" id="chapters-grid"></div>
     <div class="preview-box" id="preview-box">
-      <div class="preview-empty">챕터를 선택하면 원본이 자동으로 설정됩니다</div>
+      <div class="preview-empty" style="display:none;">챕터를 선택하면 원본이 자동으로 설정됩니다</div>
     </div>
   </div>
 
@@ -1399,13 +1399,13 @@ html.skin-light .fulltext-body{color:var(--text);}
             </button>
             <span class="rec-row-sep">›</span>
             <button class="rec-row-btn" id="btn-rec">
-              <span class="rec-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);"></span>
-              <span id="rec-label">② 녹음시작</span>
+              <span class="rec-dot" id="rec-dot-icon" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--text-muted);flex-shrink:0;transition:background .2s;"></span>
+              <span id="rec-label" style="display:none;">② 녹음시작</span>
             </button>
             <span class="rec-row-sep">›</span>
             <button class="rec-row-btn" id="btn-save-audio" disabled
               title="선택사항 — 음성 파일 저장" style="opacity:.4;">
-              💾 저장
+              📥
             </button>
           </div>
         </div>
@@ -2801,6 +2801,7 @@ function startRec(){
   if(recMode === 'clova'){
     isRecording = true;
     document.getElementById('btn-rec').classList.add('recording');
+    document.getElementById('rec-dot-icon').style.background='var(--red)';
     document.getElementById('rec-label').textContent = '⏹ 중지 → 자동 추출';
     setStatus('● 녹음 중... 말씀하세요 (중지 시 자동 CLOVA 변환)');
     _startMediaRecorder();
@@ -2811,6 +2812,7 @@ function startRec(){
   if(recMode === 'api'){
     isRecording = true;
     document.getElementById('btn-rec').classList.add('recording');
+    document.getElementById('rec-dot-icon').style.background='var(--red)';
     document.getElementById('rec-label').textContent = '⏹ 녹음 중지';
     setStatus('● 녹음 중... 말씀하세요 (Whisper 변환 예정)');
     _startMediaRecorder();
@@ -2831,6 +2833,7 @@ function startRec(){
   recognition.onstart = () => {
     isRecording = true;
     document.getElementById('btn-rec').classList.add('recording');
+    document.getElementById('rec-dot-icon').style.background='var(--red)';
     document.getElementById('rec-label').textContent = '⏹ 녹음 중지';
     setStatus('● 녹음 중... 말씀하세요');
     sendLog('stt_start');
@@ -2939,6 +2942,7 @@ function stopRec(){
   if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
   const recBtnStop = document.getElementById('btn-rec'); recBtnStop.classList.remove('recording'); recBtnStop.classList.add('rec-grid-btn');
   document.getElementById('rec-label').textContent = '② 녹음시작';
+  document.getElementById('rec-dot-icon').style.background='var(--text-muted)';
   document.getElementById('btn-rec').style.fontWeight = '';
   if(transcript.trim()) recordedText = transcript;
   updateRecordedPreview();
