@@ -1395,7 +1395,7 @@ html.skin-light .fulltext-body{color:var(--text);}
           <span class="rec-row-label">🎙 녹음</span>
           <div class="rec-row-btns">
             <button class="rec-row-btn" id="btn-permission">
-              <span id="perm-label">① 권한허용</span>
+              <span id="perm-label"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> 허용</span>
             </button>
             <span class="rec-row-sep">›</span>
             <button class="rec-row-btn" id="btn-rec">
@@ -2768,7 +2768,7 @@ document.getElementById('btn-permission').addEventListener('click', async functi
   micStream = stream;
     micGranted = true;
     this.classList.add('granted');
-    document.getElementById('perm-label').textContent = '① 권한허용됨 ✓';
+    document.getElementById('perm-label').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg> 허용됨';
   document.getElementById('btn-permission').classList.add('ready');
     setStatus('준비 완료 — 녹음 시작 버튼을 누르세요');
     hideBanner();
