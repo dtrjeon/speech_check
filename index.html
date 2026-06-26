@@ -1405,7 +1405,7 @@ html.skin-light .fulltext-body{color:var(--text);}
             <span class="rec-row-sep">›</span>
             <button class="rec-row-btn" id="btn-save-audio" disabled
               title="선택사항 — 음성 파일 저장" style="opacity:.4;">
-              📥
+              <span id="save-icon">📥</span>
             </button>
           </div>
         </div>
@@ -2630,7 +2630,7 @@ function updateChapterUI(){
           this.textContent = '✓ 저장됨';
           this.style.borderColor = 'var(--accent)';
           this.style.color = 'var(--accent)';
-          setTimeout(() => { this.textContent = '💾 저장'; }, 1500);
+          setTimeout(() => { this.innerHTML = '<span id="save-icon">💾</span>'; }, 1500);
         });
       }
 
@@ -2901,7 +2901,7 @@ function _startMediaRecorder(){
       // iOS: 스트림을 닫지 않고 보존 (다음 녹음에 재사용)
       if(!micStream) stream.getTracks().forEach(t=>t.stop());
       const btn = document.getElementById('btn-save-audio');
-      btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> 음성 저장 (.'+audioExt+')';
+      btn.innerHTML = '<span id="save-icon">💾</span>';
       btn.disabled=false; btn.classList.add('ready');
       // 패널 내 ④ 버튼 활성화
       if(recMode==='api'){
@@ -3157,7 +3157,7 @@ function _clearRecState(){
   const saveBtn = document.getElementById('btn-save-audio');
   saveBtn.disabled = true;
   saveBtn.classList.remove('ready');
-  saveBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> 음성 저장 (.webm)';
+  saveBtn.innerHTML = '<span id="save-icon">📥</span>';
   document.getElementById('btn-print').disabled = true;
   document.getElementById('btn-print').classList.remove('ready');
   document.getElementById('btn-preview').disabled = true;
@@ -3487,8 +3487,7 @@ function updateSaveBtn(mode){
     btn.style.display = 'none';
   } else {
     btn.style.display = '';
-    const labels = {'both':'💾 저장', 'audio':'💾 음성', 'text':'💾 텍스트'};
-    btn.textContent = labels[mode] || '💾 저장';
+    btn.innerHTML = '<span id="save-icon">📥</span>';
   }
 }
 function applyRecMode(newMode){
