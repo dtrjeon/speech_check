@@ -1163,6 +1163,10 @@ html.skin-light .fulltext-body{color:var(--text);}
         <input class="login-input" id="login-pw" type="password" placeholder="••••" autocomplete="current-password" enterkeyhint="done">
       </div>
       <div style="font-size:12px;color:var(--text-dim);text-align:center;margin-bottom:12px;white-space:nowrap;">비밀번호는 2단계 교사에게 문의해주세요</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <input type="checkbox" id="save-login" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;">
+        <label for="save-login" style="font-size:13px;color:var(--text-muted);cursor:pointer;">아이디/비밀번호 저장</label>
+      </div>
       <button class="btn-login" id="btn-login">로그인</button>
       <div class="login-err" id="login-err"></div>
 
@@ -1330,7 +1334,7 @@ html.skin-light .fulltext-body{color:var(--text);}
   </div>
 
   <!-- 원본 텍스트 -->
-  <div class="input-card collapsed" id="orig-card">
+  <div class="input-card collapsed" id="orig-card" style="display:none;">
     <div class="input-card-header" onclick="toggleOrigCard()" style="cursor:pointer;">
       <div class="card-dot" style="background:var(--blue);flex-shrink:0;"></div>
       <div style="flex:1;min-width:0;">
@@ -2092,9 +2096,23 @@ function showLogin(){
   try{ sessionStorage.removeItem(SESSION_KEY); }catch(e){}
   document.getElementById('login-overlay').classList.remove('hidden');
   document.getElementById('user-bar').style.display = 'none';
-  document.getElementById('login-name').value = '';
-  document.getElementById('login-pw').value   = '';
   document.getElementById('login-err').textContent = '';
+  // 저장된 로그인 정보 불러오기
+  try{
+    const saved = localStorage.getItem('saved_login');
+    if(saved){
+      const {name, pw} = JSON.parse(saved);
+      document.getElementById('login-name').value = name||'';
+      document.getElementById('login-pw').value   = pw||'';
+      document.getElementById('save-login').checked = true;
+    } else {
+      document.getElementById('login-name').value = '';
+      document.getElementById('login-pw').value   = '';
+    }
+  }catch(e){
+    document.getElementById('login-name').value = '';
+    document.getElementById('login-pw').value   = '';
+  }
 }
 
 async function doLogin(){
@@ -2111,6 +2129,14 @@ async function doLogin(){
     if(data.ok){
       currentUser = { name: data.name||name, cls: data.cls||'', stage: data.stage||'' };
       try{ sessionStorage.setItem(SESSION_KEY, JSON.stringify(currentUser)); }catch(e){}
+      // 저장 체크박스 처리
+      try{
+        if(document.getElementById('save-login').checked){
+          localStorage.setItem('saved_login', JSON.stringify({name, pw}));
+        } else {
+          localStorage.removeItem('saved_login');
+        }
+      }catch(e){}
       showApp(); sendLog('login');
     } else { errEl.textContent = data.message||'이름 또는 비밀번호가 맞지 않습니다.'; }
   }catch(e){ errEl.textContent='서버 연결 오류. 잠시 후 다시 시도하세요.'; }
