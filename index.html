@@ -4061,6 +4061,16 @@ try{ const _rm=localStorage.getItem('recMode'); if(_rm) applyRecMode(_rm); }catc
 </div>
 
 <script>
+
+/* ════════════ Service Worker 등록 ════════════ */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('./sw.js')
+      .then(function(reg){ console.log('SW 등록 완료:', reg.scope); })
+      .catch(function(err){ console.log('SW 등록 실패:', err); });
+  });
+}
+
 /* ════════════ PWA 설치 배너 ════════════ */
 (function(){
   var STORAGE_KEY = 'pwa-banner-dismissed';
