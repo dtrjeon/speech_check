@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0e0f11" id="meta-theme-color">
-<title>전문 구두점검</title>
+<title>전폭전문구두점검</title>
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="구두점검">
+<meta name="apple-mobile-web-app-title" content="전폭구두점검">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -76,6 +76,57 @@ html.skin-light .skin-toggle-btn{
 html.skin-warm .skin-toggle-btn{
   border-color:rgba(91,79,207,.3);
   box-shadow:0 4px 16px rgba(91,79,207,.15);
+}
+
+/* ══ PWA 설치 배너 ══ */
+#pwa-banner{
+  display:none;
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  width:calc(100% - 32px);max-width:448px;
+  background:var(--surface);border:1.5px solid var(--accent);
+  border-radius:14px;padding:14px 16px;
+  box-shadow:0 8px 32px rgba(0,0,0,.35);
+  z-index:200;align-items:center;gap:12px;
+  animation:pwa-slide-up .3s ease;
+}
+#pwa-banner.show{ display:flex; }
+@keyframes pwa-slide-up{
+  from{opacity:0;transform:translateX(-50%) translateY(20px);}
+  to{opacity:1;transform:translateX(-50%) translateY(0);}
+}
+.pwa-icon{ font-size:28px;flex-shrink:0; }
+.pwa-text{ flex:1;min-width:0; }
+.pwa-text strong{ display:block;font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px; }
+.pwa-text span{ font-size:12px;color:var(--text-muted); }
+.pwa-btn-install{
+  flex-shrink:0;background:var(--accent);color:#fff;
+  border:none;border-radius:8px;padding:8px 14px;
+  font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;
+  cursor:pointer;touch-action:manipulation;white-space:nowrap;
+}
+.pwa-btn-close{
+  flex-shrink:0;background:transparent;border:none;
+  color:var(--text-dim);font-size:18px;cursor:pointer;
+  padding:4px;touch-action:manipulation;line-height:1;
+}
+/* iOS 안내 배너 */
+#pwa-ios-banner{
+  display:none;
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  width:calc(100% - 32px);max-width:448px;
+  background:var(--surface);border:1.5px solid var(--blue-border);
+  border-radius:14px;padding:14px 16px;
+  box-shadow:0 8px 32px rgba(0,0,0,.35);
+  z-index:200;flex-direction:column;gap:8px;
+  animation:pwa-slide-up .3s ease;
+}
+#pwa-ios-banner.show{ display:flex; }
+.pwa-ios-title{ font-size:14px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px; }
+.pwa-ios-steps{ font-size:12px;color:var(--text-muted);line-height:1.9; }
+.pwa-ios-close{
+  align-self:flex-end;background:transparent;border:1px solid var(--border2);
+  border-radius:6px;padding:4px 10px;font-size:12px;
+  color:var(--text-muted);cursor:pointer;touch-action:manipulation;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;}
@@ -1988,6 +2039,7 @@ let transcript = '';
 let recordedText = '';
 let micGranted = false;
 let mediaRecorder = null;
+let micStream = null;          // iOS용: getUserMedia 스트림 재사용
 let audioChunks = [];
 let audioBlob = null;
 let audioMime = '';
@@ -2684,8 +2736,10 @@ document.getElementById('btn-permission').addEventListener('click', async functi
     setStatus('⚠ 이 브라우저는 녹음을 지원하지 않습니다. 클로바노트 탭을 이용하세요.');
     return;
   }
+  // iOS Safari: 스트림을 닫지 않고 재사용 (두 번째 getUserMedia 호출 방지)
+  if(micStream){ micStream.getTracks().forEach(t=>t.stop()); micStream=null; }
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    stream.getTracks().forEach(t => t.stop());
+  micStream = stream;
     micGranted = true;
     this.classList.add('granted');
     document.getElementById('perm-label').textContent = '① 권한허용됨 ✓';
@@ -2801,7 +2855,8 @@ function _startMediaRecorder(){
   const _supported = _candidates.find(c => {
     try { return MediaRecorder.isTypeSupported(c.mime); } catch(e){ return false; }
   });
-  navigator.mediaDevices.getUserMedia({audio:true}).then(stream => {
+
+  function _doRecord(stream){
     let _options = {};
     if(_supported){ _options={mimeType:_supported.mime}; audioMime=_supported.mime; audioExt=_supported.ext; }
     try {
@@ -2814,7 +2869,8 @@ function _startMediaRecorder(){
     mediaRecorder.onstop = () => {
       const _type = audioMime || 'audio/webm';
       audioBlob = new Blob(audioChunks, {type:_type});
-      stream.getTracks().forEach(t=>t.stop());
+      // iOS: 스트림을 닫지 않고 보존 (다음 녹음에 재사용)
+      if(!micStream) stream.getTracks().forEach(t=>t.stop());
       const btn = document.getElementById('btn-save-audio');
       btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> 음성 저장 (.'+audioExt+')';
       btn.disabled=false; btn.classList.add('ready');
@@ -2835,10 +2891,20 @@ function _startMediaRecorder(){
       }
     };
     mediaRecorder.start();
-  }).catch(()=>{
-    if(recMode==='api') setStatus('⚠ 마이크 스트림 오류 — 권한을 확인해 주세요');
-    else setStatus('● 녹음 중... (음성파일 저장 불가, 텍스트만 저장됩니다)');
-  });
+  } // end _doRecord
+
+  // 기존 스트림 재사용 (iOS Safari: 두 번째 getUserMedia 호출 시 무음 방지)
+  if(micStream && micStream.active){
+    _doRecord(micStream);
+  } else {
+    navigator.mediaDevices.getUserMedia({audio:true}).then(stream => {
+      micStream = stream;
+      _doRecord(stream);
+    }).catch(()=>{
+      if(recMode==='api') setStatus('⚠ 마이크 스트림 오류 — 권한을 확인해 주세요');
+      else setStatus('● 녹음 중... (음성파일 저장 불가, 텍스트만 저장됩니다)');
+    });
+  }
 }
 
 function stopRec(){
@@ -3969,6 +4035,81 @@ try{ const _rm=localStorage.getItem('recMode'); if(_rm) applyRecMode(_rm); }catc
 (function(){
   const saveMode = localStorage.getItem('save_mode') || 'both';
   updateSaveBtn(saveMode);
+})();
+</script>
+
+<!-- ══ PWA 설치 배너 (Android Chrome) ══ -->
+<div id="pwa-banner" role="dialog" aria-label="홈 화면에 추가">
+  <div class="pwa-icon">📲</div>
+  <div class="pwa-text">
+    <strong>홈 화면에 추가</strong>
+    <span>앱처럼 빠르게 실행할 수 있습니다</span>
+  </div>
+  <button class="pwa-btn-install" id="pwa-install-btn">추가</button>
+  <button class="pwa-btn-close" id="pwa-close-btn" aria-label="닫기">✕</button>
+</div>
+
+<!-- ══ PWA 안내 배너 (iOS Safari) ══ -->
+<div id="pwa-ios-banner" role="dialog" aria-label="홈 화면에 추가 안내">
+  <div class="pwa-ios-title">📲 홈 화면에 추가하기 (Safari)</div>
+  <div class="pwa-ios-steps">
+    1️⃣ 하단 가운데 <strong>공유 버튼 (□↑)</strong> 탭<br>
+    2️⃣ <strong>"홈 화면에 추가"</strong> 선택<br>
+    3️⃣ 이름 확인 후 <strong>추가</strong> 탭
+  </div>
+  <button class="pwa-ios-close" id="pwa-ios-close-btn">닫기</button>
+</div>
+
+<script>
+/* ════════════ PWA 설치 배너 ════════════ */
+(function(){
+  var STORAGE_KEY = 'pwa-banner-dismissed';
+  var androidBanner = document.getElementById('pwa-banner');
+  var iosBanner = document.getElementById('pwa-ios-banner');
+  var deferredPrompt = null;
+
+  function isDismissed(){ try{ return localStorage.getItem(STORAGE_KEY); }catch(e){ return false; } }
+  function isStandalone(){ return window.matchMedia('(display-mode:standalone)').matches || window.navigator.standalone === true; }
+  function isIOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent); }
+  function isIOSSafari(){ return isIOS() && /safari/i.test(navigator.userAgent) && !/crios|fxios/i.test(navigator.userAgent); }
+
+  if(isStandalone() || isDismissed()) return;
+
+  // Android Chrome
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    deferredPrompt = e;
+    setTimeout(function(){
+      if(!isStandalone() && !isDismissed()) androidBanner.classList.add('show');
+    }, 3000);
+  });
+
+  document.getElementById('pwa-install-btn').addEventListener('click', function(){
+    if(!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(result){
+      deferredPrompt = null;
+      androidBanner.classList.remove('show');
+      if(result.outcome === 'accepted') try{ localStorage.setItem(STORAGE_KEY,'1'); }catch(e){}
+    });
+  });
+
+  document.getElementById('pwa-close-btn').addEventListener('click', function(){
+    androidBanner.classList.remove('show');
+    try{ localStorage.setItem(STORAGE_KEY,'1'); }catch(e){}
+  });
+
+  // iOS Safari
+  if(isIOSSafari()){
+    setTimeout(function(){
+      if(!isStandalone() && !isDismissed()) iosBanner.classList.add('show');
+    }, 3000);
+  }
+
+  document.getElementById('pwa-ios-close-btn').addEventListener('click', function(){
+    iosBanner.classList.remove('show');
+    try{ localStorage.setItem(STORAGE_KEY,'1'); }catch(e){}
+  });
 })();
 </script>
 
