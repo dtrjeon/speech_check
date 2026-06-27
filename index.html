@@ -1305,6 +1305,20 @@ html.skin-light .fulltext-body{color:var(--text);}
           </label>
         </div>
       </div>
+      <!-- 볼륨 증폭 설정 -->
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;letter-spacing:.04em;">🔊 오디오 볼륨 증폭</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:12px;color:var(--text-dim);white-space:nowrap;">×1</span>
+          <input type="range" id="gain-slider" min="1" max="5" step="0.5" value="2.5"
+            style="flex:1;accent-color:var(--accent);cursor:pointer;height:4px;">
+          <span style="font-size:12px;color:var(--text-dim);white-space:nowrap;">×5</span>
+        </div>
+        <div style="text-align:center;margin-top:6px;">
+          <span style="font-size:13px;font-weight:600;color:var(--accent);" id="gain-value-label">×2.5</span>
+          <span style="font-size:11px;color:var(--text-dim);margin-left:4px;">배 증폭</span>
+        </div>
+      </div>
       <!-- 닫기 버튼 -->
       <div style="padding:12px 16px;">
         <button onclick="closeRecModeSetting()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;font-weight:500;cursor:pointer;">확인</button>
@@ -2331,16 +2345,20 @@ function _onAudioEnded(){
 document.getElementById('audio-el').addEventListener('ended', _onAudioEnded);
 
 /* ════════════ 오디오 볼륨 증폭 (Web Audio API) ════════════ */
+var _audioGainNode = null;
 (function(){
+  const GAIN_KEY = 'ee-audio-gain';
   const audioEl = document.getElementById('audio-el');
   audioEl.volume = 1.0;
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const src = ctx.createMediaElementSource(audioEl);
     const gain = ctx.createGain();
-    gain.gain.value = 2.5; // 볼륨 2.5배 증폭
+    const saved = parseFloat(localStorage.getItem(GAIN_KEY));
+    gain.gain.value = (!isNaN(saved) && saved >= 1 && saved <= 5) ? saved : 2.5;
     src.connect(gain);
     gain.connect(ctx.destination);
+    _audioGainNode = gain;
     // 모바일: 첫 터치 시 AudioContext 활성화
     document.addEventListener('touchstart', function(){
       if(ctx.state === 'suspended') ctx.resume();
@@ -2348,6 +2366,21 @@ document.getElementById('audio-el').addEventListener('ended', _onAudioEnded);
   } catch(e) {
     console.log('Web Audio API 미지원:', e);
   }
+
+  // 슬라이더 초기값 세팅 및 이벤트
+  const slider = document.getElementById('gain-slider');
+  const label  = document.getElementById('gain-value-label');
+  const savedVal = parseFloat(localStorage.getItem(GAIN_KEY));
+  const initVal  = (!isNaN(savedVal) && savedVal >= 1 && savedVal <= 5) ? savedVal : 2.5;
+  slider.value = initVal;
+  label.textContent = '×' + initVal;
+
+  slider.addEventListener('input', function(){
+    const v = parseFloat(this.value);
+    label.textContent = '×' + v;
+    if(_audioGainNode) _audioGainNode.gain.value = v;
+    try{ localStorage.setItem(GAIN_KEY, v); }catch(e){}
+  });
 })();
 function audioSyncHandler(){
   const audioEl = document.getElementById('audio-el');
