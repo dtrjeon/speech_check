@@ -659,9 +659,9 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
       renderGrid();
       tsLog('챕터 ' + id + ' 추출 중... (1~3분 소요, 기다려 주세요)');
       try{
-        const res = await fetch(GAS+'?act=ts_start',{
+        const res = await fetch(GAS,{
           method:'POST', headers:{'Content-Type':'text/plain'},
-          body: JSON.stringify({name:cred.name, pw:cred.pw, chId:id})
+          body: JSON.stringify({act:'ts_start', name:cred.name, pw:cred.pw, chId:id})
         });
         const data = await res.json();
         if(data.ok && data.status === 'done'){
@@ -689,9 +689,9 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
     const targets = ids || CHAPTERS.map(c=>c.id);
     for(const id of targets){
       try{
-        const res = await fetch(GAS+'?act=ts_get',{
+        const res = await fetch(GAS,{
           method:'POST', headers:{'Content-Type':'text/plain'},
-          body: JSON.stringify({name:cred.name, pw:cred.pw, chId:id})
+          body: JSON.stringify({act:'ts_get', name:cred.name, pw:cred.pw, chId:id})
         });
         const data = await res.json();
         if(data.ok && data.timestamps && data.timestamps.length){
@@ -773,9 +773,9 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
     tsLog('저장된 타임스탬프 불러오는 중...');
     for(const ch of CHAPTERS){
       try{
-        const res = await fetch(GAS+'?act=ts_get',{
+        const res = await fetch(GAS,{
           method:'POST', headers:{'Content-Type':'text/plain'},
-          body: JSON.stringify({name:cred.name, pw:cred.pw, chId:ch.id})
+          body: JSON.stringify({act:'ts_get', name:cred.name, pw:cred.pw, chId:ch.id})
         });
         const data = await res.json();
         if(data.ok && data.timestamps && data.timestamps.length){
