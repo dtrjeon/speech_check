@@ -235,6 +235,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
       <button class="ts-btn" id="ts-btn-all" style="background:transparent;color:var(--accent);">전체 9개 추출</button>
       <button class="ts-btn-sm" id="ts-btn-poll">⟳ 결과 조회</button>
       <button class="ts-btn-sm" id="ts-btn-clear-sel">선택 해제</button>
+      <button class="ts-btn-sm" id="ts-btn-clear-all" style="border-color:var(--red-border);color:var(--red);">🗑 전체 초기화</button>
     </div>
 
     <!-- 진행 로그 -->
@@ -812,6 +813,17 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
   });
   document.getElementById('ts-btn-clear-sel').addEventListener('click', function(){
     selected.clear();
+    renderGrid();
+  });
+
+  document.getElementById('ts-btn-clear-all').addEventListener('click', function(){
+    if(!confirm('추출된 타임스탬프 결과를 모두 초기화합니다. 계속하시겠습니까?')) return;
+    CHAPTERS.forEach(c => { state[c.id] = { status:'none', jobId:'', timestamps:[] }; });
+    selected.clear();
+    document.getElementById('ts-result-area').innerHTML = '';
+    document.getElementById('ts-log').textContent = '';
+    tsLog('화면 초기화 완료 (서버 저장 데이터는 유지됨)');
+    Object.keys(window).filter(k => k.startsWith('_ts_patch_')).forEach(k => delete window[k]);
     renderGrid();
   });
 
