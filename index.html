@@ -189,6 +189,15 @@ h1{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.2;}
 .audio-player audio::-webkit-media-controls-panel{
   background:var(--surface2);
 }
+/* 다크 스킨: 브라우저 기본 컨트롤을 라이트 모드로 강제 → progress bar 가시성 확보 */
+html:not(.skin-light):not(.skin-warm) .audio-player audio{
+  color-scheme: light;
+  background:#2a2d35;
+  border-radius:6px;
+}
+html:not(.skin-light):not(.skin-warm) .audio-player audio::-webkit-media-controls-panel{
+  background:#2a2d35;
+}
 html.skin-light .audio-player{
   background:#f4f6fb;border-color:rgba(26,58,176,.14);
 }
