@@ -183,7 +183,7 @@ h1{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.2;}
 }
 /* 커스텀 컨트롤 래퍼 */
 .ap-controls{
-  flex:1;min-width:0;display:flex;align-items:center;gap:6px;
+  flex:1.5;min-width:0;display:flex;align-items:center;gap:6px;
 }
 .ap-play-btn{
   flex-shrink:0;width:32px;height:32px;border-radius:50%;
@@ -240,6 +240,31 @@ h1{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.2;}
   font-size:13px;font-weight:600;color:var(--accent);
   white-space:nowrap;min-width:28px;text-align:right;
 }
+.ap-popup-divider{
+  height:1px;background:var(--border);margin:10px 0;
+}
+.ap-popup-row{
+  display:flex;align-items:center;gap:8px;margin-bottom:8px;
+}
+.ap-popup-row:last-child{ margin-bottom:0; }
+.ap-popup-label{
+  font-size:11px;color:var(--text-muted);white-space:nowrap;min-width:48px;
+}
+.ap-speed-btn{
+  flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);
+  background:transparent;color:var(--text-muted);font-size:11px;
+  cursor:pointer;touch-action:manipulation;text-align:center;
+}
+.ap-speed-btn.active{
+  border-color:var(--accent);color:var(--accent);background:var(--accent-glow);
+}
+.ap-dl-btn{
+  width:100%;padding:7px 0;border-radius:7px;
+  border:1px solid var(--border2);background:var(--surface2);
+  color:var(--text-muted);font-size:12px;cursor:pointer;
+  touch-action:manipulation;
+}
+.ap-dl-btn:active{ background:var(--border); }
 html.skin-light .audio-player{
   background:#f4f6fb;border-color:rgba(26,58,176,.14);
 }
@@ -1381,7 +1406,7 @@ html.skin-light .fulltext-body{color:var(--text);}
     <!-- 숨겨진 native audio -->
     <audio id="audio-el" preload="none" style="display:none;"></audio>
     <!-- 커스텀 컨트롤 -->
-    <div class="ap-controls">
+    <div class="ap-controls" id="ap-controls">
       <button class="ap-play-btn" id="ap-play-btn">▶</button>
       <span class="ap-time" id="ap-cur">0:00</span>
       <div class="ap-seek-wrap" id="ap-seek-wrap">
@@ -1392,10 +1417,11 @@ html.skin-light .fulltext-body{color:var(--text);}
       </div>
       <span class="ap-time" id="ap-dur">0:00</span>
     </div>
-    <!-- ⋮ gain 버튼 -->
-    <div style="position:relative;">
+    <!-- ⋮ 버튼 -->
+    <div style="position:relative;flex-shrink:0;">
       <button class="ap-more-btn" id="ap-more-btn">⋮</button>
       <div class="ap-gain-popup" id="ap-gain-popup">
+        <!-- 볼륨 증폭 -->
         <div class="ap-gain-label">🔊 볼륨 증폭</div>
         <div class="ap-gain-row">
           <span style="font-size:11px;color:var(--text-dim);">×1</span>
@@ -1404,6 +1430,18 @@ html.skin-light .fulltext-body{color:var(--text);}
           <span style="font-size:11px;color:var(--text-dim);">×5</span>
           <span class="ap-gain-val" id="gain-value-label">×2.5</span>
         </div>
+        <div class="ap-popup-divider"></div>
+        <!-- 재생 속도 -->
+        <div class="ap-popup-row">
+          <span class="ap-popup-label">⏩ 속도</span>
+          <button class="ap-speed-btn" data-speed="0.8">0.8×</button>
+          <button class="ap-speed-btn active" data-speed="1">1×</button>
+          <button class="ap-speed-btn" data-speed="1.2">1.2×</button>
+          <button class="ap-speed-btn" data-speed="1.5">1.5×</button>
+        </div>
+        <div class="ap-popup-divider"></div>
+        <!-- 다운로드 -->
+        <button class="ap-dl-btn" id="ap-dl-btn">⬇ 오디오 다운로드</button>
       </div>
     </div>
     <button class="audio-toggle-btn on" id="audio-toggle-btn" title="오디오 사용 여부">ON</button>
@@ -2313,7 +2351,7 @@ function _loadAudioByQueueIdx(idx){
   const ch = CHAPTERS.find(c => c.id === _audioQueue[idx]);
   if(!ch || !ch.audio){ _loadAudioByQueueIdx(idx + 1); return; }
   _audioQueueIdx = idx;
-  label.textContent = '🎧 ' + ch.num + ' ' + ch.title +
+  label.textContent = '🎧 ' + ch.num +
     (_audioQueue.length > 1 ? '  (' + (idx+1) + '/' + _audioQueue.length + ')' : '');
   const newSrc = ch.audio;
   if(audioEl.getAttribute('src') !== newSrc){
@@ -2351,14 +2389,16 @@ function updateAudioPlayer(){
     if(isOff && selected.length === 1){
       audioEl.pause();
       audioEl.removeAttribute('src');
-      audioEl.style.display = 'none';
       clearAudioSync();
-      label.textContent = '🎧 ' + firstCh.num + ' ' + firstCh.title;
+      label.textContent = '🎧 ' + firstCh.num;
+      document.getElementById('ap-controls').style.display = 'none';
+      document.getElementById('ap-more-btn').parentElement.style.display = 'none';
       player.classList.add('visible');
       return;
     }
 
-    audioEl.style.display = '';
+    document.getElementById('ap-controls').style.display = '';
+    document.getElementById('ap-more-btn').parentElement.style.display = '';
 
     // 큐 업데이트
     const newQueue = audioChs.map(c => c.id);
@@ -2476,6 +2516,36 @@ document.getElementById('audio-el').addEventListener('ended', _onAudioEnded);
   });
   document.addEventListener('click', function(){ gainPopup.classList.remove('open'); });
   gainPopup.addEventListener('click', function(e){ e.stopPropagation(); });
+
+  // 재생 속도
+  document.querySelectorAll('.ap-speed-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const spd = parseFloat(this.dataset.speed);
+      audioEl.playbackRate = spd;
+      document.querySelectorAll('.ap-speed-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      try{ localStorage.setItem('ee-audio-speed', spd); }catch(e){}
+    });
+  });
+  // 저장된 속도 복원
+  (function(){
+    const saved = parseFloat(localStorage.getItem('ee-audio-speed'));
+    if(!isNaN(saved)){
+      audioEl.playbackRate = saved;
+      document.querySelectorAll('.ap-speed-btn').forEach(function(b){
+        b.classList.toggle('active', parseFloat(b.dataset.speed) === saved);
+      });
+    }
+  })();
+
+  // 다운로드
+  document.getElementById('ap-dl-btn').addEventListener('click', function(){
+    const src = audioEl.getAttribute('src');
+    if(!src) return;
+    const a = document.createElement('a');
+    a.href = src; a.download = '';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  });
 })();
 
 /* ════════════ 오디오 볼륨 증폭 (Web Audio API) ════════════ */
