@@ -2329,6 +2329,26 @@ function _onAudioEnded(){
   }
 }
 document.getElementById('audio-el').addEventListener('ended', _onAudioEnded);
+
+/* ════════════ 오디오 볼륨 증폭 (Web Audio API) ════════════ */
+(function(){
+  const audioEl = document.getElementById('audio-el');
+  audioEl.volume = 1.0;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = ctx.createMediaElementSource(audioEl);
+    const gain = ctx.createGain();
+    gain.gain.value = 2.5; // 볼륨 2.5배 증폭
+    src.connect(gain);
+    gain.connect(ctx.destination);
+    // 모바일: 첫 터치 시 AudioContext 활성화
+    document.addEventListener('touchstart', function(){
+      if(ctx.state === 'suspended') ctx.resume();
+    }, {once: true});
+  } catch(e) {
+    console.log('Web Audio API 미지원:', e);
+  }
+})();
 function audioSyncHandler(){
   const audioEl = document.getElementById('audio-el');
   const chId = audioEl._syncChId;
