@@ -2262,6 +2262,8 @@ function _loadAudioByQueueIdx(idx){
   audioEl._syncChId = ch.id;
   audioEl.removeEventListener('timeupdate', audioSyncHandler);
   audioEl.addEventListener('timeupdate', audioSyncHandler);
+  // AudioContext suspended 상태면 resume (모바일 재생 차단 방지)
+  if(_audioCtx && _audioCtx.state === 'suspended') _audioCtx.resume();
 }
 
 function updateAudioPlayer(){
@@ -2346,12 +2348,14 @@ document.getElementById('audio-el').addEventListener('ended', _onAudioEnded);
 
 /* ════════════ 오디오 볼륨 증폭 (Web Audio API) ════════════ */
 var _audioGainNode = null;
+var _audioCtx = null;
 (function(){
   const GAIN_KEY = 'ee-audio-gain';
   const audioEl = document.getElementById('audio-el');
   audioEl.volume = 1.0;
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    _audioCtx = ctx;
     const src = ctx.createMediaElementSource(audioEl);
     const gain = ctx.createGain();
     const saved = parseFloat(localStorage.getItem(GAIN_KEY));
@@ -2359,10 +2363,10 @@ var _audioGainNode = null;
     src.connect(gain);
     gain.connect(ctx.destination);
     _audioGainNode = gain;
-    // 모바일: 첫 터치 시 AudioContext 활성화
-    document.addEventListener('touchstart', function(){
-      if(ctx.state === 'suspended') ctx.resume();
-    }, {once: true});
+    // 모바일: 터치/클릭마다 suspended면 resume
+    function resumeCtx(){ if(ctx.state === 'suspended') ctx.resume(); }
+    document.addEventListener('touchstart', resumeCtx);
+    document.addEventListener('click', resumeCtx);
   } catch(e) {
     console.log('Web Audio API 미지원:', e);
   }
