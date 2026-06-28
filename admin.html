@@ -890,8 +890,9 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
           <span style="color:var(--accent);">▶</span> = 해당 ts부터 재생
         </div>
         <div id="ts-edit-lines" style="max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;"></div>
-        <div style="margin-top:10px;display:flex;gap:6px;">
-          <button class="ts-btn" id="ts-edit-copy">📋 JS 패치 복사</button>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="ts-btn" id="ts-edit-save">💾 GAS에 저장</button>
+          <button class="ts-btn" id="ts-edit-copy" style="background:transparent;">📋 JS 패치 복사</button>
           <button class="ts-btn-sm" id="ts-edit-reset" style="color:var(--red);border-color:var(--red-border);">초기화</button>
         </div>
         <div id="ts-edit-log" class="ts-log" style="margin-top:8px;min-height:32px;">라인을 클릭해서 타임스탬프를 설정하세요.</div>
@@ -925,6 +926,7 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
 
     renderLines();
 
+    document.getElementById('ts-edit-save').addEventListener('click', saveToGas);
     document.getElementById('ts-edit-copy').addEventListener('click', copyPatch);
     document.getElementById('ts-edit-reset').addEventListener('click', () => {
       if (confirm('타임스탬프를 모두 0으로 초기화합니까?')) {
@@ -986,6 +988,31 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
     audio.currentTime = lines[idx].ts;
     audio.play();
   };
+
+  async function saveToGas() {
+    const cred = getAdminCredForEdit();
+    if (!cred.name || !cred.pw) {
+      document.getElementById('ts-edit-log').textContent = '⚠ 관리자 로그인 후 사용하세요.';
+      return;
+    }
+    document.getElementById('ts-edit-log').textContent = '저장 중...';
+    const timestamps = lines.map((l, i) => ({ idx: i, ts: l.ts, text: l.text }));
+    try {
+      const res = await fetch(TS_GAS_URL + '?act=ts_save&name=' + encodeURIComponent(cred.name) + '&pw=' + encodeURIComponent(cred.pw) + '&chId=' + curChId, {
+        method: 'POST',
+        headers: {'Content-Type': 'text/plain'},
+        body: JSON.stringify({ act: 'ts_save', name: cred.name, pw: cred.pw, chId: curChId, timestamps: timestamps })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        document.getElementById('ts-edit-log').textContent = '✅ 챕터 ' + curChId + ' 타임스탬프 저장 완료! (' + timestamps.length + '개)';
+      } else {
+        document.getElementById('ts-edit-log').textContent = '❌ 저장 실패: ' + (data.message || '오류');
+      }
+    } catch(e) {
+      document.getElementById('ts-edit-log').textContent = '❌ 네트워크 오류: ' + e.message;
+    }
+  }
 
   function copyPatch() {
     const out = '// ch' + curChId + ' 타임스탬프 패치\n' +
