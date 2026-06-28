@@ -194,6 +194,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <button class="tab" data-tab="detail">📋 상세 로그</button>
     <button class="tab" data-tab="device">📱 디바이스</button>
     <button class="tab" data-tab="ts">⏱ 타임스탬프</button>
+    <button class="tab" data-tab="ts-edit">✏️ TS편집</button>
   </div>
 
   <div id="loading-area" class="loading" style="display:none;">⏳ 로그 불러오는 중...</div>
@@ -243,6 +244,11 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 
     <!-- 결과 표시 -->
     <div id="ts-result-area"></div>
+  </div>
+
+  <!-- ── 탭6: 수동 타임스탬프 편집 ── -->
+  <div class="tab-panel" id="panel-ts-edit">
+    <div id="ts-edit-inner"></div>
   </div>
 
   <!-- ── 탭3: 상세 로그 ── -->
@@ -659,7 +665,7 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
       renderGrid();
       tsLog('챕터 ' + id + ' 추출 요청 중...');
       try{
-        const res = await fetch(GAS,{
+        const res = await fetch(GAS+'?act=ts_start&name='+encodeURIComponent(cred.name)+'&pw='+encodeURIComponent(cred.pw)+'&chId='+id,{
           method:'POST', headers:{'Content-Type':'text/plain'},
           body: JSON.stringify({act:'ts_start', name:cred.name, pw:cred.pw, chId:id})
         });
@@ -691,7 +697,7 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
     tsLog('결과 조회 중... (' + running.length + '개)');
     for(const id of running){
       try{
-        const res = await fetch(GAS,{
+        const res = await fetch(GAS+'?act=ts_result&name='+encodeURIComponent(cred.name)+'&pw='+encodeURIComponent(cred.pw)+'&chId='+id,{
           method:'POST', headers:{'Content-Type':'text/plain'},
           body: JSON.stringify({act:'ts_result', name:cred.name, pw:cred.pw, chId:id, jobId:state[id].jobId})
         });
@@ -781,7 +787,7 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
     tsLog('저장된 타임스탬프 불러오는 중...');
     for(const ch of CHAPTERS){
       try{
-        const res = await fetch(GAS,{
+        const res = await fetch(GAS+'?act=ts_get&name='+encodeURIComponent(cred.name)+'&pw='+encodeURIComponent(cred.pw)+'&chId='+ch.id,{
           method:'POST', headers:{'Content-Type':'text/plain'},
           body: JSON.stringify({act:'ts_get', name:cred.name, pw:cred.pw, chId:ch.id})
         });
@@ -840,6 +846,179 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
 
   // 초기 렌더
   renderGrid();
+})();
+
+
+
+/* ════════════ 수동 타임스탬프 편집 ════════════ */
+(function(){
+  const AUDIO_BASE = 'https://dtrjeon.github.io/speech_check/audio/';
+  const CHAPTERS_AUDIO = {
+    1:  '전문_12_서론(아니오)_n.m4a',
+    2:  '전문_21_은혜_n.m4a',
+    3:  '전문_22_인간_n.m4a',
+    4:  '전문_23_하나님_n.m4a',
+    5:  '전문_24_예수그리스도_n.m4a',
+    6:  '전문_25_믿음_n.m4a',
+    7:  '전문_30_결신_n.m4a',
+    8:  '전문_40_즉석양육_n.m4a',
+    10: '_복음전문개요_2단계용_n.m4a',
+  };
+  const CH_NAMES = {1:'서론',2:'은혜',3:'인간',4:'하나님',5:'그리스도',6:'믿음',7:'결신',8:'즉석양육',10:'요약복음'};
+
+  let curChId = 1;
+  let lines = [];
+  let audio = null;
+  let activeIdx = -1;
+
+  function renderEdit() {
+    const panel = document.getElementById('ts-edit-inner');
+    if (!panel) return;
+
+    panel.innerHTML = `
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;font-weight:500;">챕터 선택</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+          ${Object.entries(CH_NAMES).map(([id,name])=>
+            `<button class="ts-btn-sm ts-ch-sel ${parseInt(id)===curChId?'active':''}" data-chid="${id}" style="${parseInt(id)===curChId?'border-color:var(--accent);color:var(--accent);':''}">${id}장 ${name}</button>`
+          ).join('')}
+        </div>
+        <audio id="ts-edit-audio" controls style="width:100%;margin-bottom:10px;border-radius:8px;" preload="metadata"></audio>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">
+          라인 클릭 → 현재 재생 위치로 ts 설정 &nbsp;|&nbsp; 
+          <span style="color:var(--accent);">▶</span> = 해당 ts부터 재생
+        </div>
+        <div id="ts-edit-lines" style="max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;"></div>
+        <div style="margin-top:10px;display:flex;gap:6px;">
+          <button class="ts-btn" id="ts-edit-copy">📋 JS 패치 복사</button>
+          <button class="ts-btn-sm" id="ts-edit-reset" style="color:var(--red);border-color:var(--red-border);">초기화</button>
+        </div>
+        <div id="ts-edit-log" class="ts-log" style="margin-top:8px;min-height:32px;">라인을 클릭해서 타임스탬프를 설정하세요.</div>
+      </div>
+    `;
+
+    // 챕터 버튼 이벤트
+    panel.querySelectorAll('.ts-ch-sel').forEach(btn => {
+      btn.addEventListener('click', function() {
+        curChId = parseInt(this.dataset.chid);
+        loadChapter();
+      });
+    });
+
+    // 오디오 로드
+    audio = document.getElementById('ts-edit-audio');
+    audio.src = AUDIO_BASE + CHAPTERS_AUDIO[curChId];
+
+    // timeupdate로 현재 활성 라인 표시
+    audio.addEventListener('timeupdate', () => {
+      const cur = audio.currentTime;
+      let newActive = -1;
+      for (let i = lines.length - 1; i >= 0; i--) {
+        if (lines[i].ts <= cur) { newActive = i; break; }
+      }
+      if (newActive !== activeIdx) {
+        activeIdx = newActive;
+        highlightLine(activeIdx);
+      }
+    });
+
+    renderLines();
+
+    document.getElementById('ts-edit-copy').addEventListener('click', copyPatch);
+    document.getElementById('ts-edit-reset').addEventListener('click', () => {
+      if (confirm('타임스탬프를 모두 0으로 초기화합니까?')) {
+        lines.forEach(l => l.ts = 0);
+        renderLines();
+      }
+    });
+  }
+
+  function loadChapter() {
+    // 챕터 데이터 로드 (window.CHAPTERS에서)
+    if (window.CHAPTERS && window.CHAPTERS[curChId]) {
+      lines = window.CHAPTERS[curChId].lines
+        .filter(l => !l.t.includes('[SKIP]') || l.t.replace(/\[SKIP\].*?\[\/SKIP\]/g,'').trim())
+        .map((l, i) => ({
+          idx: i,
+          text: l.t.replace(/\[SKIP\].*?\[\/SKIP\]/g,'').trim(),
+          ts: l.ts || 0,
+          r: l.r
+        }))
+        .filter(l => l.r && l.text);
+    } else {
+      lines = [];
+    }
+    renderEdit();
+  }
+
+  function renderLines() {
+    const container = document.getElementById('ts-edit-lines');
+    if (!container) return;
+    container.innerHTML = lines.map((l, i) => `
+      <div class="ts-edit-row ${i===activeIdx?'ts-edit-active':''}" data-idx="${i}"
+           style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border);cursor:pointer;${i===activeIdx?'background:var(--accent-glow);':''}"
+           onclick="tsEditSetTs(${i})">
+        <div style="min-width:52px;font-size:12px;color:var(--accent);font-weight:500;font-variant-numeric:tabular-nums;flex-shrink:0;">
+          ${l.ts.toFixed(1)}s
+          <div style="font-size:10px;color:var(--text-dim);" onclick="event.stopPropagation();tsEditPlay(${i})">▶ 재생</div>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.5;">${l.text.slice(0,80)}</div>
+      </div>
+    `).join('');
+  }
+
+  function highlightLine(idx) {
+    document.querySelectorAll('.ts-edit-row').forEach((el, i) => {
+      el.style.background = i === idx ? 'var(--accent-glow)' : '';
+    });
+    if (idx >= 0) {
+      const el = document.querySelector(`.ts-edit-row[data-idx="${idx}"]`);
+      if (el) el.scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  window.tsEditSetTs = function(idx) {
+    if (!audio) return;
+    const cur = audio.currentTime;
+    lines[idx].ts = Math.round(cur * 10) / 10;
+    renderLines();
+    document.getElementById('ts-edit-log').textContent =
+      `라인 ${idx+1} ts = ${lines[idx].ts}s 설정 완료`;
+  };
+
+  window.tsEditPlay = function(idx) {
+    if (!audio) return;
+    audio.currentTime = lines[idx].ts;
+    audio.play();
+  };
+
+  function copyPatch() {
+    const out = '// ch' + curChId + ' 타임스탬프 패치\n' +
+      'const TS_CH' + curChId + ' = [\n' +
+      lines.map(l => '  ' + l.ts.toFixed(1)).join(',\n') +
+      '\n];';
+    navigator.clipboard.writeText(out).then(() => {
+      document.getElementById('ts-edit-log').textContent = '클립보드에 복사 완료!';
+    }).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = out;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      document.getElementById('ts-edit-log').textContent = '복사 완료 (fallback)';
+    });
+  }
+
+  // 탭 전환 시 초기화
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', function() {
+      if (this.dataset.tab === 'ts-edit') {
+        loadChapter();
+      }
+    });
+  });
+
 })();
 
 </script>
