@@ -130,8 +130,9 @@ html.skin-warm .skin-toggle-btn{
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;}
-body{background:var(--bg);padding-bottom:env(safe-area-inset-bottom);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-weight:300;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
-.page{max-width:480px;margin:0 auto;padding:20px 16px 48px;}
+body{background:#111;padding-bottom:env(safe-area-inset-bottom);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-weight:300;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+#app-root,#root,.page-wrap,.wrap,main{max-width:480px;width:100%;margin:0 auto;}
+.page{max-width:480px;width:100%;margin:0 auto;padding:20px 16px 48px;box-shadow:0 0 40px rgba(0,0,0,0.5);min-height:100vh;}
 
 /* Header */
 .header{margin-bottom:22px;}
@@ -1217,6 +1218,19 @@ html.skin-light .fulltext-body{color:var(--text);}
 .btn-logout{background:transparent;border:1px solid var(--border2);border-radius:7px;padding:0 12px;color:var(--text-muted);font-family:'Noto Sans KR',sans-serif;font-size:12px;cursor:pointer;touch-action:manipulation;height:32px;display:inline-flex;align-items:center;justify-content:center;}
 .btn-logout:hover{border-color:var(--red);color:var(--red);}
 
+
+/* ── 데스크탑에서 모바일 규격으로 표시 ── */
+@media (min-width: 520px) {
+  body {
+    background: #0d0d0d !important;
+    display: flex;
+    justify-content: center;
+  }
+  .page {
+    max-width: 480px !important;
+    box-shadow: 0 0 60px rgba(0,0,0,0.6);
+  }
+}
 </style>
 </head>
 <body>
