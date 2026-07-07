@@ -1,4 +1,11 @@
 <!DOCTYPE html>
+<!--
+  admin.html 변경 이력
+  v1.2 (2026-07-07) - TS편집: 🤖 자동 정렬(CLOVA 단어 단위 타임스탬프 기반 포스드 얼라인먼트) 추가
+  v1.1 (2026-07-07) - TS편집: 🔴 싱크 모드 추가 (스페이스바로 다음 줄 자동 태깅 + 이동, ←/Backspace로 되돌리기)
+  v1.0 (이전)        - 기존 버전 (수동 라인 클릭/스페이스바 ts 설정만 가능)
+  ※ 다음 수정 시 아래 ADMIN_VERSION 상수와 이 주석을 함께 갱신할 것
+-->
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -265,6 +272,13 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 
 </div>
 <script>
+
+/* ── 버전 정보 (파일 상단 변경이력 주석과 함께 갱신) ── */
+const ADMIN_VERSION = 'v1.2 (2026-07-07)';
+document.addEventListener('DOMContentLoaded', () => {
+  const sub = document.querySelector('.page-sub');
+  if (sub) sub.textContent = sub.textContent + ' · ' + ADMIN_VERSION;
+});
 
 /* ── UA 파서 ── */
 function parseUA(ua) {
