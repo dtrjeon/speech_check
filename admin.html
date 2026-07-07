@@ -907,8 +907,9 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
 
         <audio id="ts-edit-audio" controls style="width:100%;margin-bottom:6px;border-radius:8px;" preload="metadata"></audio>
 
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">
           <button class="ts-btn-sm" id="ts-sync-toggle"></button>
+          <button class="ts-btn-sm" id="ts-auto-align">🤖 자동 정렬(실험적)</button>
           <span style="font-size:11px;color:var(--text-dim);">오디오를 들으며 다음 문장이 시작되는 순간 스페이스바(또는 라인 클릭)를 누르면, 그 시각이 자동으로 다음 줄에 기록되고 포인터가 다음 줄로 넘어갑니다.</span>
         </div>
 
@@ -962,6 +963,7 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
     // 싱크 모드 토글 버튼
     updateSyncButton();
     document.getElementById('ts-sync-toggle').addEventListener('click', toggleSyncMode);
+    document.getElementById('ts-auto-align').addEventListener('click', autoAlign);
 
     renderLines();
 
@@ -1042,6 +1044,98 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
     }
     updateSyncButton();
     renderLines();
+  }
+
+  /* ════════════ 자동 정렬 (CLOVA 단어 단위 타임스탬프 기반 포스드 얼라인먼트) ════════════ */
+  // 대본에 섞인 구조 표시(챕터 번호, "주제 전환" 등)와 공백/구두점을 제거해 순수 발화 텍스트만 비교
+  function normalizeForMatch(s) {
+    return String(s || '')
+      .replace(/^주제\s*전환\s*/, '')
+      .replace(/^\d+\s*/, '')
+      .replace(/[\s.,!?~"'“”‘’()\[\]/\\]/g, '')
+      .trim();
+  }
+
+  // master 문자열에서 probe와 가장 잘 맞는 시작 위치를 from 이후에서 탐색 (완전일치 → 부분일치 → 근사매칭 순)
+  function findBestMatch(master, probe, from) {
+    if (!probe) return -1;
+    let idx = master.indexOf(probe, from);
+    if (idx !== -1) return idx;
+    for (let len = probe.length - 1; len >= 3; len--) {
+      idx = master.indexOf(probe.slice(0, len), from);
+      if (idx !== -1) return idx;
+    }
+    const probeLen = Math.min(probe.length, 12);
+    if (probeLen < 3) return -1;
+    const p = probe.slice(0, probeLen);
+    const searchEnd = Math.min(master.length - probeLen, from + 3000);
+    let bestScore = -1, bestIdx = -1;
+    for (let i = from; i <= searchEnd; i++) {
+      let score = 0;
+      for (let k = 0; k < probeLen; k++) {
+        if (master[i + k] === p[k]) score++;
+      }
+      if (score > bestScore) { bestScore = score; bestIdx = i; }
+    }
+    return (bestScore >= probeLen * 0.5) ? bestIdx : -1;
+  }
+
+  async function autoAlign() {
+    tsLog('🤖 단어 단위 인식 데이터 불러오는 중...');
+    let words;
+    try {
+      const res = await fetch(TS_GAS_URL + '?act=ts_words_get&chId=' + curChId);
+      const data = await res.json();
+      if (!data.ok || !data.words || !data.words.length) {
+        tsLog('⚠ 이 챕터는 단어 단위 인식 데이터가 없습니다. "⏱ 타임스탬프 추출" 탭에서 이 챕터를 먼저 추출(재추출)해주세요.');
+        return;
+      }
+      words = data.words;
+    } catch (e) {
+      tsLog('❌ 데이터 로드 실패: ' + e.message);
+      return;
+    }
+
+    // 문자 단위 타임라인 생성: 각 단어의 글자를 start~end 구간에 균등 배분
+    const chars = [];
+    words.forEach(w => {
+      const text = String(w.text || '').replace(/\s/g, '');
+      if (!text) return;
+      const start = Number(w.start) / 1000, end = Number(w.end) / 1000;
+      const dur = Math.max(end - start, 0.01);
+      for (let i = 0; i < text.length; i++) {
+        chars.push({ ch: text[i], t: start + dur * (i / text.length) });
+      }
+    });
+    if (!chars.length) {
+      tsLog('⚠ 인식된 단어 데이터가 비어있습니다.');
+      return;
+    }
+    const master = chars.map(c => c.ch).join('');
+
+    let from = 0, matched = 0;
+    const unmatched = [];
+    lines.forEach((l, i) => {
+      const norm = normalizeForMatch(l.text);
+      if (!norm) return;
+      const idx = findBestMatch(master, norm, from);
+      if (idx !== -1) {
+        l.ts = Math.round(chars[idx].t * 10) / 10;
+        from = Math.min(idx + norm.length, master.length - 1);
+        matched++;
+      } else {
+        unmatched.push(i + 1);
+        from = Math.min(from + norm.length, master.length - 1);
+      }
+    });
+
+    syncMode = false;
+    activeIdx = -1;
+    renderLines();
+    let msg = `🤖 자동 정렬 완료: ${matched}/${lines.length}줄 매칭.`;
+    if (unmatched.length) msg += ` 매칭 실패 줄: ${unmatched.join(', ')}.`;
+    msg += ' 결과를 반드시 확인하고, 어긋난 줄은 🔴 싱크 모드나 클릭으로 보정하세요.';
+    tsLog(msg);
   }
 
   function loadChapter() {
