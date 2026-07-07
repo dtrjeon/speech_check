@@ -1234,6 +1234,27 @@ html.skin-light .fulltext-body{color:var(--text);}
 </style>
 </head>
 <body>
+<div id="clova-usage-badge" style="position:fixed;top:8px;right:8px;z-index:99999;background:rgba(0,0,0,.75);color:#7CFFB2;font-size:11px;font-weight:600;padding:4px 9px;border-radius:12px;font-family:sans-serif;letter-spacing:.2px;pointer-events:none;">CLOVA 누적 --</div>
+<script>
+(function(){
+  var CLOVA_USAGE_URL = 'https://script.google.com/macros/s/AKfycbzGFkegiqWgRYUZEWzbHi5NHzAMMqWl-8bimKnhmUhfjV1q3L2NvhZJxR0n4zUMYimE/exec';
+  function fmtSec(sec){
+    sec = Math.round(sec);
+    var m = Math.floor(sec/60), s = sec%60;
+    return m>0 ? (m+'분 '+s+'초') : (s+'초');
+  }
+  function loadClovaUsage(){
+    fetch(CLOVA_USAGE_URL + '?act=usage_total')
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var el = document.getElementById('clova-usage-badge');
+        if(el && d && d.ok) el.textContent = '🟢 CLOVA 누적 ' + fmtSec(d.totalSec);
+      })
+      .catch(function(){});
+  }
+  loadClovaUsage();
+})();
+</script>
 
 <!-- ════ 로그인 오버레이 ════ -->
 <div id="login-overlay">
