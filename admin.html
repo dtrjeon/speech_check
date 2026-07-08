@@ -1173,7 +1173,7 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
     tsLog(msg);
   }
 
-  function loadChapter() {
+  async function loadChapter() {
     const chData = EDIT_CHAPTERS[curChId] || [];
     lines = chData.map((l, i) => ({
       idx: i,
@@ -1186,6 +1186,21 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
     // 기존 keydown 이벤트 제거 후 재등록 방지
     document.removeEventListener('keydown', handleKeydown);
     renderEdit();
+
+    // 구글시트(GAS)에 저장된 최신 ts 값이 있으면 덮어씀 (ts_get은 공개 읽기, 로그인 불필요)
+    try {
+      const res = await fetch(TS_GAS_URL + '?act=ts_get&chId=' + curChId);
+      const data = await res.json();
+      if (data.ok && data.timestamps && data.timestamps.length) {
+        data.timestamps.forEach(t => {
+          if (lines[t.idx]) lines[t.idx].ts = t.ts;
+        });
+        tsLog('☁️ 저장된 타임스탬프 ' + data.timestamps.length + '개 불러옴');
+        renderLines();
+      }
+    } catch (e) {
+      tsLog('⚠ 저장된 값 불러오기 실패(오프라인일 수 있음): ' + e.message);
+    }
   }
 
   function renderLines() {
