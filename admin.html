@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <!--
   admin.html 변경 이력
+  v2.1 (2026-07-10) - 타임스탬프 탭 결과 목록: 각 챕터 박스 개별 접기/펴기, "전체 펼치기/접기", "선택한 챕터만 보기" 필터 추가
+  v2.0 (2026-07-10) - 타임스탬프 탭 자동 로드 시 성공 로그 메시지 숨김 (오류만 표시하도록 변경, 로그창 정리)
   v1.9 (2026-07-10) - 이름/비밀번호 입력창에 min-width:0 추가하여 실제로 1:1 균등 분할되도록 수정 (비밀번호 입력창이 화면 밖으로 밀리던 문제 해결) → 검색창과 오른쪽 끝선 정렬됨
   v1.8 (2026-07-10) - 이름/비밀번호 입력창 폭을 50/50으로 맞춰 아래 검색창과 좌우 정렬되도록 수정
   v1.7 (2026-07-10) - TS편집: 클립보드 복사 대신 chapters-data.js 원본을 불러와 해당 챕터 ts만 교체한 완성 파일을 다운로드하는 방식으로 변경
@@ -313,6 +315,11 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <div class="ts-log" id="ts-log">챕터를 선택하고 추출 시작 버튼을 누르세요.</div>
 
     <!-- 결과 표시 -->
+    <div class="ts-action-row" style="margin-bottom:8px;">
+      <button class="ts-btn-sm" id="ts-btn-expand-all">▼ 전체 펼치기</button>
+      <button class="ts-btn-sm" id="ts-btn-collapse-all">▲ 전체 접기</button>
+      <button class="ts-btn-sm" id="ts-btn-filter-selected">☑ 선택한 챕터만</button>
+    </div>
     <div id="ts-result-area"></div>
   </div>
 
@@ -338,7 +345,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 <script>
 
 /* ── 버전 정보 (파일 상단 변경이력 주석과 함께 갱신) ── */
-const ADMIN_VERSION = 'v1.9 (2026-07-10)';
+const ADMIN_VERSION = 'v2.1 (2026-07-10)';
 document.addEventListener('DOMContentLoaded', () => {
   const sub = document.querySelector('.page-sub');
   if (sub) sub.textContent = sub.textContent + ' · ' + ADMIN_VERSION;
@@ -702,7 +709,7 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
 
   // 상태: none | running | done | error
   const state = {};
-  CHAPTERS.forEach(c => { state[c.id] = { status:'none', jobId:'', timestamps:[] }; });
+  CHAPTERS.forEach(c => { state[c.id] = { status:'none', jobId:'', timestamps:[], collapsed:false }; });
 
   let selected = new Set();
   let pollTimer = null;
@@ -753,6 +760,7 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
     if(selected.has(chId)) selected.delete(chId);
     else selected.add(chId);
     renderGrid();
+    if(typeof applyAllVisibility === 'function') applyAllVisibility();
   };
 
   // 추출 시작 → jobId 받고 60초 후 자동 결과 조회
@@ -839,9 +847,9 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
     div.id = 'ts-result-' + chId;
     div.className = 'ts-result-box';
     div.innerHTML =
-      '<div class="ts-result-header">' +
-        '<span>' + ch.num + ' ' + ch.title + ' — ' + ts.length + '개 세그먼트</span>' +
-        '<button class="ts-copy-btn" onclick="tsCopy(' + chId + ')">📋 ts 패치 복사</button>' +
+      '<div class="ts-result-header" style="cursor:pointer;" onclick="tsToggleCollapse(' + chId + ')">' +
+        '<span><span class="ts-collapse-icon" style="display:inline-block;width:14px;">▼</span>' + ch.num + ' ' + ch.title + ' — ' + ts.length + '개 세그먼트</span>' +
+        '<button class="ts-copy-btn" onclick="event.stopPropagation();tsCopy(' + chId + ')">📋 ts 패치 복사</button>' +
       '</div>' +
       '<div class="ts-result-body">' +
         ts.slice(0, 50).map(t =>
@@ -853,6 +861,7 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
         (ts.length>50 ? '<div style="font-size:11px;color:var(--text-dim);padding:6px 0;">... 외 ' + (ts.length-50) + '개</div>' : '') +
       '</div>';
     area.appendChild(div);
+    applyBoxVisibility(chId);
 
     // 패치 데이터 저장
     window['_ts_patch_' + chId] = ts;
@@ -881,11 +890,10 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
     });
   };
 
-  // 저장된 타임스탬프 불러오기
+  // 저장된 타임스탬프 불러오기 (조용히 로드 — 성공 로그는 표시 안 하고, 오류만 표시)
   async function loadSaved(){
     const cred = getAdminCred();
     if(!cred.name||!cred.pw) return;
-    tsLog('저장된 타임스탬프 불러오는 중...');
     for(const ch of CHAPTERS){
       try{
         const res = await fetch(GAS+'?act=ts_get&name='+encodeURIComponent(cred.name)+'&pw='+encodeURIComponent(cred.pw)+'&chId='+ch.id,{
@@ -896,13 +904,56 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
         if(data.ok && data.timestamps && data.timestamps.length){
           state[ch.id].status = 'done';
           state[ch.id].timestamps = data.timestamps;
-          tsLog('챕터 ' + ch.id + ' 저장된 데이터 ' + data.timestamps.length + '개 로드');
           renderResult(ch.id);
+        } else if(!data.ok){
+          tsLog('⚠ 챕터 ' + ch.id + ' 저장 데이터 조회 오류: ' + (data.message||'알 수 없음'));
         }
-      } catch(e){ /* 무시 */ }
+      } catch(e){ tsLog('⚠ 챕터 ' + ch.id + ' 조회 실패: ' + e.message); }
     }
     renderGrid();
   }
+
+  // 결과 박스 펼치기/접기 + 선택한 챕터만 보기
+  let resultFilterOnlySelected = false;
+
+  function applyBoxVisibility(chId){
+    const box = document.getElementById('ts-result-' + chId);
+    if(!box) return;
+    const body = box.querySelector('.ts-result-body');
+    const icon = box.querySelector('.ts-collapse-icon');
+    const collapsed = !!(state[chId] && state[chId].collapsed);
+    if(body) body.style.display = collapsed ? 'none' : '';
+    if(icon) icon.textContent = collapsed ? '▶' : '▼';
+    const hiddenByFilter = resultFilterOnlySelected && !selected.has(chId);
+    box.style.display = hiddenByFilter ? 'none' : '';
+  }
+
+  function applyAllVisibility(){
+    CHAPTERS.forEach(c => applyBoxVisibility(c.id));
+  }
+
+  window.tsToggleCollapse = function(chId){
+    if(!state[chId]) return;
+    state[chId].collapsed = !state[chId].collapsed;
+    applyBoxVisibility(chId);
+  };
+
+  document.getElementById('ts-btn-expand-all').addEventListener('click', function(){
+    CHAPTERS.forEach(c => { if(state[c.id]) state[c.id].collapsed = false; });
+    applyAllVisibility();
+  });
+  document.getElementById('ts-btn-collapse-all').addEventListener('click', function(){
+    CHAPTERS.forEach(c => { if(state[c.id]) state[c.id].collapsed = true; });
+    applyAllVisibility();
+  });
+  document.getElementById('ts-btn-filter-selected').addEventListener('click', function(){
+    resultFilterOnlySelected = !resultFilterOnlySelected;
+    this.style.background = resultFilterOnlySelected ? 'var(--accent-glow)' : '';
+    this.style.borderColor = resultFilterOnlySelected ? 'var(--accent)' : '';
+    this.style.color = resultFilterOnlySelected ? 'var(--accent)' : '';
+    this.textContent = resultFilterOnlySelected ? '☑ 선택한 챕터만 (켜짐)' : '☑ 선택한 챕터만';
+    applyAllVisibility();
+  });
 
   // 버튼 이벤트
   document.getElementById('ts-btn-start').addEventListener('click', function(){
@@ -923,7 +974,7 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
 
   document.getElementById('ts-btn-clear-all').addEventListener('click', function(){
     if(!confirm('추출된 타임스탬프 결과를 모두 초기화합니다. 계속하시겠습니까?')) return;
-    CHAPTERS.forEach(c => { state[c.id] = { status:'none', jobId:'', timestamps:[] }; });
+    CHAPTERS.forEach(c => { state[c.id] = { status:'none', jobId:'', timestamps:[], collapsed:false }; });
     selected.clear();
     document.getElementById('ts-result-area').innerHTML = '';
     document.getElementById('ts-log').textContent = '';
