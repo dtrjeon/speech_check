@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <!--
   admin.html 변경 이력
+  v1.9 (2026-07-10) - 이름/비밀번호 입력창에 min-width:0 추가하여 실제로 1:1 균등 분할되도록 수정 (비밀번호 입력창이 화면 밖으로 밀리던 문제 해결) → 검색창과 오른쪽 끝선 정렬됨
+  v1.8 (2026-07-10) - 이름/비밀번호 입력창 폭을 50/50으로 맞춰 아래 검색창과 좌우 정렬되도록 수정
+  v1.7 (2026-07-10) - TS편집: 클립보드 복사 대신 chapters-data.js 원본을 불러와 해당 챕터 ts만 교체한 완성 파일을 다운로드하는 방식으로 변경
+  v1.6 (2026-07-10) - TS편집: "저장+복사 동시에" 버튼 추가 (GAS 저장과 JS 패치 클립보드 복사를 한 번에)
   v1.5 (2026-07-10) - 상단바 텍스트 줄바꿈 문제 해결 / 테마 선택 기능 추가(다크·라이트·세피아, 🎨 버튼으로 전환)
   v1.4 (2026-07-10) - CLOVA 누적 뱃지를 fixed 오버레이에서 상단바 안 정상 배치로 변경 (새로고침 버튼과 겹치던 문제 해결)
   v1.3 (2026-07-10) - TS편집: 자동 정렬 완료 후 오디오 자동재생 추가 / CLOVA 누적 뱃지 챕터추출 완료 시 자동갱신
@@ -74,7 +78,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 
 /* 토큰 */
 .token-box{display:flex;gap:8px;margin-bottom:12px;}
-.token-input{flex:1;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;outline:none;}
+.token-input{flex:1 1 0;min-width:0;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;outline:none;}
 .token-input:focus{border-color:var(--accent);}
 .token-btn{padding:9px 16px;border-radius:8px;border:1px solid var(--accent);background:var(--accent-glow);color:var(--accent);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;}
 
@@ -237,7 +241,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 
   <!-- 관리자 로그인 -->
   <div class="token-box">
-    <input class="token-input" id="admin-name" type="text" placeholder="이름" autocomplete="username" enterkeyhint="next" style="max-width:100px;">
+    <input class="token-input" id="admin-name" type="text" placeholder="이름" autocomplete="username" enterkeyhint="next">
     <input class="token-input" id="admin-pw" type="password" placeholder="비밀번호" autocomplete="current-password" enterkeyhint="done">
     <button class="token-btn" id="btn-load">조회</button>
   </div>
@@ -334,7 +338,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 <script>
 
 /* ── 버전 정보 (파일 상단 변경이력 주석과 함께 갱신) ── */
-const ADMIN_VERSION = 'v1.5 (2026-07-10)';
+const ADMIN_VERSION = 'v1.9 (2026-07-10)';
 document.addEventListener('DOMContentLoaded', () => {
   const sub = document.querySelector('.page-sub');
   if (sub) sub.textContent = sub.textContent + ' · ' + ADMIN_VERSION;
@@ -1029,8 +1033,9 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
         <div id="ts-edit-lines" style="max-height:45vh;overflow-y:auto;border:1px solid var(--border);border-radius:8px;"></div>
 
         <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="ts-btn" id="ts-edit-save-copy" style="background:var(--accent-glow);border-color:var(--accent);">💾📁 저장+파일 동시에</button>
           <button class="ts-btn" id="ts-edit-save">💾 GAS에 저장</button>
-          <button class="ts-btn" id="ts-edit-copy" style="background:transparent;">📋 JS 패치 복사</button>
+          <button class="ts-btn" id="ts-edit-copy" style="background:transparent;">📁 chapters-data.js 파일로 저장</button>
           <button class="ts-btn-sm" id="ts-edit-reset" style="color:var(--red);border-color:var(--red-border);">초기화</button>
         </div>
         <div id="ts-edit-log" class="ts-log" style="margin-top:6px;min-height:28px;font-size:11px;">오디오 재생 후 라인을 클릭하거나 스페이스바를 누르세요.</div>
@@ -1074,7 +1079,8 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
     renderLines();
 
     document.getElementById('ts-edit-save').addEventListener('click', saveToGas);
-    document.getElementById('ts-edit-copy').addEventListener('click', copyPatch);
+    document.getElementById('ts-edit-copy').addEventListener('click', saveFilePatch);
+    document.getElementById('ts-edit-save-copy').addEventListener('click', saveToGasAndFile);
     document.getElementById('ts-edit-reset').addEventListener('click', () => {
       if (confirm('타임스탬프를 모두 0으로 초기화합니까?')) {
         lines.forEach(l => l.ts = 0);
@@ -1337,6 +1343,130 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
     tsLog(`라인 ${idx+1} (${lines[idx].ts}s) 재생 중...`);
   };
 
+  // chapters-data.js 원본을 그대로 불러와서, 현재 챕터의 r:true 줄들만 새 ts 값으로 교체한
+  // "완성된 전체 파일"을 다운로드한다. 클립보드에 숫자만 복사하는 방식보다 안전함
+  // (다른 챕터/주석/포맷은 전혀 건드리지 않고, 이 챕터의 ts 값만 정확히 갱신됨).
+  async function downloadPatchedFile() {
+    tsLog('원본 chapters-data.js 불러오는 중...');
+    let raw;
+    try {
+      const res = await fetch('chapters-data.js?_=' + Date.now()); // 캐시 방지
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      raw = await res.text();
+    } catch(e) {
+      tsLog('❌ chapters-data.js를 불러오지 못했습니다: ' + e.message + ' (admin.html과 같은 폴더/서버에 있어야 합니다)');
+      return null;
+    }
+
+    // 챕터 블록 시작 위치 찾기: "{ id:2," 형태
+    const startRe = new RegExp('\\{\\s*id:' + curChId + '\\b');
+    const startMatch = startRe.exec(raw);
+    if (!startMatch) {
+      tsLog('❌ chapters-data.js에서 챕터 ' + curChId + ' 블록을 찾지 못했습니다.');
+      return null;
+    }
+    const startIdx = startMatch.index;
+
+    // 다음 챕터 블록 시작(또는 파일 끝)까지가 이 챕터의 범위
+    const nextRe = /\{\s*id:\d+\b/g;
+    nextRe.lastIndex = startIdx + 1;
+    const nextMatch = nextRe.exec(raw);
+    const endIdx = nextMatch ? nextMatch.index : raw.length;
+
+    const before = raw.slice(0, startIdx);
+    const block  = raw.slice(startIdx, endIdx);
+    const after  = raw.slice(endIdx);
+
+    // r:true 줄만 순서대로 새 ts로 교체 (텍스트 자체는 원본 그대로 유지)
+    let i = 0;
+    const lineRe = /\{t:(`[\s\S]*?`),r:true(?:,ts:[-0-9.]+)?\}/g;
+    const newBlock = block.replace(lineRe, (m, textPart) => {
+      const newTs = (lines[i] ? lines[i].ts : 0).toFixed(1);
+      i++;
+      return '{t:' + textPart + ',r:true,ts:' + newTs + '}';
+    });
+
+    if (i !== lines.length) {
+      tsLog('⚠ 매칭된 줄 수(' + i + ')가 현재 편집 중인 줄 수(' + lines.length + ')와 달라 확인이 필요합니다. 파일은 생성하지 않았습니다.');
+      return null;
+    }
+
+    return before + newBlock + after;
+  }
+
+  function triggerDownload(filename, text) {
+    const blob = new Blob([text], {type:'text/javascript'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  async function saveFilePatch() {
+    const finalText = await downloadPatchedFile();
+    if (finalText == null) return;
+    triggerDownload('chapters-data.js', finalText);
+    tsLog('✅ chapters-data.js 파일 다운로드 완료 (챕터 ' + curChId + ' 반영). Downloads 폴더에서 GitHub에 업로드하세요.');
+  }
+
+  function buildPatchText() {
+    return '// ch' + curChId + ' 타임스탬프 패치\nconst TS_CH' + curChId + ' = [\n' +
+      lines.map(l => '  ' + l.ts.toFixed(1)).join(',\n') + '\n];';
+  }
+
+  async function copyToClipboard(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch(e) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        return true;
+      } catch(e2) {
+        return false;
+      }
+    }
+  }
+
+  async function saveToGasAndFile() {
+    const cred = getAdminCredForEdit();
+    if (!cred.name || !cred.pw) {
+      tsLog('⚠ 관리자 로그인 후 사용하세요.');
+      return;
+    }
+    tsLog('저장 중...');
+    const timestamps = lines.map((l, i) => ({ idx: i, ts: l.ts, text: l.text }));
+    let saveMsg;
+    try {
+      const res = await fetch(TS_GAS_URL + '?act=ts_save&name=' + encodeURIComponent(cred.name) + '&pw=' + encodeURIComponent(cred.pw) + '&chId=' + curChId, {
+        method: 'POST',
+        headers: {'Content-Type': 'text/plain'},
+        body: JSON.stringify({ act: 'ts_save', name: cred.name, pw: cred.pw, chId: curChId, timestamps })
+      });
+      const data = await res.json();
+      saveMsg = data.ok ? ('✅ GAS 저장 완료(' + timestamps.length + '개)') : ('❌ GAS 저장 실패: ' + (data.message || '오류'));
+    } catch(e) {
+      saveMsg = '❌ GAS 저장 네트워크 오류: ' + e.message;
+    }
+
+    const finalText = await downloadPatchedFile();
+    if (finalText == null) {
+      tsLog(saveMsg + ' / ❌ 파일 생성 실패 (로그 위 내용 확인)');
+      return;
+    }
+    triggerDownload('chapters-data.js', finalText);
+    tsLog(saveMsg + ' / 📁 chapters-data.js 다운로드 완료 → GitHub에 업로드하세요.');
+  }
+
   async function saveToGas() {
     const cred = getAdminCredForEdit();
     if (!cred.name || !cred.pw) {
@@ -1362,20 +1492,9 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
     }
   }
 
-  function copyPatch() {
-    const out = '// ch' + curChId + ' 타임스탬프 패치\nconst TS_CH' + curChId + ' = [\n' +
-      lines.map(l => '  ' + l.ts.toFixed(1)).join(',\n') + '\n];';
-    navigator.clipboard.writeText(out).then(() => {
-      tsLog('클립보드에 복사 완료!');
-    }).catch(() => {
-      const ta = document.createElement('textarea');
-      ta.value = out;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      tsLog('복사 완료 (fallback)');
-    });
+  async function copyPatch() {
+    const copied = await copyToClipboard(buildPatchText());
+    tsLog(copied ? '클립보드에 복사 완료!' : '❌ 복사 실패');
   }
 
   // 탭 전환 시 초기화
