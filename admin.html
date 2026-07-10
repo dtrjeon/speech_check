@@ -191,11 +191,16 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
       <a href="index.html" class="back-btn">← 앱으로</a>
       <div>
         <div class="page-title">📊 사용 현황</div>
-        <div class="page-sub">전문 구두점검 관리자</div>
+        <div class="page-sub">전문 구두점검 관리자 · <span id="admin-version" style="opacity:.6;">v2026.07.10</span></div>
       </div>
     </div>
     <button class="icon-btn" id="btn-refresh">↻ 새로고침</button>
   </div>
+
+  <script>
+    // 배포 확인용: 콘솔에도 버전 출력 (캐시된 예전 파일이 열려있는지 헷갈릴 때 개발자도구 콘솔에서 확인 가능)
+    console.log('admin.html version: v2026.07.10 (자동정렬 시 오디오 자동재생, scripts 시트 분리, wordFields 배열/객체 방어)');
+  </script>
 
   <!-- 관리자 로그인 -->
   <div class="token-box">
