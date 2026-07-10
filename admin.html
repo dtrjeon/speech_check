@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   admin.html 변경 이력
+  v2.2 (2026-07-10) - 상단 탭 바(유저별/챕터별/상세로그/디바이스/타임스탬프/TS편집)가 좁은 화면에서 2줄로 줄바꿈되어 복잡해 보이던 문제 해결 → 가로 스크롤 방식으로 변경, 각 탭 한 줄 유지
   v2.1 (2026-07-10) - 타임스탬프 탭 결과 목록: 각 챕터 박스 개별 접기/펴기, "전체 펼치기/접기", "선택한 챕터만 보기" 필터 추가
   v2.0 (2026-07-10) - 타임스탬프 탭 자동 로드 시 성공 로그 메시지 숨김 (오류만 표시하도록 변경, 로그창 정리)
   v1.9 (2026-07-10) - 이름/비밀번호 입력창에 min-width:0 추가하여 실제로 1:1 균등 분할되도록 수정 (비밀번호 입력창이 화면 밖으로 밀리던 문제 해결) → 검색창과 오른쪽 끝선 정렬됨
@@ -92,8 +93,9 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .sum-sub{font-size:10px;color:var(--text-muted);margin-top:2px;}
 
 /* 탭 */
-.tabs{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px;}
-.tab{flex:1;padding:10px 4px;text-align:center;font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:400;color:var(--text-dim);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;}
+.tabs{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:10px;overflow-x:auto;overflow-y:hidden;margin-bottom:14px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex:0 0 auto;white-space:nowrap;padding:10px 16px;text-align:center;font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:400;color:var(--text-dim);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--surface);font-weight:500;}
 .tab-panel{display:none;}
 .tab-panel.active{display:block;}
@@ -345,7 +347,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 <script>
 
 /* ── 버전 정보 (파일 상단 변경이력 주석과 함께 갱신) ── */
-const ADMIN_VERSION = 'v2.1 (2026-07-10)';
+const ADMIN_VERSION = 'v2.2 (2026-07-10)';
 document.addEventListener('DOMContentLoaded', () => {
   const sub = document.querySelector('.page-sub');
   if (sub) sub.textContent = sub.textContent + ' · ' + ADMIN_VERSION;
