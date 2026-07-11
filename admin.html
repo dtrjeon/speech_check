@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <!--
   admin.html 변경 이력
+  v2.7 (2026-07-10) - 자동 정렬 매칭 실패 줄을 목록에서 빨간색으로 강조 표시 (⚠ 매칭 실패), 수동으로 재태깅하면 자동 해제
+  v2.6 (2026-07-10) - TS편집: 모바일(스페이스바 없음) 대응 — "👆 탭하여 태깅"/"↩ 되돌리기" 큰 버튼 추가, 스페이스바·Backspace와 동일하게 동작
   v2.5 (2026-07-10) - TS편집 ⋮ 메뉴에 "⬇ 다운로드" 추가 (현재 챕터 오디오 파일 다운로드)
   v2.4 (2026-07-10) - TS편집 커스텀 플레이어에 🔊 음소거 버튼과 ⋮ 메뉴(재생 속도 0.5x~1.5x) 추가
   v2.3 (2026-07-10) - TS편집: 오디오 플레이어를 안내문구 아래로 이동 / 네이티브 mm:ss 컨트롤을 초 단위 소수점(0.0s) 표시의 커스텀 플레이어로 교체
@@ -350,7 +352,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 <script>
 
 /* ── 버전 정보 (파일 상단 변경이력 주석과 함께 갱신) ── */
-const ADMIN_VERSION = 'v2.5 (2026-07-10)';
+const ADMIN_VERSION = 'v2.7 (2026-07-10)';
 document.addEventListener('DOMContentLoaded', () => {
   const sub = document.querySelector('.page-sub');
   if (sub) sub.textContent = sub.textContent + ' · ' + ADMIN_VERSION;
@@ -1040,6 +1042,7 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
   let activeIdx = -1;
   let syncMode = false;   // 싱크 모드: 오디오를 재생하며 문장이 바뀔 때마다 스페이스바로 태깅 + 자동 다음줄 이동
   let syncPointer = 0;    // 싱크 모드에서 다음에 태깅할 라인 인덱스
+  let unmatchedSet = new Set(); // 자동 정렬에서 매칭 실패한 라인 인덱스 (수동 보정 전까지 강조 표시)
 
   function getAdminCredForEdit() {
     try {
@@ -1079,8 +1082,8 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
 
         <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;display:flex;gap:12px;flex-wrap:wrap;">
           <span>📌 라인 클릭 → 해당 라인에 현재 위치 태깅</span>
-          <span>⌨️ 스페이스바 → 싱크 모드: 다음 줄 태깅 / 일반 모드: 활성 라인 ts 설정</span>
-          <span>↩ ← 또는 Backspace → 싱크 모드에서 한 줄 되돌리기</span>
+          <span>⌨️ 스페이스바(PC) / 👆 탭 버튼(모바일) → 싱크 모드: 다음 줄 태깅 / 일반 모드: 활성 라인 ts 설정</span>
+          <span>↩ ← 또는 Backspace(PC) / 되돌리기 버튼(모바일) → 싱크 모드에서 한 줄 되돌리기</span>
           <span>▶ → 해당 ts부터 재생 확인</span>
         </div>
 
@@ -1102,6 +1105,11 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
           </div>
         </div>
         <audio id="ts-edit-audio" preload="metadata" style="display:none;"></audio>
+
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <button id="ts-tap-btn" style="flex:1;padding:16px;font-size:16px;font-weight:700;background:var(--accent-glow);border:2px solid var(--accent);color:var(--accent);border-radius:10px;">👆 탭하여 태깅 (스페이스바 대신)</button>
+          <button id="ts-undo-btn" style="padding:16px 18px;font-size:15px;background:var(--surface);border:1px solid var(--border2);color:var(--text-muted);border-radius:10px;">↩ 되돌리기</button>
+        </div>
 
         <div id="ts-edit-lines" style="max-height:45vh;overflow-y:auto;border:1px solid var(--border);border-radius:8px;"></div>
 
@@ -1201,6 +1209,26 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
       menuEl.style.display = 'none';
     });
 
+    // 👆 모바일용 태깅/되돌리기 버튼 (스페이스바 / ←·Backspace 대체)
+    document.getElementById('ts-tap-btn').addEventListener('click', () => {
+      if (syncMode) {
+        if (syncPointer < lines.length) tagLine(syncPointer);
+      } else if (activeIdx >= 0) {
+        tagLine(activeIdx);
+      } else {
+        tsLog('⚠ 태깅할 줄이 없습니다. 줄을 먼저 클릭하거나 싱크 모드를 시작하세요.');
+      }
+    });
+    document.getElementById('ts-undo-btn').addEventListener('click', () => {
+      if (!syncMode) {
+        tsLog('⚠ 되돌리기는 싱크 모드에서만 사용할 수 있습니다.');
+        return;
+      }
+      syncPointer = Math.max(0, syncPointer - 1);
+      renderLines();
+      tsLog(`↩ 라인 ${syncPointer+1}로 되돌아갑니다. 다시 태깅하세요.`);
+    });
+
     // timeupdate → 현재 재생 위치에 해당하는 라인 자동 하이라이트 (싱크 모드에서는 포인터가 하이라이트를 담당하므로 끔)
     audio.addEventListener('timeupdate', () => {
       if (!seeking) {
@@ -1267,6 +1295,7 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
     if (!audio || idx < 0 || idx >= lines.length) return;
     const cur = Math.round(audio.currentTime * 10) / 10;
     lines[idx].ts = cur;
+    unmatchedSet.delete(idx);
     if (syncMode) {
       syncPointer = Math.min(idx + 1, lines.length - 1);
       renderLines();
@@ -1378,6 +1407,7 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
 
     let from = 0, matched = 0;
     const unmatched = [];
+    unmatchedSet = new Set();
     lines.forEach((l, i) => {
       const norm = normalizeForMatch(l.text);
       if (!norm) return;
@@ -1388,6 +1418,7 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
         matched++;
       } else {
         unmatched.push(i + 1);
+        unmatchedSet.add(i);
         from = Math.min(from + norm.length, master.length - 1);
       }
     });
@@ -1419,6 +1450,7 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
     activeIdx = -1;
     syncMode = false;
     syncPointer = 0;
+    unmatchedSet = new Set();
     // 기존 keydown 이벤트 제거 후 재등록 방지
     document.removeEventListener('keydown', handleKeydown);
     renderEdit();
@@ -1447,16 +1479,17 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
       <div class="ts-edit-row" data-idx="${i}"
            style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;
                   border-bottom:1px solid var(--border);cursor:pointer;
-                  ${i===hlIdx?'background:var(--accent-glow);border-left:3px solid var(--accent);':'border-left:3px solid transparent;'}
+                  ${i===hlIdx?'background:var(--accent-glow);border-left:3px solid var(--accent);':(unmatchedSet.has(i)?'background:var(--red-bg);border-left:3px solid var(--red);':'border-left:3px solid transparent;')}
                   transition:background .1s;"
            onclick="tsEditSetTs(${i})">
         <div style="min-width:56px;flex-shrink:0;">
-          <div style="font-size:13px;color:var(--accent);font-weight:600;font-variant-numeric:tabular-nums;">
+          <div style="font-size:13px;color:${unmatchedSet.has(i)?'var(--red)':'var(--accent)'};font-weight:600;font-variant-numeric:tabular-nums;">
             ${l.ts.toFixed(1)}s
           </div>
           <div style="font-size:10px;color:var(--text-dim);margin-top:2px;cursor:pointer;"
                onclick="event.stopPropagation();tsEditPlay(${i})">▶ 재생</div>
           ${(syncMode && i===syncPointer) ? '<div style="font-size:9px;color:var(--red);margin-top:2px;">다음 태깅</div>' : ''}
+          ${unmatchedSet.has(i) ? '<div style="font-size:9px;color:var(--red);margin-top:2px;">⚠ 매칭 실패</div>' : ''}
         </div>
         <div style="font-size:12px;color:var(--text-muted);line-height:1.6;flex:1;">
           ${l.text}
