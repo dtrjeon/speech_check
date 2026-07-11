@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<!--
+  admin.html 변경 이력
+  v2.5 (2026-07-10) - TS편집 ⋮ 메뉴에 "⬇ 다운로드" 추가 (현재 챕터 오디오 파일 다운로드)
+  v2.4 (2026-07-10) - TS편집 커스텀 플레이어에 🔊 음소거 버튼과 ⋮ 메뉴(재생 속도 0.5x~1.5x) 추가
+  v2.3 (2026-07-10) - TS편집: 오디오 플레이어를 안내문구 아래로 이동 / 네이티브 mm:ss 컨트롤을 초 단위 소수점(0.0s) 표시의 커스텀 플레이어로 교체
+  v2.2 (2026-07-10) - 상단 탭 바(유저별/챕터별/상세로그/디바이스/타임스탬프/TS편집)가 좁은 화면에서 2줄로 줄바꿈되어 복잡해 보이던 문제 해결 → 가로 스크롤 방식으로 변경, 각 탭 한 줄 유지
+  v2.1 (2026-07-10) - 타임스탬프 탭 결과 목록: 각 챕터 박스 개별 접기/펴기, "전체 펼치기/접기", "선택한 챕터만 보기" 필터 추가
+  v2.0 (2026-07-10) - 타임스탬프 탭 자동 로드 시 성공 로그 메시지 숨김 (오류만 표시하도록 변경, 로그창 정리)
+  v1.9 (2026-07-10) - 이름/비밀번호 입력창에 min-width:0 추가하여 실제로 1:1 균등 분할되도록 수정 (비밀번호 입력창이 화면 밖으로 밀리던 문제 해결) → 검색창과 오른쪽 끝선 정렬됨
+  v1.8 (2026-07-10) - 이름/비밀번호 입력창 폭을 50/50으로 맞춰 아래 검색창과 좌우 정렬되도록 수정
+  v1.7 (2026-07-10) - TS편집: 클립보드 복사 대신 chapters-data.js 원본을 불러와 해당 챕터 ts만 교체한 완성 파일을 다운로드하는 방식으로 변경
+  v1.6 (2026-07-10) - TS편집: "저장+복사 동시에" 버튼 추가 (GAS 저장과 JS 패치 클립보드 복사를 한 번에)
+  v1.5 (2026-07-10) - 상단바 텍스트 줄바꿈 문제 해결 / 테마 선택 기능 추가(다크·라이트·세피아, 🎨 버튼으로 전환)
+  v1.4 (2026-07-10) - CLOVA 누적 뱃지를 fixed 오버레이에서 상단바 안 정상 배치로 변경 (새로고침 버튼과 겹치던 문제 해결)
+  v1.3 (2026-07-10) - TS편집: 자동 정렬 완료 후 오디오 자동재생 추가 / CLOVA 누적 뱃지 챕터추출 완료 시 자동갱신
+  v1.2 (2026-07-07) - TS편집: 🤖 자동 정렬(CLOVA 단어 단위 타임스탬프 기반 포스드 얼라인먼트) 추가
+  v1.1 (2026-07-07) - TS편집: 🔴 싱크 모드 추가 (스페이스바로 다음 줄 자동 태깅 + 이동, ←/Backspace로 되돌리기)
+  v1.0 (이전)        - 기존 버전 (수동 라인 클릭/스페이스바 ts 설정만 가능)
+  ※ 다음 수정 시 아래 ADMIN_VERSION 상수와 이 주석을 함께 갱신할 것
+-->
+<html lang="ko">
+<head>
+<script>
+  // 저장된 테마를 렌더링 전에 적용해서 다크 화면이 잠깐 번쩍이는 걸 방지
+  (function(){
+    try {
+      var t = localStorage.getItem('admin_theme');
+      if (t && t !== 'dark') document.documentElement.setAttribute('data-theme', t);
+    } catch(e) {}
+  })();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>구두점검 관리자</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e0f11;--surface:#17191d;--surface2:#1e2127;
+  --border:#2a2d35;--border2:#363a45;
+  --text:#e8eaf0;--text-muted:#7a7f8e;--text-dim:#4a4f5e;
+  --green:#4ade80;--green-bg:rgba(74,222,128,.13);--green-border:rgba(74,222,128,.3);
+  --red:#f87171;--red-bg:rgba(248,113,113,.13);--red-border:rgba(248,113,113,.3);
+  --amber:#fbbf24;--amber-bg:rgba(251,191,36,.12);--amber-border:rgba(251,191,36,.25);
+  --blue:#60a5fa;--blue-bg:rgba(96,165,250,.12);--blue-border:rgba(96,165,250,.25);
+  --accent:#7c6aff;--accent-glow:rgba(124,106,255,.22);
+  --clova:#00c471;--clova-bg:rgba(0,196,113,.12);--clova-border:rgba(0,196,113,.3);
+}
+html[data-theme="light"]{
+  --bg:#f4f5f8;--surface:#ffffff;--surface2:#eef0f4;
+  --border:#dde1e9;--border2:#c7cdd9;
+  --text:#1c1e24;--text-muted:#5b6072;--text-dim:#8a90a0;
+  --green:#16a34a;--green-bg:rgba(22,163,74,.10);--green-border:rgba(22,163,74,.3);
+  --red:#dc2626;--red-bg:rgba(220,38,38,.10);--red-border:rgba(220,38,38,.3);
+  --amber:#b45309;--amber-bg:rgba(180,83,9,.10);--amber-border:rgba(180,83,9,.25);
+  --blue:#2563eb;--blue-bg:rgba(37,99,235,.10);--blue-border:rgba(37,99,235,.25);
+  --accent:#6d28d9;--accent-glow:rgba(109,40,217,.14);
+  --clova:#00915a;--clova-bg:rgba(0,145,90,.10);--clova-border:rgba(0,145,90,.3);
+}
+html[data-theme="sepia"]{
+  --bg:#f2e8d5;--surface:#f8f1e2;--surface2:#eee0c6;
+  --border:#dcc9a3;--border2:#c7b088;
+  --text:#3a2f22;--text-muted:#6b5c47;--text-dim:#9c8a6c;
+  --green:#4a7c2f;--green-bg:rgba(74,124,47,.12);--green-border:rgba(74,124,47,.3);
+  --red:#a13a2a;--red-bg:rgba(161,58,42,.12);--red-border:rgba(161,58,42,.3);
+  --amber:#a3701a;--amber-bg:rgba(163,112,26,.12);--amber-border:rgba(163,112,26,.25);
+  --blue:#3f6a8a;--blue-bg:rgba(63,106,138,.12);--blue-border:rgba(63,106,138,.25);
+  --accent:#8a5a2a;--accent-glow:rgba(138,90,42,.18);
+  --clova:#2f7a52;--clova-bg:rgba(47,122,82,.12);--clova-border:rgba(47,122,82,.3);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-weight:300;line-height:1.6;-webkit-font-smoothing:antialiased;}
+.page{max-width:640px;margin:0 auto;padding:16px 14px 60px;}
+
+/* 상단 */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;row-gap:8px;}
+.topbar-left{display:flex;align-items:center;gap:8px;white-space:nowrap;}
+.back-btn{background:transparent;border:1px solid var(--border2);border-radius:7px;padding:5px 10px;color:var(--text-muted);font-size:12px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}
+.back-btn:hover{border-color:var(--accent);color:var(--accent);}
+.page-title{font-size:15px;font-weight:700;white-space:nowrap;}
+.page-sub{font-size:10px;color:var(--text-dim);white-space:nowrap;}
+.icon-btn{background:transparent;border:1px solid var(--border2);border-radius:7px;padding:5px 10px;color:var(--text-muted);font-family:'Noto Sans KR',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* 토큰 */
+.token-box{display:flex;gap:8px;margin-bottom:12px;}
+.token-input{flex:1 1 0;min-width:0;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;outline:none;}
+.token-input:focus{border-color:var(--accent);}
+.token-btn{padding:9px 16px;border-radius:8px;border:1px solid var(--accent);background:var(--accent-glow);color:var(--accent);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;}
+
+/* 요약 카드 */
+.sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px;}
+.sum-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
+.sum-lbl{font-size:9px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px;}
+.sum-val{font-size:24px;font-weight:700;line-height:1;}
+.sum-sub{font-size:10px;color:var(--text-muted);margin-top:2px;}
+
+/* 탭 */
+.tabs{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:10px;overflow-x:auto;overflow-y:hidden;margin-bottom:14px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex:0 0 auto;white-space:nowrap;padding:10px 16px;text-align:center;font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:400;color:var(--text-dim);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--surface);font-weight:500;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* 검색 */
+.search-row{display:flex;gap:6px;margin-bottom:10px;}
+.search-input{flex:1;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:7px 12px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none;}
+.search-input:focus{border-color:var(--accent);}
+.filter-btn{padding:6px 12px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text-muted);font-family:'Noto Sans KR',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;}
+.filter-btn.active{border-color:var(--accent);background:var(--accent-glow);color:var(--accent);}
+
+/* 유저 카드 */
+.user-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;}
+.user-card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;gap:8px;}
+.user-card-header:hover{background:var(--surface2);}
+.user-name-row{display:flex;align-items:center;gap:8px;}
+.user-name{font-size:14px;font-weight:500;}
+.user-meta{font-size:11px;color:var(--text-dim);}
+.user-stats{display:flex;gap:10px;align-items:center;}
+.u-stat{text-align:right;}
+.u-stat-val{font-size:13px;font-weight:600;}
+.u-stat-lbl{font-size:9px;color:var(--text-dim);}
+.chevron{font-size:12px;color:var(--text-dim);transition:transform .2s;flex-shrink:0;}
+.user-card.open .chevron{transform:rotate(180deg);}
+.user-detail{display:none;border-top:1px solid var(--border);padding:10px 14px;}
+.user-card.open .user-detail{display:block;}
+
+/* 챕터 바 */
+.ch-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.ch-bar-label{font-size:12px;color:var(--text-muted);min-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ch-bar-wrap{flex:1;background:var(--surface2);border-radius:4px;height:8px;overflow:hidden;}
+.ch-bar-fill{height:100%;border-radius:4px;background:var(--accent);}
+.ch-bar-count{font-size:11px;color:var(--text-dim);min-width:24px;text-align:right;}
+.ch-time-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px;}
+.ch-time-chip{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;text-align:center;}
+.ch-time-val{font-size:15px;font-weight:600;color:var(--clova);}
+.ch-time-lbl{font-size:9px;color:var(--text-dim);margin-top:2px;}
+
+/* 챕터 탭 */
+.chapter-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;}
+.chapter-card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;}
+.chapter-card-header:hover{background:var(--surface2);}
+.ch-title-row{display:flex;align-items:center;gap:8px;}
+.ch-badge{font-size:10px;color:var(--accent);background:var(--accent-glow);border:1px solid var(--accent);border-radius:4px;padding:1px 7px;}
+.ch-name{font-size:13px;font-weight:500;}
+.ch-stats{display:flex;gap:12px;align-items:center;}
+.ch-stat-val{font-size:13px;font-weight:600;}
+.ch-stat-lbl{font-size:9px;color:var(--text-dim);}
+.ch-user-list{display:none;border-top:1px solid var(--border);padding:10px 14px;}
+.chapter-card.open .ch-user-list{display:block;}
+.ch-user-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);}
+.ch-user-row:last-child{border-bottom:none;}
+.ch-user-name{font-size:12px;font-weight:500;}
+.ch-user-cls{font-size:11px;color:var(--text-dim);margin-left:4px;}
+.ch-user-cnt{font-size:12px;color:var(--clova);font-weight:500;}
+
+/* 상세 로그 */
+.log-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:6px;}
+.log-item-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.log-ts{font-size:11px;color:var(--text-dim);}
+.log-name{font-size:13px;font-weight:500;}
+.log-cls{font-size:11px;color:var(--text-dim);margin-left:4px;}
+.log-detail{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.log-chip{font-size:11px;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 7px;}
+.act-badge{display:inline-block;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:500;}
+.act-login{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);}
+.act-logout{background:var(--surface2);color:var(--text-dim);border:1px solid var(--border2);}
+.act-stt_start{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+.act-stt_save{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);}
+.act-clova_start,.act-clova_done{background:var(--clova-bg);color:var(--clova);border:1px solid var(--clova-border);}
+.act-clova_error{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+.act-analyze{background:var(--accent-glow);color:var(--accent);border:1px solid rgba(124,106,255,.3);}
+
+.empty{text-align:center;padding:32px;color:var(--text-dim);font-size:13px;}
+.loading{text-align:center;padding:32px;color:var(--text-muted);font-size:13px;}
+.err-box{background:var(--red-bg);border:1px solid var(--red-border);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--red);margin-bottom:10px;display:none;}
+
+/* ── 타임스탬프 탭 ── */
+.ts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px;}
+.ts-card{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;transition:border-color .15s;}
+.ts-card:hover{border-color:var(--accent);}
+.ts-card.done{border-color:var(--green-border);background:var(--green-bg);}
+.ts-card.running{border-color:var(--amber-border);background:var(--amber-bg);}
+.ts-card.error{border-color:var(--red-border);background:var(--red-bg);}
+.ts-card-num{font-size:10px;color:var(--text-dim);margin-bottom:2px;}
+.ts-card-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px;}
+.ts-card-status{font-size:11px;}
+.ts-status-done{color:var(--green);}
+.ts-status-run{color:var(--amber);}
+.ts-status-none{color:var(--text-dim);}
+.ts-status-err{color:var(--red);}
+.ts-action-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.ts-btn{padding:8px 16px;border-radius:8px;border:1px solid var(--accent);background:var(--accent-glow);color:var(--accent);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;}
+.ts-btn:disabled{opacity:.35;cursor:not-allowed;}
+.ts-btn-sm{padding:5px 12px;font-size:12px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text-muted);font-family:'Noto Sans KR',sans-serif;cursor:pointer;}
+.ts-btn-sm:hover{border-color:var(--accent);color:var(--accent);}
+.ts-log{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text-muted);line-height:1.8;min-height:48px;max-height:180px;overflow-y:auto;margin-bottom:10px;font-family:monospace;}
+.ts-result-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px;}
+.ts-result-header{padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:12px;font-weight:500;color:var(--text-muted);display:flex;align-items:center;justify-content:space-between;}
+.ts-result-body{padding:10px 14px;max-height:300px;overflow-y:auto;}
+.ts-row{display:flex;gap:8px;align-items:flex-start;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.ts-row:last-child{border-bottom:none;}
+.ts-row-ts{color:var(--accent);min-width:50px;font-variant-numeric:tabular-nums;font-weight:500;flex-shrink:0;}
+.ts-row-text{color:var(--text-muted);line-height:1.5;}
+.ts-copy-btn{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:5px 14px;font-family:'Noto Sans KR',sans-serif;font-size:12px;cursor:pointer;}
+</style>
+</head>
+<body>
+<script>
+(function(){
+  var CLOVA_USAGE_URL = 'https://script.google.com/macros/s/AKfycbzGFkegiqWgRYUZEWzbHi5NHzAMMqWl-8bimKnhmUhfjV1q3L2NvhZJxR0n4zUMYimE/exec';
+  function fmtSec(sec){
+    sec = Math.round(sec);
+    var m = Math.floor(sec/60), s = sec%60;
+    return m>0 ? (m+'분 '+s+'초') : (s+'초');
+  }
+  function loadClovaUsage(){
+    fetch(CLOVA_USAGE_URL + '?act=usage_total')
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var el = document.getElementById('clova-usage-badge');
+        if(el && d && d.ok) el.textContent = '🟢 CLOVA 누적(챕터추출) ' + fmtSec(d.totalSec);
+      })
+      .catch(function(){});
+  }
+  loadClovaUsage();
+  window.refreshClovaUsageBadge = loadClovaUsage;
+})();
+</script>
+<div class="page">
+
+  <!-- 상단 -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <a href="index.html" class="back-btn">← 앱으로</a>
+      <div>
+        <div class="page-title">📊 사용 현황</div>
+        <div class="page-sub">전문 구두점검 관리자</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div id="clova-usage-badge" style="background:rgba(0,0,0,.35);border:1px solid var(--border2);color:#7CFFB2;font-size:10px;font-weight:600;padding:4px 9px;border-radius:12px;font-family:sans-serif;letter-spacing:.2px;white-space:nowrap;">CLOVA 누적 --</div>
+      <button class="icon-btn" id="btn-theme" title="테마 변경">🎨</button>
+      <button class="icon-btn" id="btn-refresh">↻ 새로고침</button>
+    </div>
+  </div>
+
+  <!-- 관리자 로그인 -->
+  <div class="token-box">
+    <input class="token-input" id="admin-name" type="text" placeholder="이름" autocomplete="username" enterkeyhint="next">
+    <input class="token-input" id="admin-pw" type="password" placeholder="비밀번호" autocomplete="current-password" enterkeyhint="done">
+    <button class="token-btn" id="btn-load">조회</button>
+  </div>
+  <div class="err-box" id="err-box"></div>
+
+  <!-- 요약 카드 -->
+  <div class="sum-grid" id="summary-area" style="display:none;">
+    <div class="sum-card"><div class="sum-lbl">총 로그인</div><div class="sum-val" style="color:var(--green);" id="s-login">0</div><div class="sum-sub">회</div></div>
+    <div class="sum-card"><div class="sum-lbl">CLOVA 변환</div><div class="sum-val" style="color:var(--clova);" id="s-clova">0</div><div class="sum-sub">회 성공</div></div>
+    <div class="sum-card"><div class="sum-lbl">CLOVA 총시간</div><div class="sum-val" style="color:var(--amber);" id="s-sec">0</div><div class="sum-sub">초</div></div>
+    <div class="sum-card"><div class="sum-lbl">STT 녹음</div><div class="sum-val" style="color:var(--red);" id="s-stt">0</div><div class="sum-sub">회</div></div>
+    <div class="sum-card"><div class="sum-lbl">비교 분석</div><div class="sum-val" style="color:var(--blue);" id="s-analyze">0</div><div class="sum-sub">회</div></div>
+    <div class="sum-card"><div class="sum-lbl">사용자 수</div><div class="sum-val" style="color:var(--accent);" id="s-users">0</div><div class="sum-sub">명</div></div>
+  </div>
+
+  <!-- 탭 -->
+  <div class="tabs" id="main-tabs" style="display:none;">
+    <button class="tab active" data-tab="user">👤 유저별</button>
+    <button class="tab" data-tab="chapter">📖 챕터별</button>
+    <button class="tab" data-tab="detail">📋 상세 로그</button>
+    <button class="tab" data-tab="device">📱 디바이스</button>
+    <button class="tab" data-tab="ts">⏱ 타임스탬프</button>
+    <button class="tab" data-tab="ts-edit">✏️ TS편집</button>
+  </div>
+
+  <div id="loading-area" class="loading" style="display:none;">⏳ 로그 불러오는 중...</div>
+
+  <!-- ── 탭1: 유저별 ── -->
+  <div class="tab-panel active" id="panel-user">
+    <div class="search-row">
+      <input class="search-input" id="user-search" placeholder="이름 검색...">
+    </div>
+    <div id="user-list"></div>
+  </div>
+
+  <!-- ── 탭2: 챕터별 ── -->
+  <div class="tab-panel" id="panel-chapter">
+    <div id="chapter-list"></div>
+  </div>
+
+  <!-- ── 탭4: 디바이스 ── -->
+  <div class="tab-panel" id="panel-device">
+    <div class="section-title" style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;">디바이스 · OS · 브라우저별 접속 현황</div>
+    <div id="device-summary"></div>
+  </div>
+
+
+  <!-- ── 탭5: 타임스탬프 추출 ── -->
+  <div class="tab-panel" id="panel-ts">
+    <div style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;">
+      CLOVA STT로 챕터별 타임스탬프 추출
+    </div>
+
+    <!-- 챕터 카드 그리드 -->
+    <div class="ts-grid" id="ts-ch-grid">
+      <!-- JS로 렌더 -->
+    </div>
+
+    <!-- 액션 버튼 -->
+    <div class="ts-action-row">
+      <button class="ts-btn" id="ts-btn-start">▶ 선택 챕터 추출 시작</button>
+      <button class="ts-btn" id="ts-btn-all" style="background:transparent;color:var(--accent);">전체 9개 추출</button>
+      <button class="ts-btn-sm" id="ts-btn-poll">⟳ 결과 조회</button>
+      <button class="ts-btn-sm" id="ts-btn-clear-sel">선택 해제</button>
+      <button class="ts-btn-sm" id="ts-btn-clear-all" style="border-color:var(--red-border);color:var(--red);">🗑 전체 초기화</button>
+    </div>
+
+    <!-- 진행 로그 -->
+    <div class="ts-log" id="ts-log">챕터를 선택하고 추출 시작 버튼을 누르세요.</div>
+
+    <!-- 결과 표시 -->
+    <div class="ts-action-row" style="margin-bottom:8px;">
+      <button class="ts-btn-sm" id="ts-btn-expand-all">▼ 전체 펼치기</button>
+      <button class="ts-btn-sm" id="ts-btn-collapse-all">▲ 전체 접기</button>
+      <button class="ts-btn-sm" id="ts-btn-filter-selected">☑ 선택한 챕터만</button>
+    </div>
+    <div id="ts-result-area"></div>
+  </div>
+
+  <!-- ── 탭6: 수동 타임스탬프 편집 ── -->
+  <div class="tab-panel" id="panel-ts-edit">
+    <div id="ts-edit-inner"></div>
+  </div>
+
+  <!-- ── 탭3: 상세 로그 ── -->
+  <div class="tab-panel" id="panel-detail">
+    <div class="search-row">
+      <input class="search-input" id="detail-search" placeholder="이름 검색...">
+      <button class="filter-btn active" data-act="all">전체</button>
+      <button class="filter-btn" data-act="clova_done">CLOVA</button>
+      <button class="filter-btn" data-act="stt_start">STT</button>
+      <button class="filter-btn" data-act="analyze">분석</button>
+    </div>
+    <div id="detail-list"></div>
+  </div>
+
+</div>
+<script src="chapters-data.js"></script>
+<script>
+
+/* ── 버전 정보 (파일 상단 변경이력 주석과 함께 갱신) ── */
+const ADMIN_VERSION = 'v2.5 (2026-07-10)';
+document.addEventListener('DOMContentLoaded', () => {
+  const sub = document.querySelector('.page-sub');
+  if (sub) sub.textContent = sub.textContent + ' · ' + ADMIN_VERSION;
+});
+
+/* ── UA 파서 ── */
+function parseUA(ua) {
+  if (!ua) return { os: '알 수 없음', browser: '', device: '기타' };
+  let os = '', browser = '', device = '';
+
+  // OS
+  if (/iPhone/.test(ua))              { os = 'iOS(iPhone)';  device = '📱 모바일'; }
+  else if (/iPad/.test(ua))           { os = 'iOS(iPad)';    device = '📱 태블릿'; }
+  else if (/Android/.test(ua)) {
+    os = 'Android ' + (ua.match(/Android ([\d.]+)/)||[])[1];
+    device = /Mobile/.test(ua) ? '📱 모바일' : '📱 태블릿';
+  }
+  else if (/Windows/.test(ua))        { os = 'Windows';      device = '🖥 PC'; }
+  else if (/Macintosh/.test(ua))      { os = 'macOS';        device = '🖥 Mac'; }
+  else                                { os = ua.slice(0,20);  device = '🖥 기타'; }
+
+  // 브라우저
+  if (/CriOS/.test(ua))       browser = 'Chrome(iOS)';
+  else if (/FxiOS/.test(ua))  browser = 'Firefox(iOS)';
+  else if (/EdgA/.test(ua))   browser = 'Edge(Android)';
+  else if (/SamsungBrowser/.test(ua)) browser = '삼성 인터넷';
+  else if (/Chrome/.test(ua) && !/Chromium/.test(ua)) browser = 'Chrome';
+  else if (/Safari/.test(ua) && !/Chrome/.test(ua))   browser = 'Safari';
+  else if (/Firefox/.test(ua))  browser = 'Firefox';
+  else if (/Edge/.test(ua))     browser = 'Edge';
+  else browser = '기타';
+
+  return { os, browser, device };
+}
+
+const GAS_URL   = 'https://script.google.com/macros/s/AKfycby404YrDV4qCQBOqkFv4S9jQz6nOTX_9zdjXKIoKav0C2O3RIdq4Z-gBVpVtk_8bwjbXQ/exec';
+const ADMIN_KEY = 'admin_cred';
+
+let allRows = [];
+let detailFilter = 'all';
+
+// 저장된 관리자 정보 복원
+try{
+  const s=localStorage.getItem(ADMIN_KEY);
+  if(s){ const c=JSON.parse(s);
+    document.getElementById('admin-name').value=c.name||'';
+    document.getElementById('admin-pw').value=c.pw||'';
+  }
+}catch(e){}
+
+/* ── 데이터 로드 ── */
+async function loadLogs(){
+  const name = document.getElementById('admin-name').value.trim();
+  const pw   = document.getElementById('admin-pw').value.trim();
+  if(!name||!pw){ showErr('이름과 비밀번호를 입력하세요.'); return; }
+  try{ localStorage.setItem(ADMIN_KEY, JSON.stringify({name,pw})); }catch(e){}
+  hideErr();
+  document.getElementById('summary-area').style.display='none';
+  document.getElementById('main-tabs').style.display='none';
+  document.getElementById('loading-area').style.display='block';
+  try{
+    const res  = await fetch(GAS_URL+'?act=logs',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({name,pw})});
+    const data = await res.json();
+    if(!data.ok){ showErr(data.message||'오류 발생'); return; }
+    allRows = data.rows||[];
+    renderAll();
+    document.getElementById('summary-area').style.display='grid';
+    document.getElementById('main-tabs').style.display='flex';
+  }catch(e){ showErr('서버 연결 오류: '+e.message); }
+  finally{ document.getElementById('loading-area').style.display='none'; }
+}
+
+/* ── 전체 렌더 ── */
+function renderAll(){
+  renderSummary();
+  renderUserTab();
+  renderChapterTab();
+  renderDetailTab();
+}
+
+/* ── 요약 ── */
+function renderSummary(){
+  const F = (act) => allRows.filter(r=>r['액션']===act).length;
+  const users = new Set(allRows.map(r=>r['이름']).filter(Boolean));
+  const totalSec = allRows.filter(r=>r['액션']==='clova_done').reduce((s,r)=>s+Number(r['소요시간(초)']||0),0);
+  document.getElementById('s-login').textContent   = F('login');
+  document.getElementById('s-clova').textContent   = F('clova_done');
+  document.getElementById('s-sec').textContent     = totalSec;
+  document.getElementById('s-stt').textContent     = F('stt_start');
+  document.getElementById('s-analyze').textContent = F('analyze');
+  document.getElementById('s-users').textContent   = users.size;
+
+  // 디바이스 현황 (summary 카드 아래 별도 렌더)
+  const dmap={};
+  allRows.forEach(r=>{
+    const ua=r['User-Agent']||''; if(!ua) return;
+    const d=parseUA(ua);
+    const key=d.device+' / '+d.os+' / '+d.browser;
+    if(!dmap[key]) dmap[key]={count:0,users:new Set()};
+    dmap[key].count++;
+    if(r['이름']) dmap[key].users.add(r['이름']);
+  });
+  const dvEl=document.getElementById('device-summary');
+  if(dvEl){
+    dvEl.innerHTML=Object.entries(dmap).sort((a,b)=>b[1].count-a[1].count).map(([k,v])=>
+      `<div class="user-row" style="padding:8px 14px;">
+        <div style="flex:1;font-size:13px;color:var(--text-muted);">${k}</div>
+        <div style="text-align:right;">
+          <div style="font-size:13px;font-weight:600;color:var(--accent);">${v.count}회</div>
+          <div style="font-size:10px;color:var(--text-dim);">${v.users.size}명</div>
+        </div>
+      </div>`).join('') || '<div class="empty">기록 없음</div>';
+  }
+}
+
+/* ── 탭1: 유저별 ── */
+function renderUserTab(filter=''){
+  // 사용자별 집계
+  const umap = {};
+  allRows.forEach(r=>{
+    const name = r['이름']||'(unknown)';
+    if(filter && !name.includes(filter)) return;
+    if(!umap[name]) umap[name]={ cls:r['반']||'', stage:r['단계']||'', loginCnt:0, clovaCnt:0, clovaSec:0, sttCnt:0, analyzeCnt:0, chapters:{}, rows:[] };
+    const act = r['액션']||'';
+    if(act==='login')       umap[name].loginCnt++;
+    if(act==='clova_done'){ umap[name].clovaCnt++; umap[name].clovaSec+=Number(r['소요시간(초)']||0); }
+    if(act==='stt_start')   umap[name].sttCnt++;
+    if(act==='analyze')     umap[name].analyzeCnt++;
+    if(r['챕터']){
+      const chs = r['챕터'].split(',').map(s=>s.trim()).filter(Boolean);
+      chs.forEach(ch=>{ umap[name].chapters[ch]=(umap[name].chapters[ch]||0)+1; });
+    }
+    umap[name].rows.push(r);
+  });
+
+  const entries = Object.entries(umap).sort((a,b)=>b[1].clovaSec-a[1].clovaSec);
+  if(!entries.length){ document.getElementById('user-list').innerHTML='<div class="empty">데이터 없음</div>'; return; }
+
+  const maxSec = Math.max(...entries.map(e=>e[1].clovaSec),1);
+
+  document.getElementById('user-list').innerHTML = entries.map(([name,u])=>{
+    // 챕터 바
+    const chEntries = Object.entries(u.chapters).sort((a,b)=>b[1]-a[1]);
+    const maxCh = Math.max(...chEntries.map(e=>e[1]),1);
+    const chBars = chEntries.map(([ch,cnt])=>`
+      <div class="ch-bar-row">
+        <div class="ch-bar-label">${ch}</div>
+        <div class="ch-bar-wrap"><div class="ch-bar-fill" style="width:${Math.round(cnt/maxCh*100)}%"></div></div>
+        <div class="ch-bar-count">${cnt}</div>
+      </div>`).join('') || '<div style="font-size:12px;color:var(--text-dim);padding:4px 0;">챕터 기록 없음</div>';
+
+    return `
+    <div class="user-card" id="uc-${name.replace(/\s/g,'')}">
+      <div class="user-card-header" onclick="toggleCard('uc-${name.replace(/\s/g,'')}')">
+        <div class="user-name-row">
+          <div>
+            <div class="user-name">${name}</div>
+            <div class="user-meta">${u.cls}${u.stage?' · '+u.stage:''}</div>
+          </div>
+        </div>
+        <div class="user-stats">
+          <div class="u-stat"><div class="u-stat-val" style="color:var(--clova);">${u.clovaSec}초</div><div class="u-stat-lbl">CLOVA</div></div>
+          <div class="u-stat"><div class="u-stat-val" style="color:var(--accent);">${u.analyzeCnt}</div><div class="u-stat-lbl">분석</div></div>
+          <div class="u-stat"><div class="u-stat-val" style="color:var(--red);">${u.sttCnt}</div><div class="u-stat-lbl">STT</div></div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="user-detail">
+        <div class="ch-time-row" style="margin-bottom:12px;">
+          <div class="ch-time-chip"><div class="ch-time-val" style="color:var(--green);">${u.loginCnt}</div><div class="ch-time-lbl">로그인</div></div>
+          <div class="ch-time-chip"><div class="ch-time-val" style="color:var(--clova);">${u.clovaCnt}회</div><div class="ch-time-lbl">CLOVA 변환</div></div>
+          <div class="ch-time-chip"><div class="ch-time-val" style="color:var(--clova);">${u.clovaSec}초</div><div class="ch-time-lbl">CLOVA 시간</div></div>
+        </div>
+        <div style="font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;">챕터별 분석 횟수</div>
+        ${chBars}
+        <div style="font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin:12px 0 6px;">사용 디바이스</div>
+        ${(()=>{
+          const dmap={};
+          u.rows.forEach(r=>{
+            const ua=r['User-Agent']||'';
+            if(!ua) return;
+            const d=parseUA(ua);
+            const key=d.device+' '+d.os+' / '+d.browser;
+            dmap[key]=(dmap[key]||0)+1;
+          });
+          return Object.entries(dmap).map(([k,v])=>
+            `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);">
+              <span style="color:var(--text-muted);">${k}</span>
+              <span style="color:var(--text-dim);">${v}회</span>
+            </div>`).join('') || '<div style="font-size:12px;color:var(--text-dim);">기록 없음</div>';
+        })()}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── 탭2: 챕터별 ── */
+function renderChapterTab(){
+  const cmap = {};
+  allRows.filter(r=>r['챕터']&&r['액션']==='analyze').forEach(r=>{
+    const chs = r['챕터'].split(',').map(s=>s.trim()).filter(Boolean);
+    chs.forEach(ch=>{
+      if(!cmap[ch]) cmap[ch]={ cnt:0, users:{}, totalSec:0 };
+      cmap[ch].cnt++;
+      const name = r['이름']||'(unknown)';
+      cmap[ch].users[name]=(cmap[ch].users[name]||0)+1;
+    });
+  });
+  // CLOVA 시간도 챕터별 집계
+  allRows.filter(r=>r['챕터']&&r['액션']==='clova_done').forEach(r=>{
+    const chs = r['챕터'].split(',').map(s=>s.trim()).filter(Boolean);
+    const sec = Number(r['소요시간(초)']||0)/Math.max(chs.length,1);
+    chs.forEach(ch=>{ if(cmap[ch]) cmap[ch].totalSec+=sec; });
+  });
+
+  const entries = Object.entries(cmap).sort((a,b)=>b[1].cnt-a[1].cnt);
+  if(!entries.length){ document.getElementById('chapter-list').innerHTML='<div class="empty">데이터 없음</div>'; return; }
+
+  document.getElementById('chapter-list').innerHTML = entries.map(([ch,c])=>{
+    const userRows = Object.entries(c.users).sort((a,b)=>b[1]-a[1]).map(([name,cnt])=>{
+      const uRow = allRows.find(r=>r['이름']===name);
+      const cls  = uRow ? uRow['반']||'' : '';
+      return `<div class="ch-user-row">
+        <div><span class="ch-user-name">${name}</span><span class="ch-user-cls">${cls}</span></div>
+        <div class="ch-user-cnt">${cnt}회</div>
+      </div>`;
+    }).join('');
+    const id = 'cc-'+ch.replace(/\s/g,'');
+    return `
+    <div class="chapter-card" id="${id}">
+      <div class="chapter-card-header" onclick="toggleCard('${id}')">
+        <div class="ch-title-row">
+          <span class="ch-badge">${ch}</span>
+        </div>
+        <div class="ch-stats">
+          <div class="u-stat"><div class="ch-stat-val" style="color:var(--accent);">${c.cnt}회</div><div class="ch-stat-lbl">분석</div></div>
+          <div class="u-stat"><div class="ch-stat-val" style="color:var(--clova);">${Math.round(c.totalSec)}초</div><div class="ch-stat-lbl">CLOVA</div></div>
+          <div class="u-stat"><div class="ch-stat-val" style="color:var(--text-muted);">${Object.keys(c.users).length}명</div><div class="ch-stat-lbl">사용자</div></div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="ch-user-list">${userRows}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ── 탭3: 상세 로그 ── */
+function renderDetailTab(nameFilter='', actFilter='all'){
+  const filtered = allRows.filter(r=>{
+    const matchName = !nameFilter || (r['이름']||'').includes(nameFilter);
+    const matchAct  = actFilter==='all' || r['액션']===actFilter;
+    return matchName && matchAct;
+  });
+  if(!filtered.length){ document.getElementById('detail-list').innerHTML='<div class="empty">데이터 없음</div>'; return; }
+
+  document.getElementById('detail-list').innerHTML = filtered.map(r=>{
+    const act = r['액션']||'';
+    const ts  = (r['타임스탬프(KST)']||'').slice(0,16);
+    const chips = [];
+    if(r['챕터'])       chips.push(r['챕터']);
+    if(r['소요시간(초)']) chips.push(r['소요시간(초)']+'초');
+    if(r['글자수'])      chips.push(r['글자수']+'자');
+    if(r['파일크기(KB)']) chips.push(r['파일크기(KB)']+'KB');
+    if(r['녹음방식'])    chips.push(r['녹음방식']);
+    if(r['오류내용'])    chips.push('⚠ '+r['오류내용'].slice(0,40));
+    if(r['User-Agent']){ const d=parseUA(r['User-Agent']); chips.push(d.device+' '+d.os); chips.push(d.browser); }
+    return `
+    <div class="log-item">
+      <div class="log-item-top">
+        <div><span class="log-name">${r['이름']||''}</span><span class="log-cls">${r['반']||''}</span></div>
+        <span class="act-badge act-${act}">${act}</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px;">${ts}</div>
+      ${chips.length ? '<div class="log-detail">'+chips.map(c=>`<span class="log-chip">${c}</span>`).join('')+'</div>' : ''}
+    </div>`;
+  }).join('');
+}
+
+/* ── 공통 ── */
+function toggleCard(id){
+  document.getElementById(id).classList.toggle('open');
+}
+
+// 탭 전환
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    this.classList.add('active');
+    document.getElementById('panel-'+this.dataset.tab).classList.add('active');
+  });
+});
+
+// 유저 검색
+document.getElementById('user-search').addEventListener('input',function(){
+  renderUserTab(this.value.trim());
+});
+
+// 상세 검색 + 필터
+document.getElementById('detail-search').addEventListener('input',function(){
+  renderDetailTab(this.value.trim(), detailFilter);
+});
+document.querySelectorAll('.filter-btn[data-act]').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.filter-btn[data-act]').forEach(b=>b.classList.remove('active'));
+    this.classList.add('active');
+    detailFilter = this.dataset.act;
+    renderDetailTab(document.getElementById('detail-search').value.trim(), detailFilter);
+  });
+});
+
+document.getElementById('btn-load').addEventListener('click', loadLogs);
+document.getElementById('btn-refresh').addEventListener('click', loadLogs);
+
+/* ── 테마 전환 (다크 / 라이트 / 세피아) ── */
+(function(){
+  const THEMES = ['dark','light','sepia'];
+  const THEME_LABEL = {dark:'🌙 다크', light:'☀️ 라이트', sepia:'📜 세피아'};
+  const btn = document.getElementById('btn-theme');
+  function applyTheme(t){
+    if(t==='dark') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', t);
+    if(btn) btn.textContent = THEME_LABEL[t];
+    localStorage.setItem('admin_theme', t);
+  }
+  const saved = localStorage.getItem('admin_theme') || 'dark';
+  applyTheme(saved);
+  if(btn){
+    btn.addEventListener('click', function(){
+      const cur = localStorage.getItem('admin_theme') || 'dark';
+      const next = THEMES[(THEMES.indexOf(cur)+1) % THEMES.length];
+      applyTheme(next);
+    });
+  }
+})();
+document.getElementById('admin-pw').addEventListener('keydown',e=>{ if(e.key==='Enter') loadLogs(); });
+document.getElementById('admin-name').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('admin-pw').focus(); });
+
+function showErr(msg){ const b=document.getElementById('err-box'); b.textContent=msg; b.style.display='block'; }
+function hideErr(){ document.getElementById('err-box').style.display='none'; }
+
+// 저장된 정보 있으면 자동 조회
+try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
+
+
+/* ════════════ 타임스탬프 추출 ════════════ */
+(function(){
+  const GAS = 'https://script.google.com/macros/s/AKfycbzGFkegiqWgRYUZEWzbHi5NHzAMMqWl-8bimKnhmUhfjV1q3L2NvhZJxR0n4zUMYimE/exec';
+
+  const CHAPTERS = [
+    {id:1,  num:'1장', title:'서론(아니요)'},
+    {id:2,  num:'2장', title:'은혜'},
+    {id:3,  num:'3장', title:'인간'},
+    {id:4,  num:'4장', title:'하나님'},
+    {id:5,  num:'5장', title:'그리스도'},
+    {id:6,  num:'6장', title:'믿음'},
+    {id:7,  num:'7장', title:'결신'},
+    {id:8,  num:'8장', title:'즉석양육'},
+    {id:10, num:'10장', title:'요약 복음'},
+  ];
+
+  // 상태: none | running | done | error
+  const state = {};
+  CHAPTERS.forEach(c => { state[c.id] = { status:'none', jobId:'', timestamps:[], collapsed:false }; });
+
+  let selected = new Set();
+  let pollTimer = null;
+
+  function getAdminCred(){
+    try{
+      const s = localStorage.getItem('admin_cred');
+      if(s){ const c=JSON.parse(s); return {name:c.name||'',pw:c.pw||''}; }
+    }catch(e){}
+    return { name: document.getElementById('admin-name').value.trim(),
+             pw:   document.getElementById('admin-pw').value.trim() };
+  }
+
+  function tsLog(msg){
+    const el = document.getElementById('ts-log');
+    const now = new Date().toLocaleTimeString('ko-KR');
+    el.textContent += '[' + now + '] ' + msg + '\n';
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function renderGrid(){
+    const grid = document.getElementById('ts-ch-grid');
+    grid.innerHTML = CHAPTERS.map(ch => {
+      const s = state[ch.id];
+      let cls = 'ts-card', statusHtml = '';
+      if(s.status==='done'){
+        cls += ' done';
+        statusHtml = '<div class="ts-card-status ts-status-done">✓ ' + s.timestamps.length + '개 완료</div>';
+      } else if(s.status==='running'){
+        cls += ' running';
+        statusHtml = '<div class="ts-card-status ts-status-run">⏳ 처리중...</div>';
+      } else if(s.status==='error'){
+        cls += ' error';
+        statusHtml = '<div class="ts-card-status ts-status-err">✗ 오류</div>';
+      } else {
+        statusHtml = '<div class="ts-card-status ts-status-none">미추출</div>';
+      }
+      const selBorder = selected.has(ch.id) ? 'outline:2px solid var(--accent);outline-offset:2px;' : '';
+      return '<div class="' + cls + '" style="' + selBorder + '" data-chid="' + ch.id + '" onclick="tsTsToggle(' + ch.id + ')">' +
+             '<div class="ts-card-num">' + ch.num + '</div>' +
+             '<div class="ts-card-title">' + ch.title + '</div>' +
+             statusHtml +
+             '</div>';
+    }).join('');
+  }
+
+  window.tsTsToggle = function(chId){
+    if(selected.has(chId)) selected.delete(chId);
+    else selected.add(chId);
+    renderGrid();
+    if(typeof applyAllVisibility === 'function') applyAllVisibility();
+  };
+
+  // 추출 시작 → jobId 받고 60초 후 자동 결과 조회
+  async function startExtract(ids){
+    const cred = getAdminCred();
+    if(!cred.name||!cred.pw){ tsLog('⚠ 관리자 로그인 정보가 없습니다. 먼저 조회 버튼을 누르세요.'); return; }
+
+    for(const id of ids){
+      state[id].status = 'running';
+      renderGrid();
+      tsLog('챕터 ' + id + ' 추출 요청 중...');
+      try{
+        const res = await fetch(GAS+'?act=ts_start&name='+encodeURIComponent(cred.name)+'&pw='+encodeURIComponent(cred.pw)+'&chId='+id,{
+          method:'POST', headers:{'Content-Type':'text/plain'},
+          body: JSON.stringify({act:'ts_start', name:cred.name, pw:cred.pw, chId:id})
+        });
+        const data = await res.json();
+        if(data.ok){
+          state[id].jobId = data.jobId;
+          tsLog('챕터 ' + id + ' 요청 완료. jobId: ' + (data.jobId||'').slice(0,12) + '...');
+        } else {
+          state[id].status = 'error';
+          tsLog('챕터 ' + id + ' 오류: ' + (data.message||'알 수 없음'));
+        }
+      } catch(e){
+        state[id].status = 'error';
+        tsLog('챕터 ' + id + ' 네트워크 오류: ' + e.message);
+      }
+      renderGrid();
+    }
+    tsLog('60초 후 자동으로 결과를 조회합니다...');
+    if(pollTimer) clearTimeout(pollTimer);
+    pollTimer = setTimeout(() => pollAll(ids), 60000);
+  }
+
+  // 결과 조회 (CLOVA 완료 확인 + 시트 저장)
+  async function pollAll(ids){
+    const cred = getAdminCred();
+    const running = (ids || CHAPTERS.map(c=>c.id)).filter(id => state[id].status==='running');
+    if(!running.length){ tsLog('조회할 진행중 챕터 없음'); return; }
+
+    tsLog('결과 조회 중... (' + running.length + '개)');
+    for(const id of running){
+      try{
+        const res = await fetch(GAS+'?act=ts_result&name='+encodeURIComponent(cred.name)+'&pw='+encodeURIComponent(cred.pw)+'&chId='+id,{
+          method:'POST', headers:{'Content-Type':'text/plain'},
+          body: JSON.stringify({act:'ts_result', name:cred.name, pw:cred.pw, chId:id, jobId:state[id].jobId})
+        });
+        const data = await res.json();
+        if(data.status==='running'){
+          tsLog('챕터 ' + id + ' 아직 처리중... 30초 후 재시도');
+          setTimeout(() => pollAll([id]), 30000);
+        } else if(data.status==='done'){
+          state[id].status = 'done';
+          state[id].timestamps = data.timestamps||[];
+          tsLog('챕터 ' + id + ' 완료! ' + state[id].timestamps.length + '개 세그먼트');
+          renderResult(id);
+          if(window.refreshClovaUsageBadge) window.refreshClovaUsageBadge(); // 방금 늘어난 사용량 즉시 반영
+        } else {
+          state[id].status = 'error';
+          tsLog('챕터 ' + id + ' 오류: ' + (data.message||'알 수 없음'));
+        }
+      } catch(e){
+        tsLog('챕터 ' + id + ' 조회 오류: ' + e.message);
+      }
+      renderGrid();
+    }
+  }
+
+  // 완료된 챕터 결과 표시
+  function renderResult(chId){
+    const ch = CHAPTERS.find(c=>c.id===chId);
+    const ts = state[chId].timestamps;
+    if(!ts.length) return;
+
+    // JS 패치 코드 생성 (CHAPTERS 데이터의 ts 값 업데이트용)
+    const patchLines = ts.map(t => 'ch' + chId + '_seg[' + t.idx + '].ts = ' + t.ts + '; // ' + (t.text||'').slice(0,20)).join('\n');
+
+    const area = document.getElementById('ts-result-area');
+    const existing = document.getElementById('ts-result-' + chId);
+    if(existing) existing.remove();
+
+    const div = document.createElement('div');
+    div.id = 'ts-result-' + chId;
+    div.className = 'ts-result-box';
+    div.innerHTML =
+      '<div class="ts-result-header" style="cursor:pointer;" onclick="tsToggleCollapse(' + chId + ')">' +
+        '<span><span class="ts-collapse-icon" style="display:inline-block;width:14px;">▼</span>' + ch.num + ' ' + ch.title + ' — ' + ts.length + '개 세그먼트</span>' +
+        '<button class="ts-copy-btn" onclick="event.stopPropagation();tsCopy(' + chId + ')">📋 ts 패치 복사</button>' +
+      '</div>' +
+      '<div class="ts-result-body">' +
+        ts.slice(0, 50).map(t =>
+          '<div class="ts-row">' +
+            '<div class="ts-row-ts">' + t.ts.toFixed(1) + 's</div>' +
+            '<div class="ts-row-text">' + (t.text||'').slice(0,60) + '</div>' +
+          '</div>'
+        ).join('') +
+        (ts.length>50 ? '<div style="font-size:11px;color:var(--text-dim);padding:6px 0;">... 외 ' + (ts.length-50) + '개</div>' : '') +
+      '</div>';
+    area.appendChild(div);
+    applyBoxVisibility(chId);
+
+    // 패치 데이터 저장
+    window['_ts_patch_' + chId] = ts;
+  }
+
+  window.tsCopy = function(chId){
+    const ts = window['_ts_patch_' + chId];
+    if(!ts) return;
+    const ch = CHAPTERS.find(c=>c.id===chId);
+    // lines 배열에 바로 넣을 수 있는 ts 배열 생성
+    const out = '// ' + ch.num + ' ' + ch.title + ' 타임스탬프\n' +
+      'const TS_CH' + chId + ' = [\n' +
+      ts.map(t => '  ' + t.ts.toFixed(2)).join(',\n') +
+      '\n];';
+    navigator.clipboard.writeText(out).then(()=>{
+      tsLog('챕터 ' + chId + ' 타임스탬프 클립보드 복사 완료');
+    }).catch(()=>{
+      // fallback
+      const ta = document.createElement('textarea');
+      ta.value = out;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      tsLog('챕터 ' + chId + ' 복사 완료 (fallback)');
+    });
+  };
+
+  // 저장된 타임스탬프 불러오기 (조용히 로드 — 성공 로그는 표시 안 하고, 오류만 표시)
+  async function loadSaved(){
+    const cred = getAdminCred();
+    if(!cred.name||!cred.pw) return;
+    for(const ch of CHAPTERS){
+      try{
+        const res = await fetch(GAS+'?act=ts_get&name='+encodeURIComponent(cred.name)+'&pw='+encodeURIComponent(cred.pw)+'&chId='+ch.id,{
+          method:'POST', headers:{'Content-Type':'text/plain'},
+          body: JSON.stringify({act:'ts_get', name:cred.name, pw:cred.pw, chId:ch.id})
+        });
+        const data = await res.json();
+        if(data.ok && data.timestamps && data.timestamps.length){
+          state[ch.id].status = 'done';
+          state[ch.id].timestamps = data.timestamps;
+          renderResult(ch.id);
+        } else if(!data.ok){
+          tsLog('⚠ 챕터 ' + ch.id + ' 저장 데이터 조회 오류: ' + (data.message||'알 수 없음'));
+        }
+      } catch(e){ tsLog('⚠ 챕터 ' + ch.id + ' 조회 실패: ' + e.message); }
+    }
+    renderGrid();
+  }
+
+  // 결과 박스 펼치기/접기 + 선택한 챕터만 보기
+  let resultFilterOnlySelected = false;
+
+  function applyBoxVisibility(chId){
+    const box = document.getElementById('ts-result-' + chId);
+    if(!box) return;
+    const body = box.querySelector('.ts-result-body');
+    const icon = box.querySelector('.ts-collapse-icon');
+    const collapsed = !!(state[chId] && state[chId].collapsed);
+    if(body) body.style.display = collapsed ? 'none' : '';
+    if(icon) icon.textContent = collapsed ? '▶' : '▼';
+    const hiddenByFilter = resultFilterOnlySelected && !selected.has(chId);
+    box.style.display = hiddenByFilter ? 'none' : '';
+  }
+
+  function applyAllVisibility(){
+    CHAPTERS.forEach(c => applyBoxVisibility(c.id));
+  }
+
+  window.tsToggleCollapse = function(chId){
+    if(!state[chId]) return;
+    state[chId].collapsed = !state[chId].collapsed;
+    applyBoxVisibility(chId);
+  };
+
+  document.getElementById('ts-btn-expand-all').addEventListener('click', function(){
+    CHAPTERS.forEach(c => { if(state[c.id]) state[c.id].collapsed = false; });
+    applyAllVisibility();
+  });
+  document.getElementById('ts-btn-collapse-all').addEventListener('click', function(){
+    CHAPTERS.forEach(c => { if(state[c.id]) state[c.id].collapsed = true; });
+    applyAllVisibility();
+  });
+  document.getElementById('ts-btn-filter-selected').addEventListener('click', function(){
+    resultFilterOnlySelected = !resultFilterOnlySelected;
+    this.style.background = resultFilterOnlySelected ? 'var(--accent-glow)' : '';
+    this.style.borderColor = resultFilterOnlySelected ? 'var(--accent)' : '';
+    this.style.color = resultFilterOnlySelected ? 'var(--accent)' : '';
+    this.textContent = resultFilterOnlySelected ? '☑ 선택한 챕터만 (켜짐)' : '☑ 선택한 챕터만';
+    applyAllVisibility();
+  });
+
+  // 버튼 이벤트
+  document.getElementById('ts-btn-start').addEventListener('click', function(){
+    if(!selected.size){ tsLog('⚠ 챕터를 먼저 선택하세요.'); return; }
+    startExtract([...selected]);
+  });
+  document.getElementById('ts-btn-all').addEventListener('click', function(){
+    if(!confirm('9개 챕터 전체를 추출합니다. CLOVA API가 호출됩니다. 계속하시겠습니까?')) return;
+    startExtract(CHAPTERS.map(c=>c.id));
+  });
+  document.getElementById('ts-btn-poll').addEventListener('click', function(){
+    pollAll();
+  });
+  document.getElementById('ts-btn-clear-sel').addEventListener('click', function(){
+    selected.clear();
+    renderGrid();
+  });
+
+  document.getElementById('ts-btn-clear-all').addEventListener('click', function(){
+    if(!confirm('추출된 타임스탬프 결과를 모두 초기화합니다. 계속하시겠습니까?')) return;
+    CHAPTERS.forEach(c => { state[c.id] = { status:'none', jobId:'', timestamps:[], collapsed:false }; });
+    selected.clear();
+    document.getElementById('ts-result-area').innerHTML = '';
+    document.getElementById('ts-log').textContent = '';
+    tsLog('화면 초기화 완료 (서버 저장 데이터는 유지됨)');
+    Object.keys(window).filter(k => k.startsWith('_ts_patch_')).forEach(k => delete window[k]);
+    renderGrid();
+  });
+
+  // 탭 전환 시 그리드 초기화 및 저장 데이터 로드
+  document.querySelectorAll('.tab').forEach(btn=>{
+    btn.addEventListener('click', function(){
+      if(this.dataset.tab === 'ts'){
+        renderGrid();
+        // 저장된 데이터 자동 로드 (최초 1회)
+        if(Object.values(state).every(s=>s.status==='none')){
+          setTimeout(loadSaved, 300);
+        }
+      }
+    });
+  });
+
+  // 초기 렌더
+  renderGrid();
+})();
+
+
+
+/* ════════════ 수동 타임스탬프 편집 (개선판) ════════════ */
+(function(){
+  const AUDIO_BASE = 'https://dtrjeon.github.io/speech_check/audio/';
+  const CHAPTERS_AUDIO = {
+    1:  '%EC%A0%84%EB%AC%B8_12_%EC%84%9C%EB%A1%A0(%EC%95%84%EB%8B%88%EC%98%A4).m4a',
+    2:  '%EC%A0%84%EB%AC%B8_21_%EC%9D%80%ED%98%9C.m4a',
+    3:  '%EC%A0%84%EB%AC%B8_22_%EC%9D%B8%EA%B0%84.m4a',
+    4:  '%EC%A0%84%EB%AC%B8_23_%ED%95%98%EB%82%98%EB%8B%98.m4a',
+    5:  '%EC%A0%84%EB%AC%B8_24_%EC%98%88%EC%88%98%EA%B7%B8%EB%A6%AC%EC%8A%A4%EB%8F%84.m4a',
+    6:  '%EC%A0%84%EB%AC%B8_25_%EB%AF%BF%EC%9D%8C.m4a',
+    7:  '%EC%A0%84%EB%AC%B8_30_%EA%B2%B0%EC%8B%A0.m4a',
+    8:  '%EC%A0%84%EB%AC%B8_40_%EC%A6%89%EC%84%9D%EC%96%91%EC%9C%A1.m4a',
+    10: '_%EB%B3%B5%EC%9D%8C%EC%A0%84%EB%AC%B8%EA%B0%9C%EC%9A%94_2%EB%8B%A8%EA%B3%84%EC%9A%A9.m4a',
+  };
+  const CH_NAMES = {1:'서론',2:'은혜',3:'인간',4:'하나님',5:'그리스도',6:'믿음',7:'결신',8:'즉석양육',10:'요약복음'};
+  const TS_GAS_URL = 'https://script.google.com/macros/s/AKfycbzGFkegiqWgRYUZEWzbHi5NHzAMMqWl-8bimKnhmUhfjV1q3L2NvhZJxR0n4zUMYimE/exec';
+  // chapters-data.js(전역 CHAPTERS)에서 실시간으로 파생 — 더 이상 이 파일에 스냅샷을 따로 보관하지 않음.
+  // (예전엔 여기에 EDIT_CHAPTERS 데이터를 통째로 박아뒀었는데, chapters-data.js와 어긋나는 문제가 있어서 제거함)
+  const EDIT_CHAPTERS = {};
+  (typeof CHAPTERS !== 'undefined' ? CHAPTERS : []).forEach(c => {
+    if (!c.audio) return; // 오디오 없는 챕터(9장 등)는 TS편집 대상 아님
+    EDIT_CHAPTERS[c.id] = c.lines.filter(l => l.r).map(l => ({
+      text: l.t.replace(/\[SKIP\][^]*?\[\/SKIP\]/g, ' ').replace(/\s+/g, ' ').trim(),
+      ts: l.ts || 0
+    }));
+  });
+
+  let curChId = 1;
+  let lines = [];
+  let audio = null;
+  let activeIdx = -1;
+  let syncMode = false;   // 싱크 모드: 오디오를 재생하며 문장이 바뀔 때마다 스페이스바로 태깅 + 자동 다음줄 이동
+  let syncPointer = 0;    // 싱크 모드에서 다음에 태깅할 라인 인덱스
+
+  function getAdminCredForEdit() {
+    try {
+      const s = localStorage.getItem('admin_cred');
+      if (s) { const c=JSON.parse(s); return {name:c.name||'',pw:c.pw||''}; }
+    } catch(e) {}
+    const nameEl = document.getElementById('admin-name');
+    const pwEl = document.getElementById('admin-pw');
+    return { name: nameEl ? nameEl.value.trim() : '', pw: pwEl ? pwEl.value.trim() : '' };
+  }
+
+  function tsLog(msg) {
+    const el = document.getElementById('ts-edit-log');
+    if (el) el.textContent = msg;
+  }
+
+  function renderEdit() {
+    const panel = document.getElementById('ts-edit-inner');
+    if (!panel) return;
+
+    panel.innerHTML = `
+      <div style="margin-bottom:8px;">
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;font-weight:500;">챕터 선택</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;">
+          ${Object.entries(CH_NAMES).map(([id,name])=>
+            `<button class="ts-btn-sm ts-ch-sel" data-chid="${id}" style="${parseInt(id)===curChId?'border-color:var(--accent);color:var(--accent);background:var(--accent-glow);':''}">
+              ${id}장 ${name}
+            </button>`
+          ).join('')}
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">
+          <button class="ts-btn-sm" id="ts-sync-toggle"></button>
+          <button class="ts-btn-sm" id="ts-auto-align">🤖 자동 정렬(실험적)</button>
+          <span style="font-size:11px;color:var(--text-dim);">오디오를 들으며 다음 문장이 시작되는 순간 스페이스바(또는 라인 클릭)를 누르면, 그 시각이 자동으로 다음 줄에 기록되고 포인터가 다음 줄로 넘어갑니다.</span>
+        </div>
+
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;display:flex;gap:12px;flex-wrap:wrap;">
+          <span>📌 라인 클릭 → 해당 라인에 현재 위치 태깅</span>
+          <span>⌨️ 스페이스바 → 싱크 모드: 다음 줄 태깅 / 일반 모드: 활성 라인 ts 설정</span>
+          <span>↩ ← 또는 Backspace → 싱크 모드에서 한 줄 되돌리기</span>
+          <span>▶ → 해당 ts부터 재생 확인</span>
+        </div>
+
+        <div class="ts-audio-player" style="position:relative;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
+          <button id="ts-audio-playbtn" class="ts-btn-sm" style="min-width:34px;">▶</button>
+          <span id="ts-audio-time" style="font-size:12px;color:var(--text-muted);white-space:nowrap;font-variant-numeric:tabular-nums;">0.0s / 0.0s</span>
+          <input id="ts-audio-seek" type="range" min="0" max="0" value="0" step="0.1" style="flex:1;min-width:60px;">
+          <button id="ts-audio-mute" class="ts-btn-sm" style="min-width:30px;">🔊</button>
+          <button id="ts-audio-menu-btn" class="ts-btn-sm" style="min-width:26px;padding:6px 8px;">⋮</button>
+          <div id="ts-audio-menu" style="display:none;position:absolute;top:100%;right:0;margin-top:4px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:6px;z-index:20;box-shadow:0 4px 12px rgba(0,0,0,.3);min-width:110px;">
+            <div style="font-size:10px;color:var(--text-dim);padding:2px 8px 4px;">재생 속도</div>
+            <button class="ts-speed-opt ts-btn-sm" data-speed="0.5" style="display:block;width:100%;text-align:left;margin-bottom:2px;">0.5x</button>
+            <button class="ts-speed-opt ts-btn-sm" data-speed="0.75" style="display:block;width:100%;text-align:left;margin-bottom:2px;">0.75x</button>
+            <button class="ts-speed-opt ts-btn-sm" data-speed="1" style="display:block;width:100%;text-align:left;margin-bottom:2px;">1x (기본)</button>
+            <button class="ts-speed-opt ts-btn-sm" data-speed="1.25" style="display:block;width:100%;text-align:left;margin-bottom:2px;">1.25x</button>
+            <button class="ts-speed-opt ts-btn-sm" data-speed="1.5" style="display:block;width:100%;text-align:left;">1.5x</button>
+            <div style="border-top:1px solid var(--border2);margin:4px 0;"></div>
+            <button id="ts-audio-download" class="ts-btn-sm" style="display:block;width:100%;text-align:left;">⬇ 다운로드</button>
+          </div>
+        </div>
+        <audio id="ts-edit-audio" preload="metadata" style="display:none;"></audio>
+
+        <div id="ts-edit-lines" style="max-height:45vh;overflow-y:auto;border:1px solid var(--border);border-radius:8px;"></div>
+
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="ts-btn" id="ts-edit-save-copy" style="background:var(--accent-glow);border-color:var(--accent);">💾📁 저장+파일 동시에</button>
+          <button class="ts-btn" id="ts-edit-save">💾 GAS에 저장</button>
+          <button class="ts-btn" id="ts-edit-copy" style="background:transparent;">📁 chapters-data.js 파일로 저장</button>
+          <button class="ts-btn-sm" id="ts-edit-reset" style="color:var(--red);border-color:var(--red-border);">초기화</button>
+        </div>
+        <div id="ts-edit-log" class="ts-log" style="margin-top:6px;min-height:28px;font-size:11px;">오디오 재생 후 라인을 클릭하거나 스페이스바를 누르세요.</div>
+      </div>
+    `;
+
+    // 챕터 버튼
+    panel.querySelectorAll('.ts-ch-sel').forEach(btn => {
+      btn.addEventListener('click', function() {
+        curChId = parseInt(this.dataset.chid);
+        loadChapter();
+      });
+    });
+
+    // 오디오
+    audio = document.getElementById('ts-edit-audio');
+    audio.src = AUDIO_BASE + CHAPTERS_AUDIO[curChId];
+
+    // 커스텀 플레이어 (초 단위 소수점 표시, 예: 0.0s / 65.0s)
+    const playBtn = document.getElementById('ts-audio-playbtn');
+    const timeLabel = document.getElementById('ts-audio-time');
+    const seekBar = document.getElementById('ts-audio-seek');
+    let seeking = false;
+
+    function fmtS(sec) { return (isFinite(sec) ? sec : 0).toFixed(1) + 's'; }
+    function updateTimeLabel() {
+      timeLabel.textContent = fmtS(audio.currentTime) + ' / ' + fmtS(audio.duration);
+    }
+    timeLabel.textContent = '0.0s / 0.0s';
+    seekBar.value = 0;
+
+    audio.addEventListener('loadedmetadata', () => {
+      seekBar.max = audio.duration || 0;
+      updateTimeLabel();
+    });
+    audio.addEventListener('play', () => { playBtn.textContent = '⏸'; });
+    audio.addEventListener('pause', () => { playBtn.textContent = '▶'; });
+    audio.addEventListener('ended', () => { playBtn.textContent = '▶'; });
+    playBtn.addEventListener('click', () => {
+      if (audio.paused) audio.play(); else audio.pause();
+    });
+    seekBar.addEventListener('input', () => {
+      seeking = true;
+      timeLabel.textContent = fmtS(parseFloat(seekBar.value)) + ' / ' + fmtS(audio.duration);
+    });
+    seekBar.addEventListener('change', () => {
+      audio.currentTime = parseFloat(seekBar.value);
+      seeking = false;
+    });
+
+    // 🔊 음소거/음량
+    const muteBtn = document.getElementById('ts-audio-mute');
+    audio.muted = false;
+    muteBtn.textContent = '🔊';
+    muteBtn.addEventListener('click', () => {
+      audio.muted = !audio.muted;
+      muteBtn.textContent = audio.muted ? '🔇' : '🔊';
+    });
+
+    // ⋮ 점3개 메뉴 (재생 속도)
+    const menuBtn = document.getElementById('ts-audio-menu-btn');
+    const menuEl = document.getElementById('ts-audio-menu');
+    audio.playbackRate = 1;
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menuEl.style.display = (menuEl.style.display === 'none' || !menuEl.style.display) ? 'block' : 'none';
+    });
+    if (window._tsMenuOutsideClick) document.removeEventListener('click', window._tsMenuOutsideClick);
+    window._tsMenuOutsideClick = function(e) {
+      if (menuEl.style.display === 'block' && !menuEl.contains(e.target) && e.target !== menuBtn) {
+        menuEl.style.display = 'none';
+      }
+    };
+    document.addEventListener('click', window._tsMenuOutsideClick);
+    panel.querySelectorAll('.ts-speed-opt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        audio.playbackRate = parseFloat(btn.dataset.speed);
+        menuEl.style.display = 'none';
+      });
+    });
+
+    // ⬇ 다운로드
+    document.getElementById('ts-audio-download').addEventListener('click', () => {
+      const a = document.createElement('a');
+      a.href = audio.src;
+      a.download = (CHAPTERS_AUDIO[curChId] || 'audio').split('/').pop();
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      menuEl.style.display = 'none';
+    });
+
+    // timeupdate → 현재 재생 위치에 해당하는 라인 자동 하이라이트 (싱크 모드에서는 포인터가 하이라이트를 담당하므로 끔)
+    audio.addEventListener('timeupdate', () => {
+      if (!seeking) {
+        seekBar.value = audio.currentTime;
+        updateTimeLabel();
+      }
+      if (syncMode) return;
+      const cur = audio.currentTime;
+      let newActive = -1;
+      for (let i = lines.length - 1; i >= 0; i--) {
+        if (lines[i].ts <= cur) { newActive = i; break; }
+      }
+      if (newActive !== activeIdx) {
+        activeIdx = newActive;
+        highlightLine(activeIdx);
+      }
+    });
+
+    // 스페이스바 → 싱크 모드: 다음 줄 태깅 / 일반 모드: 현재 활성 라인 ts 설정
+    document.addEventListener('keydown', handleKeydown);
+
+    // 싱크 모드 토글 버튼
+    updateSyncButton();
+    document.getElementById('ts-sync-toggle').addEventListener('click', toggleSyncMode);
+    document.getElementById('ts-auto-align').addEventListener('click', autoAlign);
+
+    renderLines();
+
+    document.getElementById('ts-edit-save').addEventListener('click', saveToGas);
+    document.getElementById('ts-edit-copy').addEventListener('click', saveFilePatch);
+    document.getElementById('ts-edit-save-copy').addEventListener('click', saveToGasAndFile);
+    document.getElementById('ts-edit-reset').addEventListener('click', () => {
+      if (confirm('타임스탬프를 모두 0으로 초기화합니까?')) {
+        lines.forEach(l => l.ts = 0);
+        renderLines();
+        tsLog('초기화 완료');
+      }
+    });
+  }
+
+  function handleKeydown(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    const panel = document.getElementById('panel-ts-edit');
+    if (!panel || !panel.classList.contains('active') || !audio) return;
+
+    if (e.code === 'Space') {
+      e.preventDefault();
+      if (syncMode) {
+        if (syncPointer < lines.length) tagLine(syncPointer);
+      } else if (activeIdx >= 0) {
+        tagLine(activeIdx);
+      }
+    } else if (syncMode && (e.code === 'Backspace' || e.code === 'ArrowLeft')) {
+      // 되돌리기: 방금 태깅한 줄로 포인터를 되돌려 재태깅 가능하게 함
+      e.preventDefault();
+      syncPointer = Math.max(0, syncPointer - 1);
+      renderLines();
+      tsLog(`↩ 라인 ${syncPointer+1}로 되돌아갑니다. 다시 태깅하세요.`);
+    }
+  }
+
+  // 라인 하나를 현재 오디오 위치로 태깅. 싱크 모드에서는 태깅 후 포인터를 다음 줄로 이동.
+  function tagLine(idx) {
+    if (!audio || idx < 0 || idx >= lines.length) return;
+    const cur = Math.round(audio.currentTime * 10) / 10;
+    lines[idx].ts = cur;
+    if (syncMode) {
+      syncPointer = Math.min(idx + 1, lines.length - 1);
+      renderLines();
+      if (idx === lines.length - 1) {
+        tsLog(`✅ 라인 ${idx+1} ts = ${cur}s (마지막 줄 태깅 완료)`);
+      } else {
+        tsLog(`라인 ${idx+1} ts = ${cur}s → 다음 줄(${syncPointer+1}) 대기 중`);
+      }
+    } else {
+      activeIdx = idx;
+      renderLines();
+      tsLog(`라인 ${idx+1} ts = ${cur}s 설정 완료`);
+    }
+  }
+
+  function updateSyncButton() {
+    const btn = document.getElementById('ts-sync-toggle');
+    if (!btn) return;
+    btn.textContent = syncMode ? '⏹ 싱크 모드 종료' : '🔴 싱크 모드 시작';
+    btn.style.background = syncMode ? 'var(--red)' : '';
+    btn.style.color = syncMode ? '#fff' : '';
+    btn.style.borderColor = syncMode ? 'var(--red)' : '';
+  }
+
+  function toggleSyncMode() {
+    syncMode = !syncMode;
+    if (syncMode) {
+      // 현재 재생 위치 기준으로 가까운 줄부터 이어서 태깅 시작
+      const cur = audio ? audio.currentTime : 0;
+      let idx = 0;
+      for (let i = lines.length - 1; i >= 0; i--) {
+        if (lines[i].ts <= cur) { idx = i; break; }
+      }
+      syncPointer = idx;
+      tsLog(`🔴 싱크 모드 시작 (${syncPointer+1}번 줄부터). 문장이 바뀌는 순간 스페이스바를 누르세요.`);
+    } else {
+      tsLog('⏹ 싱크 모드 종료');
+    }
+    updateSyncButton();
+    renderLines();
+  }
+
+  /* ════════════ 자동 정렬 (CLOVA 단어 단위 타임스탬프 기반 포스드 얼라인먼트) ════════════ */
+  // 대본에 섞인 구조 표시(챕터 번호, "주제 전환" 등)와 공백/구두점을 제거해 순수 발화 텍스트만 비교
+  function normalizeForMatch(s) {
+    return String(s || '')
+      .replace(/^주제\s*전환\s*/, '')
+      .replace(/^\d+\s*/, '')
+      .replace(/[\s.,!?~"'“”‘’()\[\]/\\]/g, '')
+      .trim();
+  }
+
+  // master 문자열에서 probe와 가장 잘 맞는 시작 위치를 from 이후에서 탐색 (완전일치 → 부분일치 → 근사매칭 순)
+  function findBestMatch(master, probe, from) {
+    if (!probe) return -1;
+    let idx = master.indexOf(probe, from);
+    if (idx !== -1) return idx;
+    for (let len = probe.length - 1; len >= 3; len--) {
+      idx = master.indexOf(probe.slice(0, len), from);
+      if (idx !== -1) return idx;
+    }
+    const probeLen = Math.min(probe.length, 12);
+    if (probeLen < 3) return -1;
+    const p = probe.slice(0, probeLen);
+    const searchEnd = Math.min(master.length - probeLen, from + 3000);
+    let bestScore = -1, bestIdx = -1;
+    for (let i = from; i <= searchEnd; i++) {
+      let score = 0;
+      for (let k = 0; k < probeLen; k++) {
+        if (master[i + k] === p[k]) score++;
+      }
+      if (score > bestScore) { bestScore = score; bestIdx = i; }
+    }
+    return (bestScore >= probeLen * 0.5) ? bestIdx : -1;
+  }
+
+  async function autoAlign() {
+    tsLog('🤖 단어 단위 인식 데이터 불러오는 중...');
+    let words;
+    try {
+      const res = await fetch(TS_GAS_URL + '?act=ts_words_get&chId=' + curChId);
+      const data = await res.json();
+      if (!data.ok || !data.words || !data.words.length) {
+        tsLog('⚠ 이 챕터는 단어 단위 인식 데이터가 없습니다. "⏱ 타임스탬프 추출" 탭에서 이 챕터를 먼저 추출(재추출)해주세요.');
+        return;
+      }
+      words = data.words;
+    } catch (e) {
+      tsLog('❌ 데이터 로드 실패: ' + e.message);
+      return;
+    }
+
+    // 문자 단위 타임라인 생성: 각 단어의 글자를 start~end 구간에 균등 배분
+    const chars = [];
+    words.forEach(w => {
+      const text = String(w.text || '').replace(/\s/g, '');
+      if (!text) return;
+      const start = Number(w.start) / 1000, end = Number(w.end) / 1000;
+      const dur = Math.max(end - start, 0.01);
+      for (let i = 0; i < text.length; i++) {
+        chars.push({ ch: text[i], t: start + dur * (i / text.length) });
+      }
+    });
+    if (!chars.length) {
+      tsLog('⚠ 인식된 단어 데이터가 비어있습니다.');
+      return;
+    }
+    const master = chars.map(c => c.ch).join('');
+
+    let from = 0, matched = 0;
+    const unmatched = [];
+    lines.forEach((l, i) => {
+      const norm = normalizeForMatch(l.text);
+      if (!norm) return;
+      const idx = findBestMatch(master, norm, from);
+      if (idx !== -1) {
+        l.ts = Math.round(chars[idx].t * 10) / 10;
+        from = Math.min(idx + norm.length, master.length - 1);
+        matched++;
+      } else {
+        unmatched.push(i + 1);
+        from = Math.min(from + norm.length, master.length - 1);
+      }
+    });
+
+    syncMode = false;
+    activeIdx = -1;
+    renderLines();
+    let msg = `🤖 자동 정렬 완료: ${matched}/${lines.length}줄 매칭.`;
+    if (unmatched.length) msg += ` 매칭 실패 줄: ${unmatched.join(', ')}.`;
+    msg += ' 결과를 반드시 확인하고, 어긋난 줄은 🔴 싱크 모드나 클릭으로 보정하세요.';
+    tsLog(msg);
+
+    // 정렬 결과를 바로 귀로 확인할 수 있도록 처음부터 자동 재생 시작
+    if (audio) {
+      audio.currentTime = 0;
+      audio.play().catch(() => {
+        tsLog(msg + ' (자동 재생이 차단되었습니다. ▶ 버튼을 눌러 직접 재생해주세요.)');
+      });
+    }
+  }
+
+  async function loadChapter() {
+    const chData = EDIT_CHAPTERS[curChId] || [];
+    lines = chData.map((l, i) => ({
+      idx: i,
+      text: l.text,
+      ts: l.ts || 0.0
+    }));
+    activeIdx = -1;
+    syncMode = false;
+    syncPointer = 0;
+    // 기존 keydown 이벤트 제거 후 재등록 방지
+    document.removeEventListener('keydown', handleKeydown);
+    renderEdit();
+
+    // 구글시트(GAS)에 저장된 최신 ts 값이 있으면 덮어씀 (ts_get은 공개 읽기, 로그인 불필요)
+    try {
+      const res = await fetch(TS_GAS_URL + '?act=ts_get&chId=' + curChId);
+      const data = await res.json();
+      if (data.ok && data.timestamps && data.timestamps.length) {
+        data.timestamps.forEach(t => {
+          if (lines[t.idx]) lines[t.idx].ts = t.ts;
+        });
+        tsLog('☁️ 저장된 타임스탬프 ' + data.timestamps.length + '개 불러옴');
+        renderLines();
+      }
+    } catch (e) {
+      tsLog('⚠ 저장된 값 불러오기 실패(오프라인일 수 있음): ' + e.message);
+    }
+  }
+
+  function renderLines() {
+    const container = document.getElementById('ts-edit-lines');
+    if (!container) return;
+    const hlIdx = syncMode ? syncPointer : activeIdx;
+    container.innerHTML = lines.map((l, i) => `
+      <div class="ts-edit-row" data-idx="${i}"
+           style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;
+                  border-bottom:1px solid var(--border);cursor:pointer;
+                  ${i===hlIdx?'background:var(--accent-glow);border-left:3px solid var(--accent);':'border-left:3px solid transparent;'}
+                  transition:background .1s;"
+           onclick="tsEditSetTs(${i})">
+        <div style="min-width:56px;flex-shrink:0;">
+          <div style="font-size:13px;color:var(--accent);font-weight:600;font-variant-numeric:tabular-nums;">
+            ${l.ts.toFixed(1)}s
+          </div>
+          <div style="font-size:10px;color:var(--text-dim);margin-top:2px;cursor:pointer;"
+               onclick="event.stopPropagation();tsEditPlay(${i})">▶ 재생</div>
+          ${(syncMode && i===syncPointer) ? '<div style="font-size:9px;color:var(--red);margin-top:2px;">다음 태깅</div>' : ''}
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.6;flex:1;">
+          ${l.text}
+        </div>
+      </div>
+    `).join('');
+
+    if (hlIdx >= 0) {
+      const rows = container.querySelectorAll('.ts-edit-row');
+      if (rows[hlIdx]) rows[hlIdx].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }
+
+  function highlightLine(idx) {
+    document.querySelectorAll('.ts-edit-row').forEach((el, i) => {
+      if (i === idx) {
+        el.style.background = 'var(--accent-glow)';
+        el.style.borderLeft = '3px solid var(--accent)';
+        el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      } else {
+        el.style.background = '';
+        el.style.borderLeft = '3px solid transparent';
+      }
+    });
+  }
+
+  window.tsEditSetTs = function(idx) {
+    tagLine(idx);
+  };
+
+  window.tsEditPlay = function(idx) {
+    if (!audio) return;
+    audio.currentTime = lines[idx].ts;
+    audio.play();
+    tsLog(`라인 ${idx+1} (${lines[idx].ts}s) 재생 중...`);
+  };
+
+  // chapters-data.js 원본을 그대로 불러와서, 현재 챕터의 r:true 줄들만 새 ts 값으로 교체한
+  // "완성된 전체 파일"을 다운로드한다. 클립보드에 숫자만 복사하는 방식보다 안전함
+  // (다른 챕터/주석/포맷은 전혀 건드리지 않고, 이 챕터의 ts 값만 정확히 갱신됨).
+  async function downloadPatchedFile() {
+    tsLog('원본 chapters-data.js 불러오는 중...');
+    let raw;
+    try {
+      const res = await fetch('chapters-data.js?_=' + Date.now()); // 캐시 방지
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      raw = await res.text();
+    } catch(e) {
+      tsLog('❌ chapters-data.js를 불러오지 못했습니다: ' + e.message + ' (admin.html과 같은 폴더/서버에 있어야 합니다)');
+      return null;
+    }
+
+    // 챕터 블록 시작 위치 찾기: "{ id:2," 형태
+    const startRe = new RegExp('\\{\\s*id:' + curChId + '\\b');
+    const startMatch = startRe.exec(raw);
+    if (!startMatch) {
+      tsLog('❌ chapters-data.js에서 챕터 ' + curChId + ' 블록을 찾지 못했습니다.');
+      return null;
+    }
+    const startIdx = startMatch.index;
+
+    // 다음 챕터 블록 시작(또는 파일 끝)까지가 이 챕터의 범위
+    const nextRe = /\{\s*id:\d+\b/g;
+    nextRe.lastIndex = startIdx + 1;
+    const nextMatch = nextRe.exec(raw);
+    const endIdx = nextMatch ? nextMatch.index : raw.length;
+
+    const before = raw.slice(0, startIdx);
+    const block  = raw.slice(startIdx, endIdx);
+    const after  = raw.slice(endIdx);
+
+    // r:true 줄만 순서대로 새 ts로 교체 (텍스트 자체는 원본 그대로 유지)
+    let i = 0;
+    const lineRe = /\{t:(`[\s\S]*?`),r:true(?:,ts:[-0-9.]+)?\}/g;
+    const newBlock = block.replace(lineRe, (m, textPart) => {
+      const newTs = (lines[i] ? lines[i].ts : 0).toFixed(1);
+      i++;
+      return '{t:' + textPart + ',r:true,ts:' + newTs + '}';
+    });
+
+    if (i !== lines.length) {
+      tsLog('⚠ 매칭된 줄 수(' + i + ')가 현재 편집 중인 줄 수(' + lines.length + ')와 달라 확인이 필요합니다. 파일은 생성하지 않았습니다.');
+      return null;
+    }
+
+    return before + newBlock + after;
+  }
+
+  function triggerDownload(filename, text) {
+    const blob = new Blob([text], {type:'text/javascript'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  async function saveFilePatch() {
+    const finalText = await downloadPatchedFile();
+    if (finalText == null) return;
+    triggerDownload('chapters-data.js', finalText);
+    tsLog('✅ chapters-data.js 파일 다운로드 완료 (챕터 ' + curChId + ' 반영). Downloads 폴더에서 GitHub에 업로드하세요.');
+  }
+
+  function buildPatchText() {
+    return '// ch' + curChId + ' 타임스탬프 패치\nconst TS_CH' + curChId + ' = [\n' +
+      lines.map(l => '  ' + l.ts.toFixed(1)).join(',\n') + '\n];';
+  }
+
+  async function copyToClipboard(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch(e) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        return true;
+      } catch(e2) {
+        return false;
+      }
+    }
+  }
+
+  async function saveToGasAndFile() {
+    const cred = getAdminCredForEdit();
+    if (!cred.name || !cred.pw) {
+      tsLog('⚠ 관리자 로그인 후 사용하세요.');
+      return;
+    }
+    tsLog('저장 중...');
+    const timestamps = lines.map((l, i) => ({ idx: i, ts: l.ts, text: l.text }));
+    let saveMsg;
+    try {
+      const res = await fetch(TS_GAS_URL + '?act=ts_save&name=' + encodeURIComponent(cred.name) + '&pw=' + encodeURIComponent(cred.pw) + '&chId=' + curChId, {
+        method: 'POST',
+        headers: {'Content-Type': 'text/plain'},
+        body: JSON.stringify({ act: 'ts_save', name: cred.name, pw: cred.pw, chId: curChId, timestamps })
+      });
+      const data = await res.json();
+      saveMsg = data.ok ? ('✅ GAS 저장 완료(' + timestamps.length + '개)') : ('❌ GAS 저장 실패: ' + (data.message || '오류'));
+    } catch(e) {
+      saveMsg = '❌ GAS 저장 네트워크 오류: ' + e.message;
+    }
+
+    const finalText = await downloadPatchedFile();
+    if (finalText == null) {
+      tsLog(saveMsg + ' / ❌ 파일 생성 실패 (로그 위 내용 확인)');
+      return;
+    }
+    triggerDownload('chapters-data.js', finalText);
+    tsLog(saveMsg + ' / 📁 chapters-data.js 다운로드 완료 → GitHub에 업로드하세요.');
+  }
+
+  async function saveToGas() {
+    const cred = getAdminCredForEdit();
+    if (!cred.name || !cred.pw) {
+      tsLog('⚠ 관리자 로그인 후 사용하세요.');
+      return;
+    }
+    tsLog('저장 중...');
+    const timestamps = lines.map((l, i) => ({ idx: i, ts: l.ts, text: l.text }));
+    try {
+      const res = await fetch(TS_GAS_URL + '?act=ts_save&name=' + encodeURIComponent(cred.name) + '&pw=' + encodeURIComponent(cred.pw) + '&chId=' + curChId, {
+        method: 'POST',
+        headers: {'Content-Type': 'text/plain'},
+        body: JSON.stringify({ act: 'ts_save', name: cred.name, pw: cred.pw, chId: curChId, timestamps })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        tsLog(`✅ 챕터 ${curChId} 저장 완료! (${timestamps.length}개)`);
+      } else {
+        tsLog('❌ 저장 실패: ' + (data.message || '오류'));
+      }
+    } catch(e) {
+      tsLog('❌ 네트워크 오류: ' + e.message);
+    }
+  }
+
+  async function copyPatch() {
+    const copied = await copyToClipboard(buildPatchText());
+    tsLog(copied ? '클립보드에 복사 완료!' : '❌ 복사 실패');
+  }
+
+  // 탭 전환 시 초기화
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', function() {
+      if (this.dataset.tab === 'ts-edit') {
+        document.removeEventListener('keydown', handleKeydown);
+        loadChapter();
+      } else {
+        document.removeEventListener('keydown', handleKeydown);
+      }
+    });
+  });
+
+})();
+
+</script>
+</body>
+</html>
