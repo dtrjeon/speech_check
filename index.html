@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   index.html 변경 이력
+  v2.27 (2026-07-10) - html,body{height:100%}가 배경 칠해지는 범위를 뷰포트 한 화면 높이로 고정시켜, 콘텐츠가 길어지면 그 아래는 배경색이 안 칠해지던 문제 수정 → min-height:100%로 변경
   v2.26 (2026-07-10) - user-bar 버튼들(STT/CLOVA뱃지/로그아웃)을 강제 균등폭 대신 자연스러운 콘텐츠 크기로 변경 (여유 공간이 생겨 "STT" 등이 잘리지 않고 온전히 보이도록)
   v2.25 (2026-07-10) - user-bar에서 이름 아래 표시되던 반/단계(예: "수지주일반") 줄 제거, 이름만 표시
   v2.24 (2026-07-10) - user-bar의 STT~로그아웃 버튼들을 한 줄(줄바꿈 없음)에 균등한 폭으로 배치하도록 변경. 설명서는 공간 확보를 위해 아이콘만 남김.
@@ -143,7 +144,7 @@ html.skin-warm .skin-toggle-btn{
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 html{background:var(--bg);}
-html,body{height:100%;}
+html,body{min-height:100%;}
 body{background:var(--bg);padding-bottom:env(safe-area-inset-bottom);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-weight:300;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
 #app-root,#root,.page-wrap,.wrap,main{max-width:480px;width:100%;margin:0 auto;}
 .page{max-width:480px;width:100%;margin:0 auto;padding:20px 16px 48px;box-shadow:0 0 40px rgba(0,0,0,0.5);min-height:100vh;}
@@ -1275,7 +1276,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.26 (2026.07.10)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.27 (2026.07.10)</span></p>
 
   </div>
 
