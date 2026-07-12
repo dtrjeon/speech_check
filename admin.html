@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   admin.html 변경 이력
+  v2.9 (2026-07-10) - 10장 오디오 파일명을 한글(_복음전문개요_2단계용.m4a, 404 오류)에서 영문(ch10_summary.m4a)으로 교체
   v2.8 (2026-07-10) - 크롬에서 글자/버튼이 삼성인터넷보다 크게 확대되어 보이던 문제 해결 (-webkit-text-size-adjust:100% 추가, 크롬 자동 텍스트 확대 방지)
   v2.7 (2026-07-10) - 자동 정렬 매칭 실패 줄을 목록에서 빨간색으로 강조 표시 (⚠ 매칭 실패), 수동으로 재태깅하면 자동 해제
   v2.6 (2026-07-10) - TS편집: 모바일(스페이스바 없음) 대응 — "👆 탭하여 태깅"/"↩ 되돌리기" 큰 버튼 추가, 스페이스바·Backspace와 동일하게 동작
@@ -353,7 +354,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 <script>
 
 /* ── 버전 정보 (파일 상단 변경이력 주석과 함께 갱신) ── */
-const ADMIN_VERSION = 'v2.8 (2026-07-10)';
+const ADMIN_VERSION = 'v2.9 (2026-07-10)';
 document.addEventListener('DOMContentLoaded', () => {
   const sub = document.querySelector('.page-sub');
   if (sub) sub.textContent = sub.textContent + ' · ' + ADMIN_VERSION;
@@ -1022,7 +1023,7 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
     6:  '%EC%A0%84%EB%AC%B8_25_%EB%AF%BF%EC%9D%8C.m4a',
     7:  '%EC%A0%84%EB%AC%B8_30_%EA%B2%B0%EC%8B%A0.m4a',
     8:  '%EC%A0%84%EB%AC%B8_40_%EC%A6%89%EC%84%9D%EC%96%91%EC%9C%A1.m4a',
-    10: '_%EB%B3%B5%EC%9D%8C%EC%A0%84%EB%AC%B8%EA%B0%9C%EC%9A%94_2%EB%8B%A8%EA%B3%84%EC%9A%A9.m4a',
+    10: 'ch10_summary.m4a',
   };
   const CH_NAMES = {1:'서론',2:'은혜',3:'인간',4:'하나님',5:'그리스도',6:'믿음',7:'결신',8:'즉석양육',10:'요약복음'};
   const TS_GAS_URL = 'https://script.google.com/macros/s/AKfycbzGFkegiqWgRYUZEWzbHi5NHzAMMqWl-8bimKnhmUhfjV1q3L2NvhZJxR0n4zUMYimE/exec';
