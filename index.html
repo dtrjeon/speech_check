@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   index.html 변경 이력
+  v2.26 (2026-07-10) - user-bar 버튼들(STT/CLOVA뱃지/로그아웃)을 강제 균등폭 대신 자연스러운 콘텐츠 크기로 변경 (여유 공간이 생겨 "STT" 등이 잘리지 않고 온전히 보이도록)
   v2.25 (2026-07-10) - user-bar에서 이름 아래 표시되던 반/단계(예: "수지주일반") 줄 제거, 이름만 표시
   v2.24 (2026-07-10) - user-bar의 STT~로그아웃 버튼들을 한 줄(줄바꿈 없음)에 균등한 폭으로 배치하도록 변경. 설명서는 공간 확보를 위해 아이콘만 남김.
   v2.23 (2026-07-10) - 넓은 화면(@media min-width:520px)에서 스킨 토글 버튼이 가운데 정렬된 카드에서 멀리 떨어져 화면 맨 우측 하단 구석에 붙어 보이던 문제 수정 (버튼 위치를 카드 오른쪽 끝 기준으로 재계산)
@@ -1244,8 +1245,8 @@ html.skin-light .fulltext-body{color:var(--text);}
     </div>
     <div style="display:flex;align-items:center;gap:4px;flex-wrap:nowrap;justify-content:flex-end;">
       <!-- 설정 드롭다운 -->
-      <div style="position:relative;flex:1 1 0;min-width:0;" id="setting-dropdown-wrap">
-        <button id="rec-mode-setting-btn" onclick="toggleSettingDropdown(event)" title="설정" style="width:100%;background:transparent;border:1px solid var(--border2);border-radius:7px;padding:0 6px;cursor:pointer;color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:11px;height:32px;overflow:hidden;white-space:nowrap;">
+      <div style="position:relative;flex:0 1 auto;min-width:0;" id="setting-dropdown-wrap">
+        <button id="rec-mode-setting-btn" onclick="toggleSettingDropdown(event)" title="설정" style="background:transparent;border:1px solid var(--border2);border-radius:7px;padding:0 8px;cursor:pointer;color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:11px;height:32px;white-space:nowrap;">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           <span id="rec-mode-setting-label" style="overflow:hidden;text-overflow:ellipsis;">STT</span> <span style="font-size:9px;flex-shrink:0;">▼</span>
         </button>
@@ -1262,19 +1263,19 @@ html.skin-light .fulltext-body{color:var(--text);}
         </div>
       </div>
       <!-- CLOVA 누적 사용시간 -->
-      <span id="clova-usage-badge" style="flex:1 1 0;min-width:0;text-align:center;background:rgba(0,0,0,.35);border:1px solid var(--border2);color:#7CFFB2;font-size:9px;font-weight:600;padding:4px 5px;border-radius:12px;font-family:sans-serif;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">CLOVA 누적 --</span>
+      <span id="clova-usage-badge" style="flex:0 1 auto;min-width:0;text-align:center;background:rgba(0,0,0,.35);border:1px solid var(--border2);color:#7CFFB2;font-size:10px;font-weight:600;padding:4px 8px;border-radius:12px;font-family:sans-serif;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">CLOVA 누적 --</span>
       <!-- 설명서 -->
       <a href="manual_guducheckv218.html" title="설명서" style="flex:0 0 auto;background:transparent;border:1px solid var(--border2);border-radius:7px;width:32px;height:32px;color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;font-size:14px;text-decoration:none;">📖</a>
       <!-- 온라인 상태 -->
       <span id="online-dot" title="온라인 연결" style="width:10px;height:10px;border-radius:50%;background:var(--text-dim);flex-shrink:0;transition:background .4s;display:inline-block;"></span>
       <!-- 로그아웃 -->
-      <button class="btn-logout" id="btn-logout" style="flex:1 1 0;min-width:0;padding:0 6px;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">로그아웃</button>
+      <button class="btn-logout" id="btn-logout" style="flex:0 1 auto;min-width:0;padding:0 10px;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">로그아웃</button>
     </div>
   </div>
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.25 (2026.07.10)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.26 (2026.07.10)</span></p>
 
   </div>
 
