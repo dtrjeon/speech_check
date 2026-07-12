@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   index.html 변경 이력
+  v2.28 (2026-07-10) - 데스크톱 뷰(@media min-width:520px) 카드 폭을 480px → 384px로 20% 축소 (높이는 그대로 유지). 스킨 토글 버튼 위치도 새 폭 기준으로 재계산.
   v2.27 (2026-07-10) - html,body{height:100%}가 배경 칠해지는 범위를 뷰포트 한 화면 높이로 고정시켜, 콘텐츠가 길어지면 그 아래는 배경색이 안 칠해지던 문제 수정 → min-height:100%로 변경
   v2.26 (2026-07-10) - user-bar 버튼들(STT/CLOVA뱃지/로그아웃)을 강제 균등폭 대신 자연스러운 콘텐츠 크기로 변경 (여유 공간이 생겨 "STT" 등이 잘리지 않고 온전히 보이도록)
   v2.25 (2026-07-10) - user-bar에서 이름 아래 표시되던 반/단계(예: "수지주일반") 줄 제거, 이름만 표시
@@ -1175,11 +1176,11 @@ html.skin-light .fulltext-body{color:var(--text);}
     justify-content: center;
   }
   .page {
-    max-width: 480px !important;
+    max-width: 384px !important;
     box-shadow: 0 0 60px rgba(0,0,0,0.6);
   }
   .skin-toggle-btn {
-    right: calc((100vw - 480px) / 2 + 16px) !important;
+    right: calc((100vw - 384px) / 2 + 16px) !important;
   }
 }
 </style>
@@ -1276,7 +1277,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.27 (2026.07.10)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.28 (2026.07.10)</span></p>
 
   </div>
 
