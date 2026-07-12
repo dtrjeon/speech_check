@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   index.html 변경 이력
+  v2.23 (2026-07-10) - 넓은 화면(@media min-width:520px)에서 스킨 토글 버튼이 가운데 정렬된 카드에서 멀리 떨어져 화면 맨 우측 하단 구석에 붙어 보이던 문제 수정 (버튼 위치를 카드 오른쪽 끝 기준으로 재계산)
   v2.22 (2026-07-10) - @media(min-width:520px) 안에 남아있던 또 다른 하드코딩 배경(#0d0d0d !important)을 var(--bg)로 수정. 이게 "데스크톱 사이트" 모드(또는 넓은 화면)에서 스킨 전환 시 배경이 안 바뀌던 진짜 원인이었음.
   v2.21 (2026-07-10) - 스킨(다크/웜/라이트) 전환 시 body 배경이 #111로 고정되어 안 바뀌던 버그 수정 (카드만 밝아지고 배경은 계속 검정으로 남던 문제) → var(--bg) 사용하도록 변경
   v2.20 (2026-07-10) - 크롬에서 글자/버튼이 삼성인터넷보다 크게 확대되어 보이던 문제 해결 (-webkit-text-size-adjust:100% 추가, 크롬 자동 텍스트 확대 방지)
@@ -1173,6 +1174,9 @@ html.skin-light .fulltext-body{color:var(--text);}
     max-width: 480px !important;
     box-shadow: 0 0 60px rgba(0,0,0,0.6);
   }
+  .skin-toggle-btn {
+    right: calc((100vw - 480px) / 2 + 16px) !important;
+  }
 }
 </style>
 </head>
@@ -1269,7 +1273,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.22 (2026.07.10)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.23 (2026.07.10)</span></p>
 
   </div>
 
