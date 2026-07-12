@@ -1,4 +1,10 @@
 <!DOCTYPE html>
+<!--
+  index.html 변경 이력
+  v2.19 (2026-07-10) - CLOVA 누적 뱃지를 position:fixed 오버레이에서 상단 user-bar 안 정상 배치로 변경 (브라우저별로 로그아웃 버튼과 겹치거나 밀리던 문제 해결). 우측 버튼 그룹에 flex-wrap 추가.
+  v2.18 (2026-06-13) - 이전 버전
+  ※ 다음 수정 시 아래 버전 표기와 이 주석을 함께 갱신할 것
+-->
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -1167,7 +1173,6 @@ html.skin-light .fulltext-body{color:var(--text);}
 </style>
 </head>
 <body>
-<div id="clova-usage-badge" style="position:fixed;top:8px;right:8px;z-index:99999;background:rgba(0,0,0,.75);color:#7CFFB2;font-size:11px;font-weight:600;padding:4px 9px;border-radius:12px;font-family:sans-serif;letter-spacing:.2px;pointer-events:none;">CLOVA 누적 --</div>
 <script>
 (function(){
   var CLOVA_USAGE_URL = 'https://script.google.com/macros/s/AKfycbzGFkegiqWgRYUZEWzbHi5NHzAMMqWl-8bimKnhmUhfjV1q3L2NvhZJxR0n4zUMYimE/exec';
@@ -1228,7 +1233,7 @@ html.skin-light .fulltext-body{color:var(--text);}
       <span id="user-bar-name" style="font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;display:block;overflow:hidden;text-overflow:ellipsis;"></span>
       <span id="user-bar-class" style="font-size:11px;color:var(--text-dim);white-space:nowrap;"></span><span id="user-bar-stage" style="font-size:11px;color:var(--text-dim);white-space:nowrap;"></span>
     </div>
-    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;row-gap:6px;justify-content:flex-end;">
       <!-- 설정 드롭다운 -->
       <div style="position:relative;" id="setting-dropdown-wrap">
         <button id="rec-mode-setting-btn" onclick="toggleSettingDropdown(event)" title="설정" style="background:transparent;border:1px solid var(--border2);border-radius:7px;padding:0 10px;cursor:pointer;color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;gap:4px;font-size:12px;height:32px;">
@@ -1247,6 +1252,8 @@ html.skin-light .fulltext-body{color:var(--text);}
           </div>
         </div>
       </div>
+      <!-- CLOVA 누적 사용시간 -->
+      <span id="clova-usage-badge" style="background:rgba(0,0,0,.35);border:1px solid var(--border2);color:#7CFFB2;font-size:10px;font-weight:600;padding:4px 9px;border-radius:12px;font-family:sans-serif;letter-spacing:.2px;white-space:nowrap;flex-shrink:0;">CLOVA 누적 --</span>
       <!-- 설명서 -->
       <a href="manual_guducheckv218.html" style="background:transparent;border:1px solid var(--border2);border-radius:7px;padding:0 10px;color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;gap:4px;font-size:12px;height:32px;text-decoration:none;">📖 설명서</a>
       <!-- 온라인 상태 -->
@@ -1258,7 +1265,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.18 (2026.06.13)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.19 (2026.07.10)</span></p>
 
   </div>
 
