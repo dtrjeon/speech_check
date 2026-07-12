@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <!--
   index.html 변경 이력
-  v2.29 (2026-07-10) - "데스크톱 뷰" 카드 폭 제한(480px/384px)이 실제로 원하는 효과를 주지 못해 전면 제거. 이제 화면 폭에 항상 꽉 차게 표시되고, 높이는 기존처럼 스크롤로 이동. 스킨 토글 버튼 위치 계산도 그에 맞춰 원래 방식(뷰포트 우측 하단 고정)으로 되돌림.
+  v2.30 (2026-07-10) - 폭 제한을 다시 원래대로 480px로 복원 (v2.29에서 제거했던 것을 되돌림). 데스크톱 뷰에서 카드 가운데 정렬 + 그림자 + 스킨 버튼 위치 계산도 480px 기준으로 복원.
+  v2.29 (2026-07-10) - "데스크톱 뷰" 카드 폭 제한(480px/384px)이 실제로 원하는 효과를 주지 못해 전면 제거했었음 (v2.30에서 되돌림)
   v2.28 (2026-07-10) - 데스크톱 뷰(@media min-width:520px) 카드 폭을 480px → 384px로 20% 축소 (높이는 그대로 유지). 스킨 토글 버튼 위치도 새 폭 기준으로 재계산.
   v2.27 (2026-07-10) - html,body{height:100%}가 배경 칠해지는 범위를 뷰포트 한 화면 높이로 고정시켜, 콘텐츠가 길어지면 그 아래는 배경색이 안 칠해지던 문제 수정 → min-height:100%로 변경
   v2.26 (2026-07-10) - user-bar 버튼들(STT/CLOVA뱃지/로그아웃)을 강제 균등폭 대신 자연스러운 콘텐츠 크기로 변경 (여유 공간이 생겨 "STT" 등이 잘리지 않고 온전히 보이도록)
@@ -149,7 +150,7 @@ html{background:var(--bg);}
 html,body{min-height:100%;}
 body{background:var(--bg);padding-bottom:env(safe-area-inset-bottom);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-weight:300;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
 #app-root,#root,.page-wrap,.wrap,main{max-width:480px;width:100%;margin:0 auto;}
-.page{width:100%;margin:0 auto;padding:20px 16px 48px;min-height:100vh;}
+.page{max-width:480px;width:100%;margin:0 auto;padding:20px 16px 48px;box-shadow:0 0 40px rgba(0,0,0,0.5);min-height:100vh;}
 
 /* Header */
 .header{margin-bottom:22px;}
@@ -1173,6 +1174,15 @@ html.skin-light .fulltext-body{color:var(--text);}
 @media (min-width: 520px) {
   body {
     background: var(--bg) !important;
+    display: flex;
+    justify-content: center;
+  }
+  .page {
+    max-width: 480px !important;
+    box-shadow: 0 0 60px rgba(0,0,0,0.6);
+  }
+  .skin-toggle-btn {
+    right: calc((100vw - 480px) / 2 + 16px) !important;
   }
 }
 </style>
@@ -1269,7 +1279,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.29 (2026.07.10)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.30 (2026.07.10)</span></p>
 
   </div>
 
