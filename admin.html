@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   admin.html 변경 이력
+  v2.8 (2026-07-10) - 크롬에서 글자/버튼이 삼성인터넷보다 크게 확대되어 보이던 문제 해결 (-webkit-text-size-adjust:100% 추가, 크롬 자동 텍스트 확대 방지)
   v2.7 (2026-07-10) - 자동 정렬 매칭 실패 줄을 목록에서 빨간색으로 강조 표시 (⚠ 매칭 실패), 수동으로 재태깅하면 자동 해제
   v2.6 (2026-07-10) - TS편집: 모바일(스페이스바 없음) 대응 — "👆 탭하여 태깅"/"↩ 되돌리기" 큰 버튼 추가, 스페이스바·Backspace와 동일하게 동작
   v2.5 (2026-07-10) - TS편집 ⋮ 메뉴에 "⬇ 다운로드" 추가 (현재 챕터 오디오 파일 다운로드)
@@ -70,7 +71,7 @@ html[data-theme="sepia"]{
   --accent:#8a5a2a;--accent-glow:rgba(138,90,42,.18);
   --clova:#2f7a52;--clova-bg:rgba(47,122,82,.12);--clova-border:rgba(47,122,82,.3);
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-weight:300;line-height:1.6;-webkit-font-smoothing:antialiased;}
 .page{max-width:640px;margin:0 auto;padding:16px 14px 60px;}
 
@@ -352,7 +353,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 <script>
 
 /* ── 버전 정보 (파일 상단 변경이력 주석과 함께 갱신) ── */
-const ADMIN_VERSION = 'v2.7 (2026-07-10)';
+const ADMIN_VERSION = 'v2.8 (2026-07-10)';
 document.addEventListener('DOMContentLoaded', () => {
   const sub = document.querySelector('.page-sub');
   if (sub) sub.textContent = sub.textContent + ' · ' + ADMIN_VERSION;

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   index.html 변경 이력
+  v2.20 (2026-07-10) - 크롬에서 글자/버튼이 삼성인터넷보다 크게 확대되어 보이던 문제 해결 (-webkit-text-size-adjust:100% 추가, 크롬 자동 텍스트 확대 방지)
   v2.19 (2026-07-10) - CLOVA 누적 뱃지를 position:fixed 오버레이에서 상단 user-bar 안 정상 배치로 변경 (브라우저별로 로그아웃 버튼과 겹치거나 밀리던 문제 해결). 우측 버튼 그룹에 flex-wrap 추가.
   v2.18 (2026-06-13) - 이전 버전
   ※ 다음 수정 시 아래 버전 표기와 이 주석을 함께 갱신할 것
@@ -134,7 +135,7 @@ html.skin-warm .skin-toggle-btn{
   border-radius:6px;padding:4px 10px;font-size:12px;
   color:var(--text-muted);cursor:pointer;touch-action:manipulation;
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 html,body{height:100%;}
 body{background:#111;padding-bottom:env(safe-area-inset-bottom);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-weight:300;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
 #app-root,#root,.page-wrap,.wrap,main{max-width:480px;width:100%;margin:0 auto;}
@@ -1265,7 +1266,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.19 (2026.07.10)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.20 (2026.07.10)</span></p>
 
   </div>
 
