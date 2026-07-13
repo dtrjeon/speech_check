@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   index.html 변경 이력
+  v2.31 (2026-07-10) - "녹음 방식 설정" 모달과 STT 실패 안내 말풍선(stt-bubble)의 하드코딩된 배경(#1e2127)을 var(--surface)/var(--surface2)로 수정 → 스킨(다크/웜/라이트) 전환 시 이 모달도 함께 바뀌도록 함
   v2.30 (2026-07-10) - 폭 제한을 다시 원래대로 480px로 복원 (v2.29에서 제거했던 것을 되돌림). 데스크톱 뷰에서 카드 가운데 정렬 + 그림자 + 스킨 버튼 위치 계산도 480px 기준으로 복원.
   v2.29 (2026-07-10) - "데스크톱 뷰" 카드 폭 제한(480px/384px)이 실제로 원하는 효과를 주지 못해 전면 제거했었음 (v2.30에서 되돌림)
   v2.28 (2026-07-10) - 데스크톱 뷰(@media min-width:520px) 카드 폭을 480px → 384px로 20% 축소 (높이는 그대로 유지). 스킨 토글 버튼 위치도 새 폭 기준으로 재계산.
@@ -982,7 +983,7 @@ html.skin-warm .btn-fontsize:hover{border-color:#5b4fcf;color:#5b4fcf;}
   display:none;
   position:relative;
   margin-top:10px;
-  background:#1e2127;
+  background:var(--surface2);
   border:1.5px solid var(--amber-border);
   border-radius:12px;
   padding:12px 14px;
@@ -1279,14 +1280,14 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.30 (2026.07.10)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.31 (2026.07.10)</span></p>
 
   </div>
 
   <!-- 녹음 방식 설정 모달 -->
   <div id="rec-mode-setting-panel" onclick="if(event.target===this)closeRecModeSetting()"
     style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:9999;align-items:flex-start;justify-content:center;padding:60px 16px 20px;overflow-y:auto;">
-    <div style="background:#1e2127;border-radius:16px;width:100%;max-width:360px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.6);">
+    <div style="background:var(--surface);border-radius:16px;width:100%;max-width:360px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.6);">
       <!-- 모달 헤더 -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--surface2);">
         <span style="font-size:14px;font-weight:600;color:var(--text);">⚙ 녹음 방식 설정</span>
