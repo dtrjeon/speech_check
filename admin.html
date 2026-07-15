@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   admin.html 변경 이력
+  v3.0 (2026-07-10) - TS편집 탭의 ts_words_get / ts_get 요청이 브라우저 캐시를 타서, 오디오 재추출 후에도 예전 단어 데이터로 자동 정렬되던 버그 수정 (요청에 캐시 방지 파라미터 추가)
   v2.9 (2026-07-10) - 10장 오디오 파일명을 한글(_복음전문개요_2단계용.m4a, 404 오류)에서 영문(ch10_summary.m4a)으로 교체
   v2.8 (2026-07-10) - 크롬에서 글자/버튼이 삼성인터넷보다 크게 확대되어 보이던 문제 해결 (-webkit-text-size-adjust:100% 추가, 크롬 자동 텍스트 확대 방지)
   v2.7 (2026-07-10) - 자동 정렬 매칭 실패 줄을 목록에서 빨간색으로 강조 표시 (⚠ 매칭 실패), 수동으로 재태깅하면 자동 해제
@@ -354,7 +355,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 <script>
 
 /* ── 버전 정보 (파일 상단 변경이력 주석과 함께 갱신) ── */
-const ADMIN_VERSION = 'v2.9 (2026-07-10)';
+const ADMIN_VERSION = 'v3.0 (2026-07-10)';
 document.addEventListener('DOMContentLoaded', () => {
   const sub = document.querySelector('.page-sub');
   if (sub) sub.textContent = sub.textContent + ' · ' + ADMIN_VERSION;
@@ -1378,7 +1379,7 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
     tsLog('🤖 단어 단위 인식 데이터 불러오는 중...');
     let words;
     try {
-      const res = await fetch(TS_GAS_URL + '?act=ts_words_get&chId=' + curChId);
+      const res = await fetch(TS_GAS_URL + '?act=ts_words_get&chId=' + curChId + '&_=' + Date.now(), { cache: 'no-store' });
       const data = await res.json();
       if (!data.ok || !data.words || !data.words.length) {
         tsLog('⚠ 이 챕터는 단어 단위 인식 데이터가 없습니다. "⏱ 타임스탬프 추출" 탭에서 이 챕터를 먼저 추출(재추출)해주세요.');
@@ -1459,7 +1460,7 @@ try{ if(localStorage.getItem(ADMIN_KEY)) loadLogs(); }catch(e){}
 
     // 구글시트(GAS)에 저장된 최신 ts 값이 있으면 덮어씀 (ts_get은 공개 읽기, 로그인 불필요)
     try {
-      const res = await fetch(TS_GAS_URL + '?act=ts_get&chId=' + curChId);
+      const res = await fetch(TS_GAS_URL + '?act=ts_get&chId=' + curChId + '&_=' + Date.now(), { cache: 'no-store' });
       const data = await res.json();
       if (data.ok && data.timestamps && data.timestamps.length) {
         data.timestamps.forEach(t => {
