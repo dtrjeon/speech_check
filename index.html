@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   index.html 변경 이력
+  v2.35 (2026-07-16) - "CLOVA 누적" 뱃지를 전체 사용량에서 로그인한 사람의 개인별 누적 사용시간으로 변경 (AUTH_GAS_URL의 새 usage_personal API 사용)
   v2.34 (2026-07-16) - "CLOVA 누적" 뱃지 요청에도 캐시 방지 처리 추가 (실제 사용량이 쌓여도 맨 처음 0초 응답이 계속 캐시되어 보이던 문제 해결)
   v2.33 (2026-07-10) - 로그인 세션을 sessionStorage(탭 닫으면 사라짐)에서 localStorage(계속 유지)로 변경 → "아이디/비밀번호 저장" 체크와 무관하게 앱 재실행마다 로그인 화면부터 다시 나오던 문제 해결
   v2.32 (2026-07-10) - "녹음 방식 설정" 모달을 열 때마다 자바스크립트가 배경색을 직접 강제 지정하던 코드 제거 (skin-warm 테마를 체크 안 해서 웜 테마에서도 무조건 검정으로 나오던 진짜 원인). 이제 CSS 변수(var(--surface))만으로 테마를 따라감.
@@ -1193,24 +1194,13 @@ html.skin-light .fulltext-body{color:var(--text);}
 </head>
 <body>
 <script>
-(function(){
-  var CLOVA_USAGE_URL = 'https://script.google.com/macros/s/AKfycbzGFkegiqWgRYUZEWzbHi5NHzAMMqWl-8bimKnhmUhfjV1q3L2NvhZJxR0n4zUMYimE/exec';
+  // CLOVA 사용시간 뱃지 관련 로직은 로그인 정보(currentUser)가 필요해서
+  // 아래쪽(AUTH_GAS_URL 선언 이후)의 "개인별 CLOVA 사용시간" 스크립트로 옮겼습니다.
   function fmtSec(sec){
     sec = Math.round(sec);
     var m = Math.floor(sec/60), s = sec%60;
     return m>0 ? (m+'분 '+s+'초') : (s+'초');
   }
-  function loadClovaUsage(){
-    fetch(CLOVA_USAGE_URL + '?act=usage_total&_=' + Date.now(), { cache: 'no-store' })
-      .then(function(r){ return r.json(); })
-      .then(function(d){
-        var el = document.getElementById('clova-usage-badge');
-        if(el && d && d.ok) el.textContent = '🟢 CLOVA 누적 ' + fmtSec(d.totalSec);
-      })
-      .catch(function(){});
-  }
-  loadClovaUsage();
-})();
 </script>
 
 <!-- ════ 로그인 오버레이 ════ -->
@@ -1271,7 +1261,7 @@ html.skin-light .fulltext-body{color:var(--text);}
         </div>
       </div>
       <!-- CLOVA 누적 사용시간 -->
-      <span id="clova-usage-badge" style="flex:0 1 auto;min-width:0;text-align:center;background:rgba(0,0,0,.35);border:1px solid var(--border2);color:#7CFFB2;font-size:10px;font-weight:600;padding:4px 8px;border-radius:12px;font-family:sans-serif;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">CLOVA 누적 --</span>
+      <span id="clova-usage-badge" style="flex:0 1 auto;min-width:0;text-align:center;background:rgba(0,0,0,.35);border:1px solid var(--border2);color:#7CFFB2;font-size:10px;font-weight:600;padding:4px 8px;border-radius:12px;font-family:sans-serif;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">내 CLOVA --</span>
       <!-- 설명서 -->
       <a href="manual_guducheckv218.html" title="설명서" style="flex:0 0 auto;background:transparent;border:1px solid var(--border2);border-radius:7px;width:32px;height:32px;color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;font-size:14px;text-decoration:none;">📖</a>
       <!-- 온라인 상태 -->
@@ -1283,7 +1273,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.34 (2026.07.16)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.35 (2026.07.16)</span></p>
 
   </div>
 
@@ -1704,6 +1694,18 @@ function sendLog(action, extra){
   }catch(e){}
 }
 
+/* ════════════ 개인별 CLOVA 누적 사용시간 (로그인한 사람 것만) ════════════ */
+function loadMyClovaUsage(){
+  if(!AUTH_GAS_URL || !currentUser) return;
+  fetch(AUTH_GAS_URL + '?act=usage_personal&name=' + encodeURIComponent(currentUser.name) + '&_=' + Date.now(), { cache: 'no-store' })
+    .then(r => r.json())
+    .then(d => {
+      const el = document.getElementById('clova-usage-badge');
+      if(el && d && d.ok) el.textContent = '🟢 내 CLOVA ' + fmtSec(d.totalSec);
+    })
+    .catch(()=>{});
+}
+
 function showApp(){
   document.getElementById('login-overlay').classList.add('hidden');
   const bar = document.getElementById('user-bar');
@@ -1716,6 +1718,7 @@ function showApp(){
     if(c)  c.textContent  = currentUser.cls   ? currentUser.cls   : '';
     if(sg) sg.textContent = currentUser.stage ? (currentUser.cls ? ' · ' : '') + currentUser.stage : '';
   }
+  loadMyClovaUsage();
 }
 function showLogin(){
   currentUser = null;
@@ -3431,6 +3434,7 @@ document.getElementById('btn-clova-transcribe2').addEventListener('click', async
     showBanner('✓ CLOVA 텍스트 추출 완료!' + (gasVer ? ' <span style="font-size:11px;opacity:.7">' + gasVer + '</span>' : '') + '<br>아래 <strong>비교 분석</strong> 버튼을 누르세요.', 'ok');
     setStatus('CLOVA 변환 완료 ✓ — 비교 분석 버튼을 누르세요');
     sendLog('clova_done', { durationSec:Math.round((Date.now()-_clovaT0)/1000), charCount:text.length, fileSizeKB:audioBlob?Math.round(audioBlob.size/1024):0, ext:audioExt||'webm' });
+    setTimeout(loadMyClovaUsage, 1500); // 방금 기록된 사용시간이 반영되도록 잠시 후 새로고침
 
   } catch(e) {
     statusEl.textContent = '⚠ ' + e.message;

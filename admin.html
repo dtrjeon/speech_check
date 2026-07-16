@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   admin.html 변경 이력
+  v3.2 (2026-07-16) - "⏳ 사용시간" 탭 추가: 전체 학생 CLOVA 사용 내역을 월별/일별 합계 + 상세 표(일시/성명/채널명/사용시간(분))로 확인. 기존에 불러온 로그 데이터(clova_done)를 그대로 활용.
   v3.1 (2026-07-16) - "CLOVA 누적" 뱃지 요청에도 캐시 방지 처리 추가 (실제 사용량이 쌓여도 맨 처음 0초 응답이 계속 캐시되어 보이던 문제 해결)
   v3.0 (2026-07-10) - TS편집 탭의 ts_words_get / ts_get 요청이 브라우저 캐시를 타서, 오디오 재추출 후에도 예전 단어 데이터로 자동 정렬되던 버그 수정 (요청에 캐시 방지 파라미터 추가)
   v2.9 (2026-07-10) - 10장 오디오 파일명을 한글(_복음전문개요_2단계용.m4a, 404 오류)에서 영문(ch10_summary.m4a)으로 교체
@@ -278,6 +279,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <button class="tab" data-tab="device">📱 디바이스</button>
     <button class="tab" data-tab="ts">⏱ 타임스탬프</button>
     <button class="tab" data-tab="ts-edit">✏️ TS편집</button>
+    <button class="tab" data-tab="usage">⏳ 사용시간</button>
   </div>
 
   <div id="loading-area" class="loading" style="display:none;">⏳ 로그 불러오는 중...</div>
@@ -351,12 +353,21 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <div id="detail-list"></div>
   </div>
 
+  <!-- ── 탭7: CLOVA 사용시간 ── -->
+  <div class="tab-panel" id="panel-usage">
+    <div id="usage-summary-area" style="margin-bottom:14px;"></div>
+    <div class="search-row">
+      <input class="search-input" id="usage-search" placeholder="이름 검색...">
+    </div>
+    <div id="usage-table-area"></div>
+  </div>
+
 </div>
 <script src="chapters-data.js"></script>
 <script>
 
 /* ── 버전 정보 (파일 상단 변경이력 주석과 함께 갱신) ── */
-const ADMIN_VERSION = 'v3.1 (2026-07-16)';
+const ADMIN_VERSION = 'v3.2 (2026-07-16)';
 document.addEventListener('DOMContentLoaded', () => {
   const sub = document.querySelector('.page-sub');
   if (sub) sub.textContent = sub.textContent + ' · ' + ADMIN_VERSION;
@@ -435,6 +446,7 @@ function renderAll(){
   renderUserTab();
   renderChapterTab();
   renderDetailTab();
+  renderUsageTab();
 }
 
 /* ── 요약 ── */
@@ -634,6 +646,102 @@ function renderDetailTab(nameFilter='', actFilter='all'){
     </div>`;
   }).join('');
 }
+
+/* ── CLOVA 사용시간 탭 ── */
+const USAGE_CH_NAMES = {1:'서론',2:'은혜',3:'인간',4:'하나님',5:'그리스도',6:'믿음',7:'결신',8:'즉석양육',9:'암기개요',10:'요약복음'};
+
+function usageChapterLabel(chapterField){
+  if(!chapterField) return '';
+  return String(chapterField).split(',').map(s=>{
+    const id = parseInt(s.trim());
+    return USAGE_CH_NAMES[id] ? (id+'장 '+USAGE_CH_NAMES[id]) : s.trim();
+  }).filter(Boolean).join(', ');
+}
+
+function renderUsageTab(nameFilter=''){
+  const rows = allRows.filter(r => r['액션']==='clova_done')
+    .map(r => ({
+      ts: r['타임스탬프(KST)']||'',
+      name: r['이름']||'',
+      chapter: usageChapterLabel(r['챕터']),
+      sec: Number(r['소요시간(초)']||0),
+    }))
+    .filter(r => !nameFilter || r.name.includes(nameFilter))
+    .sort((a,b) => b.ts.localeCompare(a.ts));
+
+  const summaryEl = document.getElementById('usage-summary-area');
+  const tableEl   = document.getElementById('usage-table-area');
+  if(!summaryEl || !tableEl) return;
+
+  if(!rows.length){
+    summaryEl.innerHTML = '';
+    tableEl.innerHTML = '<div class="empty">CLOVA 사용 기록이 없습니다.</div>';
+    return;
+  }
+
+  // 월별 / 일별 합계 집계
+  const byMonth = {}, byDay = {};
+  rows.forEach(r => {
+    const day = r.ts.slice(0,10);       // yyyy-MM-dd
+    const month = r.ts.slice(0,7);      // yyyy-MM
+    byMonth[month] = (byMonth[month]||0) + r.sec;
+    byDay[day]     = (byDay[day]||0)   + r.sec;
+  });
+
+  const totalSec = rows.reduce((s,r)=>s+r.sec,0);
+  const fmtMin = sec => (sec/60).toFixed(1) + '분';
+
+  const monthRows = Object.keys(byMonth).sort().reverse()
+    .map(m => `<tr><td>${m}</td><td>${fmtMin(byMonth[m])}</td></tr>`).join('');
+  const dayRows = Object.keys(byDay).sort().reverse().slice(0, 14)
+    .map(d => `<tr><td>${d}</td><td>${fmtMin(byDay[d])}</td></tr>`).join('');
+
+  summaryEl.innerHTML = `
+    <div class="summary-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+      <div class="sum-card"><div class="sum-lbl">전체 누적</div><div class="sum-val" style="color:var(--clova);">${fmtMin(totalSec)}</div></div>
+      <div class="sum-card"><div class="sum-lbl">처리 건수</div><div class="sum-val">${rows.length}</div><div class="sum-sub">건</div></div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+      <div style="flex:1;min-width:140px;">
+        <div class="slabel" style="margin-bottom:6px;">월별 합계</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <tr style="color:var(--text-dim);"><th style="text-align:left;padding:4px 0;">월</th><th style="text-align:right;padding:4px 0;">합계</th></tr>
+          ${monthRows}
+        </table>
+      </div>
+      <div style="flex:1;min-width:140px;">
+        <div class="slabel" style="margin-bottom:6px;">일별 합계 (최근 14일)</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <tr style="color:var(--text-dim);"><th style="text-align:left;padding:4px 0;">날짜</th><th style="text-align:right;padding:4px 0;">합계</th></tr>
+          ${dayRows}
+        </table>
+      </div>
+    </div>
+  `;
+
+  tableEl.innerHTML = `
+    <div class="slabel" style="margin-bottom:6px;">상세 내역 (${rows.length}건)</div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <tr style="color:var(--text-dim);border-bottom:1px solid var(--border);">
+        <th style="text-align:left;padding:6px 4px;">일시</th>
+        <th style="text-align:left;padding:6px 4px;">성명</th>
+        <th style="text-align:left;padding:6px 4px;">채널명</th>
+        <th style="text-align:right;padding:6px 4px;">사용시간(분)</th>
+      </tr>
+      ${rows.map(r => `
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:6px 4px;color:var(--text-dim);">${r.ts.slice(0,16)}</td>
+          <td style="padding:6px 4px;">${r.name}</td>
+          <td style="padding:6px 4px;">${r.chapter}</td>
+          <td style="padding:6px 4px;text-align:right;">${(r.sec/60).toFixed(1)}</td>
+        </tr>`).join('')}
+    </table>
+  `;
+}
+
+document.getElementById('usage-search').addEventListener('input', function(){
+  renderUsageTab(this.value.trim());
+});
 
 /* ── 공통 ── */
 function toggleCard(id){
