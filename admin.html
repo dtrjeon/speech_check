@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   admin.html 변경 이력
+  v3.1 (2026-07-16) - "CLOVA 누적" 뱃지 요청에도 캐시 방지 처리 추가 (실제 사용량이 쌓여도 맨 처음 0초 응답이 계속 캐시되어 보이던 문제 해결)
   v3.0 (2026-07-10) - TS편집 탭의 ts_words_get / ts_get 요청이 브라우저 캐시를 타서, 오디오 재추출 후에도 예전 단어 데이터로 자동 정렬되던 버그 수정 (요청에 캐시 방지 파라미터 추가)
   v2.9 (2026-07-10) - 10장 오디오 파일명을 한글(_복음전문개요_2단계용.m4a, 404 오류)에서 영문(ch10_summary.m4a)으로 교체
   v2.8 (2026-07-10) - 크롬에서 글자/버튼이 삼성인터넷보다 크게 확대되어 보이던 문제 해결 (-webkit-text-size-adjust:100% 추가, 크롬 자동 텍스트 확대 방지)
@@ -221,7 +222,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     return m>0 ? (m+'분 '+s+'초') : (s+'초');
   }
   function loadClovaUsage(){
-    fetch(CLOVA_USAGE_URL + '?act=usage_total')
+    fetch(CLOVA_USAGE_URL + '?act=usage_total&_=' + Date.now(), { cache: 'no-store' })
       .then(function(r){ return r.json(); })
       .then(function(d){
         var el = document.getElementById('clova-usage-badge');
@@ -355,7 +356,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 <script>
 
 /* ── 버전 정보 (파일 상단 변경이력 주석과 함께 갱신) ── */
-const ADMIN_VERSION = 'v3.0 (2026-07-10)';
+const ADMIN_VERSION = 'v3.1 (2026-07-16)';
 document.addEventListener('DOMContentLoaded', () => {
   const sub = document.querySelector('.page-sub');
   if (sub) sub.textContent = sub.textContent + ' · ' + ADMIN_VERSION;

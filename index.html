@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   index.html 변경 이력
+  v2.34 (2026-07-16) - "CLOVA 누적" 뱃지 요청에도 캐시 방지 처리 추가 (실제 사용량이 쌓여도 맨 처음 0초 응답이 계속 캐시되어 보이던 문제 해결)
   v2.33 (2026-07-10) - 로그인 세션을 sessionStorage(탭 닫으면 사라짐)에서 localStorage(계속 유지)로 변경 → "아이디/비밀번호 저장" 체크와 무관하게 앱 재실행마다 로그인 화면부터 다시 나오던 문제 해결
   v2.32 (2026-07-10) - "녹음 방식 설정" 모달을 열 때마다 자바스크립트가 배경색을 직접 강제 지정하던 코드 제거 (skin-warm 테마를 체크 안 해서 웜 테마에서도 무조건 검정으로 나오던 진짜 원인). 이제 CSS 변수(var(--surface))만으로 테마를 따라감.
   v2.31 (2026-07-10) - "녹음 방식 설정" 모달과 STT 실패 안내 말풍선(stt-bubble)의 하드코딩된 배경(#1e2127)을 var(--surface)/var(--surface2)로 수정 → 스킨(다크/웜/라이트) 전환 시 이 모달도 함께 바뀌도록 함
@@ -1200,7 +1201,7 @@ html.skin-light .fulltext-body{color:var(--text);}
     return m>0 ? (m+'분 '+s+'초') : (s+'초');
   }
   function loadClovaUsage(){
-    fetch(CLOVA_USAGE_URL + '?act=usage_total')
+    fetch(CLOVA_USAGE_URL + '?act=usage_total&_=' + Date.now(), { cache: 'no-store' })
       .then(function(r){ return r.json(); })
       .then(function(d){
         var el = document.getElementById('clova-usage-badge');
@@ -1282,7 +1283,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.33 (2026.07.10)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.34 (2026.07.16)</span></p>
 
   </div>
 
