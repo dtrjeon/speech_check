@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   admin.html 변경 이력
+  v3.3 (2026-07-16) - 관리자(챕터추출)와 학생(개인녹음) CLOVA 사용시간을 하나로 합침. 상세 로그 CLOVA 필터와 사용시간 탭에 관리자 사용 내역(clova_extract)도 함께 표시.
   v3.2 (2026-07-16) - "⏳ 사용시간" 탭 추가: 전체 학생 CLOVA 사용 내역을 월별/일별 합계 + 상세 표(일시/성명/채널명/사용시간(분))로 확인. 기존에 불러온 로그 데이터(clova_done)를 그대로 활용.
   v3.1 (2026-07-16) - "CLOVA 누적" 뱃지 요청에도 캐시 방지 처리 추가 (실제 사용량이 쌓여도 맨 처음 0초 응답이 계속 캐시되어 보이던 문제 해결)
   v3.0 (2026-07-10) - TS편집 탭의 ts_words_get / ts_get 요청이 브라우저 캐시를 타서, 오디오 재추출 후에도 예전 단어 데이터로 자동 정렬되던 버그 수정 (요청에 캐시 방지 파라미터 추가)
@@ -175,7 +176,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .act-logout{background:var(--surface2);color:var(--text-dim);border:1px solid var(--border2);}
 .act-stt_start{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
 .act-stt_save{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);}
-.act-clova_start,.act-clova_done{background:var(--clova-bg);color:var(--clova);border:1px solid var(--clova-border);}
+.act-clova_start,.act-clova_done,.act-clova_extract{background:var(--clova-bg);color:var(--clova);border:1px solid var(--clova-border);}
 .act-clova_error{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
 .act-analyze{background:var(--accent-glow);color:var(--accent);border:1px solid rgba(124,106,255,.3);}
 
@@ -367,7 +368,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 <script>
 
 /* ── 버전 정보 (파일 상단 변경이력 주석과 함께 갱신) ── */
-const ADMIN_VERSION = 'v3.2 (2026-07-16)';
+const ADMIN_VERSION = 'v3.3 (2026-07-16)';
 document.addEventListener('DOMContentLoaded', () => {
   const sub = document.querySelector('.page-sub');
   if (sub) sub.textContent = sub.textContent + ' · ' + ADMIN_VERSION;
@@ -453,9 +454,10 @@ function renderAll(){
 function renderSummary(){
   const F = (act) => allRows.filter(r=>r['액션']===act).length;
   const users = new Set(allRows.map(r=>r['이름']).filter(Boolean));
-  const totalSec = allRows.filter(r=>r['액션']==='clova_done').reduce((s,r)=>s+Number(r['소요시간(초)']||0),0);
+  const isClovaRow = r => r['액션']==='clova_done' || r['액션']==='clova_extract';
+  const totalSec = allRows.filter(isClovaRow).reduce((s,r)=>s+Number(r['소요시간(초)']||0),0);
   document.getElementById('s-login').textContent   = F('login');
-  document.getElementById('s-clova').textContent   = F('clova_done');
+  document.getElementById('s-clova').textContent   = allRows.filter(isClovaRow).length;
   document.getElementById('s-sec').textContent     = totalSec;
   document.getElementById('s-stt').textContent     = F('stt_start');
   document.getElementById('s-analyze').textContent = F('analyze');
@@ -619,7 +621,8 @@ function renderChapterTab(){
 function renderDetailTab(nameFilter='', actFilter='all'){
   const filtered = allRows.filter(r=>{
     const matchName = !nameFilter || (r['이름']||'').includes(nameFilter);
-    const matchAct  = actFilter==='all' || r['액션']===actFilter;
+    const matchAct  = actFilter==='all' || r['액션']===actFilter
+                       || (actFilter==='clova_done' && r['액션']==='clova_extract');
     return matchName && matchAct;
   });
   if(!filtered.length){ document.getElementById('detail-list').innerHTML='<div class="empty">데이터 없음</div>'; return; }
@@ -659,7 +662,7 @@ function usageChapterLabel(chapterField){
 }
 
 function renderUsageTab(nameFilter=''){
-  const rows = allRows.filter(r => r['액션']==='clova_done')
+  const rows = allRows.filter(r => r['액션']==='clova_done' || r['액션']==='clova_extract')
     .map(r => ({
       ts: r['타임스탬프(KST)']||'',
       name: r['이름']||'',
