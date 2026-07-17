@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   index.html 변경 이력
+  v2.36 (2026-07-17) - 마이크 녹음 시 'audio/mp4' 요청이 실제로는 Opus 코덱으로 인코딩되면서도 .m4a 확장자가 붙어, 파일 내용(Opus)과 확장자(AAC 기대)가 안 맞아 재생/CLOVA 인식이 실패하던 문제 수정 → AAC 코덱(mp4a.40.2)을 명시적으로 요청, 미지원 시 정직하게 .webm으로 저장
   v2.35 (2026-07-16) - "CLOVA 누적" 뱃지를 전체 사용량에서 로그인한 사람의 개인별 누적 사용시간으로 변경 (AUTH_GAS_URL의 새 usage_personal API 사용)
   v2.34 (2026-07-16) - "CLOVA 누적" 뱃지 요청에도 캐시 방지 처리 추가 (실제 사용량이 쌓여도 맨 처음 0초 응답이 계속 캐시되어 보이던 문제 해결)
   v2.33 (2026-07-10) - 로그인 세션을 sessionStorage(탭 닫으면 사라짐)에서 localStorage(계속 유지)로 변경 → "아이디/비밀번호 저장" 체크와 무관하게 앱 재실행마다 로그인 화면부터 다시 나오던 문제 해결
@@ -1273,7 +1274,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.35 (2026.07.16)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.36 (2026.07.17)</span></p>
 
   </div>
 
@@ -2640,7 +2641,7 @@ function startRec(){
 
 function _startMediaRecorder(){
   const _candidates = [
-    { mime: 'audio/mp4',              ext: 'm4a'  },
+    { mime: 'audio/mp4;codecs=mp4a.40.2', ext: 'm4a'  }, // AAC-LC를 명시적으로 요청 (진짜 AAC일 때만 .m4a로 취급)
     { mime: 'audio/webm;codecs=opus', ext: 'webm' },
     { mime: 'audio/webm',             ext: 'webm' },
     { mime: 'audio/ogg;codecs=opus',  ext: 'ogg'  },
