@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   admin.html 변경 이력
+  v3.4 (2026-07-17) - "사용시간" 탭 상세 내역의 "일시" 표시를 "Fri Jul 17 2026" 같은 긴 형식 대신 "7/17 13:00" 형식으로 변경.
   v3.3 (2026-07-16) - 관리자(챕터추출)와 학생(개인녹음) CLOVA 사용시간을 하나로 합침. 상세 로그 CLOVA 필터와 사용시간 탭에 관리자 사용 내역(clova_extract)도 함께 표시.
   v3.2 (2026-07-16) - "⏳ 사용시간" 탭 추가: 전체 학생 CLOVA 사용 내역을 월별/일별 합계 + 상세 표(일시/성명/채널명/사용시간(분))로 확인. 기존에 불러온 로그 데이터(clova_done)를 그대로 활용.
   v3.1 (2026-07-16) - "CLOVA 누적" 뱃지 요청에도 캐시 방지 처리 추가 (실제 사용량이 쌓여도 맨 처음 0초 응답이 계속 캐시되어 보이던 문제 해결)
@@ -722,6 +723,13 @@ function renderUsageTab(nameFilter=''){
     </div>
   `;
 
+  const fmtTs = ts => {
+    // 'yyyy-MM-dd HH:mm:ss' → 'M/d HH:mm' (예: 2026-07-17 13:00:00 → 7/17 13:00)
+    const m = String(ts||'').match(/^\d{4}-(\d{2})-(\d{2}) (\d{2}:\d{2})/);
+    if(!m) return ts;
+    return Number(m[1]) + '/' + Number(m[2]) + ' ' + m[3];
+  };
+
   tableEl.innerHTML = `
     <div class="slabel" style="margin-bottom:6px;">상세 내역 (${rows.length}건)</div>
     <table style="width:100%;border-collapse:collapse;font-size:12px;">
@@ -733,7 +741,7 @@ function renderUsageTab(nameFilter=''){
       </tr>
       ${rows.map(r => `
         <tr style="border-bottom:1px solid var(--border);">
-          <td style="padding:6px 4px;color:var(--text-dim);">${r.ts.slice(0,16)}</td>
+          <td style="padding:6px 4px;color:var(--text-dim);">${fmtTs(r.ts)}</td>
           <td style="padding:6px 4px;">${r.name}</td>
           <td style="padding:6px 4px;">${r.chapter}</td>
           <td style="padding:6px 4px;text-align:right;">${(r.sec/60).toFixed(1)}</td>
