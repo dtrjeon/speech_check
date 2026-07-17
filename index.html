@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   index.html 변경 이력
+  v2.40 (2026-07-17) - CLOVA 텍스트 추출 완료/실패 시 업로드 카드(#upload-status-cell)의 표시가 "🟢 추출 중..."에 멈춰있던 버그 수정. 완료 시 "✓ 추출 완료", 실패 시 "⚠ 추출 실패"로 갱신되도록 처리 추가 (기존엔 하단 상태줄(#clova-status)만 갱신되고 업로드 카드 자체는 갱신 코드가 없었음).
   v2.39 (2026-07-17) - ★진짜 진짜 원인★ 개인 CLOVA 기본 GAS 주소로 코드에 박혀있던 URL이 실제로는 삭제된(존재하지 않는) 배포였음 (직접 열어보니 "요청한 파일이 없습니다" 확인). 이미 정상 작동 확인된 로그인 담당 GAS 주소(AUTH_GAS_URL)로 기본값 교체.
   v2.38 (2026-07-17) - "녹음 방식 설정"의 CLOVA GAS 주소 입력창이 화면 표시용으로 말줄임표(…)를 붙여 보여주는데, "저장" 버튼이 그 잘린 텍스트를 그대로 다시 저장해버리는 버그 수정. 화면 표시는 CSS로만 처리, 저장 시 말줄임표 포함 여부 검증 추가, 기존에 이미 깨진 채 저장된 값은 자동 감지해 복구.
   v2.37 (2026-07-17) - PC 없이 모바일에서 콘솔 오류를 볼 수 있도록 임시 디버그 콘솔(eruda) 추가. 주소 끝에 ?debug=1 을 붙였을 때만 로드됨. 디버깅 끝나면 제거 권장.
@@ -3459,6 +3460,13 @@ document.getElementById('btn-clova-transcribe2').addEventListener('click', async
 
     const gasVer = data.gas_version || '';
     statusEl.textContent = '✓ 변환 완료! ' + text.length + '자' + (gasVer ? '  [' + gasVer + ']' : '');
+    // ★ v2.40: 업로드 카드(#upload-status-cell)에 남아있던 "🟢 추출 중..." 표시를
+    // 완료 상태로 갱신 (이전에는 이 카드가 갱신되지 않아 계속 "추출 중..."으로 보였음)
+    const statusCellDone = document.getElementById('upload-status-cell');
+    if(statusCellDone){
+      const nameElDone = statusCellDone.querySelector('#clova-file-name');
+      if(nameElDone) nameElDone.textContent = '✓ 추출 완료';
+    }
     showBanner('✓ CLOVA 텍스트 추출 완료!' + (gasVer ? ' <span style="font-size:11px;opacity:.7">' + gasVer + '</span>' : '') + '<br>아래 <strong>비교 분석</strong> 버튼을 누르세요.', 'ok');
     setStatus('CLOVA 변환 완료 ✓ — 비교 분석 버튼을 누르세요');
     sendLog('clova_done', { durationSec:Math.round((Date.now()-_clovaT0)/1000), charCount:text.length, fileSizeKB:audioBlob?Math.round(audioBlob.size/1024):0, ext:audioExt||'webm' });
@@ -3467,6 +3475,11 @@ document.getElementById('btn-clova-transcribe2').addEventListener('click', async
   } catch(e) {
     statusEl.textContent = '⚠ ' + e.message;
     showBanner('⚠ ' + e.message, 'err');
+    const statusCellErr = document.getElementById('upload-status-cell');
+    if(statusCellErr){
+      const nameElErr = statusCellErr.querySelector('#clova-file-name');
+      if(nameElErr) nameElErr.textContent = '⚠ 추출 실패';
+    }
     sendLog('clova_error', { durationSec:Math.round((Date.now()-_clovaT0)/1000), error:e.message.slice(0,120) });
   } finally {
     btn.disabled = false;
