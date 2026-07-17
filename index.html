@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   index.html 변경 이력
+  v2.41-whisper (2026-07-17) - "내 CLOVA" 사용량 배지가 Whisper 모드에서도 항상 CLOVA 기준으로만 표시되어 혼란을 주던 문제 수정. 현재 선택된 모드(CLOVA/Whisper)에 맞춰 "🟢 내 CLOVA Xs" 또는 "🤖 내 Whisper Xs"로 전환 표시, 모드 변경 시 즉시 갱신.
   v2.40-whisper (2026-07-17) - Whisper를 개인 키 입력 방식에서 공유 키 방식으로 전환. 이제 오디오를 GAS로 전송하면 GAS가 보관 중인 공유 OpenAI 키로 대신 요청(act=whisper_transcribe) → 사용자는 키 입력 불필요, 개인별 사용량은 GAS가 서버에서 직접 기록해 관리자가 정산에 활용 가능.
   v2.39-whisper (2026-07-17) - Whisper 모드 활성화: 코드는 있었지만 API 키 입력 UI(whisper-key-input 등)와 모드 선택 버튼이 DOM에 없어서 실제로는 사용 불가능한 상태였음. "녹음 방식 설정"에 🤖 Whisper 버튼 추가, applyRecMode에 'api' 모드 처리 추가, 파일 업로드 시 CLOVA/Whisper 중 현재 모드에 맞게 자동 추출되도록 분기 처리, 완료/실패 시 업로드 카드 표시 갱신.
   v2.38-audio (2026-07-17) - 녹음 음질 개선: getUserMedia에서 통화용 처리(echoCancellation/noiseSuppression/autoGainControl)를 꺼서 음성 왜곡 방지, MediaRecorder에 128kbps 비트레이트 명시(기존엔 브라우저 기본값인 32~64kbps 수준이라 소리가 거칠었음).
@@ -1277,7 +1278,7 @@ html.skin-light .fulltext-body{color:var(--text);}
         </div>
       </div>
       <!-- CLOVA 누적 사용시간 -->
-      <span id="clova-usage-badge" style="flex:0 1 auto;min-width:0;text-align:center;background:rgba(0,0,0,.35);border:1px solid var(--border2);color:#7CFFB2;font-size:10px;font-weight:600;padding:4px 8px;border-radius:12px;font-family:sans-serif;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">내 CLOVA --</span>
+      <span id="clova-usage-badge" style="flex:0 1 auto;min-width:0;text-align:center;background:rgba(0,0,0,.35);border:1px solid var(--border2);color:#7CFFB2;font-size:10px;font-weight:600;padding:4px 8px;border-radius:12px;font-family:sans-serif;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">CLOVA --</span>
       <!-- 설명서 -->
       <a href="manual_guducheckv218.html" title="설명서" style="flex:0 0 auto;background:transparent;border:1px solid var(--border2);border-radius:7px;width:32px;height:32px;color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;font-size:14px;text-decoration:none;">📖</a>
       <!-- 온라인 상태 -->
@@ -1289,7 +1290,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.40-whisper (2026.07.17)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.41-whisper (2026.07.17)</span></p>
 
   </div>
 
@@ -1721,11 +1722,13 @@ function sendLog(action, extra){
 /* ════════════ 개인별 CLOVA 누적 사용시간 (로그인한 사람 것만) ════════════ */
 function loadMyClovaUsage(){
   if(!AUTH_GAS_URL || !currentUser) return;
-  fetch(AUTH_GAS_URL + '?act=usage_personal&name=' + encodeURIComponent(currentUser.name) + '&_=' + Date.now(), { cache: 'no-store' })
+  const engine = recMode === 'api' ? 'whisper' : 'clova';
+  const label  = recMode === 'api' ? '🤖 Whisper ' : '🟢 CLOVA ';
+  fetch(AUTH_GAS_URL + '?act=usage_personal&engine=' + engine + '&name=' + encodeURIComponent(currentUser.name) + '&_=' + Date.now(), { cache: 'no-store' })
     .then(r => r.json())
     .then(d => {
       const el = document.getElementById('clova-usage-badge');
-      if(el && d && d.ok) el.textContent = '🟢 내 CLOVA ' + fmtSec(d.totalSec);
+      if(el && d && d.ok) el.textContent = label + fmtSec(d.totalSec);
     })
     .catch(()=>{});
 }
@@ -3329,6 +3332,9 @@ function applyRecMode(newMode){
   if(b2clova && isClova) b2clova.disabled = !clovaGasUrl;
   const b2api = document.getElementById('btn-whisper-transcribe2');
   if(b2api && isApi) b2api.disabled = !clovaGasUrl;
+
+  // ★ 모드 전환 시 사용량 배지도 해당 모드(CLOVA/Whisper) 기준으로 즉시 갱신
+  if(typeof currentUser !== 'undefined' && currentUser) loadMyClovaUsage();
 }
 
 // 초기 상태 적용 (기본: stt)
