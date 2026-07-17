@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   admin.html 변경 이력
+  v3.5 (2026-07-17) - "일시" 표시가 여전히 "Wed Jul 15 2026 23:54:24 GMT+0900 (한국 표준시)"처럼 길게 나오던 문제 수정. 시트에서 넘어온 타임스탬프가 실제로는 JS Date.toString() 형식이라 이전 정규식이 매칭되지 않았음 — 이 형식도 인식해 "7/15 23:54"로 축약하도록 보강.
   v3.4 (2026-07-17) - "사용시간" 탭 상세 내역의 "일시" 표시를 "Fri Jul 17 2026" 같은 긴 형식 대신 "7/17 13:00" 형식으로 변경.
   v3.3 (2026-07-16) - 관리자(챕터추출)와 학생(개인녹음) CLOVA 사용시간을 하나로 합침. 상세 로그 CLOVA 필터와 사용시간 탭에 관리자 사용 내역(clova_extract)도 함께 표시.
   v3.2 (2026-07-16) - "⏳ 사용시간" 탭 추가: 전체 학생 CLOVA 사용 내역을 월별/일별 합계 + 상세 표(일시/성명/채널명/사용시간(분))로 확인. 기존에 불러온 로그 데이터(clova_done)를 그대로 활용.
@@ -723,11 +724,16 @@ function renderUsageTab(nameFilter=''){
     </div>
   `;
 
+  const MONTH_MAP = {Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
   const fmtTs = ts => {
-    // 'yyyy-MM-dd HH:mm:ss' → 'M/d HH:mm' (예: 2026-07-17 13:00:00 → 7/17 13:00)
-    const m = String(ts||'').match(/^\d{4}-(\d{2})-(\d{2}) (\d{2}:\d{2})/);
-    if(!m) return ts;
-    return Number(m[1]) + '/' + Number(m[2]) + ' ' + m[3];
+    const s = String(ts||'');
+    // 케이스 1: 'yyyy-MM-dd HH:mm:ss' (예: 2026-07-17 13:00:00)
+    let m = s.match(/^\d{4}-(\d{2})-(\d{2}) (\d{2}:\d{2})/);
+    if(m) return Number(m[1]) + '/' + Number(m[2]) + ' ' + m[3];
+    // 케이스 2: JS Date.toString() 형식 (예: Wed Jul 15 2026 23:54:24 GMT+0900 (한국 표준시))
+    m = s.match(/^\w{3} (\w{3}) (\d{2}) \d{4} (\d{2}:\d{2})/);
+    if(m && MONTH_MAP[m[1]]) return MONTH_MAP[m[1]] + '/' + Number(m[2]) + ' ' + m[3];
+    return s;
   };
 
   tableEl.innerHTML = `
