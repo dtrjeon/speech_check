@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   index.html 변경 이력
+  v2.38 (2026-07-17) - ★진짜 원인 발견★ "녹음 방식 설정"의 CLOVA GAS 주소 입력창이 화면 표시용으로 말줄임표(…)를 붙여 보여주는데, "저장" 버튼이 그 잘린 텍스트를 그대로 다시 저장해버리는 버그가 있었음 → 개인 CLOVA 녹음이 계속 "Failed to fetch"로 실패한 진짜 원인. 이제 화면 표시는 CSS로만 처리(실제 값은 항상 전체 URL 유지), 저장 시 말줄임표 포함 여부 검증 추가, 기존에 이미 깨진 채 저장된 값은 자동 감지해 기본값으로 복구.
   v2.37 (2026-07-17) - PC 없이 모바일에서 콘솔 오류를 볼 수 있도록 임시 디버그 콘솔(eruda) 추가. 주소 끝에 ?debug=1 을 붙였을 때만 로드됨. 디버깅 끝나면 제거 권장.
   v2.36 (2026-07-17) - 마이크 녹음 시 'audio/mp4' 요청이 실제로는 Opus 코덱으로 인코딩되면서도 .m4a 확장자가 붙어, 파일 내용(Opus)과 확장자(AAC 기대)가 안 맞아 재생/CLOVA 인식이 실패하던 문제 수정 → AAC 코덱(mp4a.40.2)을 명시적으로 요청, 미지원 시 정직하게 .webm으로 저장
   v2.35 (2026-07-16) - "CLOVA 누적" 뱃지를 전체 사용량에서 로그인한 사람의 개인별 누적 사용시간으로 변경 (AUTH_GAS_URL의 새 usage_personal API 사용)
@@ -1286,7 +1287,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.37 (2026.07.17)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.38 (2026.07.17)</span></p>
 
   </div>
 
@@ -1795,7 +1796,13 @@ document.getElementById('btn-logout').addEventListener('click', ()=>{ sendLog('l
 
 let recMode = 'stt'; // 'api' | 'stt' | 'clova'
 let clovaGasUrl = (function(){
-  try{ return localStorage.getItem('clova_gas_url')||'https://script.google.com/macros/s/AKfycbwc9LjCdlwXiQUoC71Oo6MaE3LcGU4MB6Cxr2ONp-mnkem4EihQJPwr-3PoMrlA8H8Yvw/exec'; }catch(e){return '';}
+  try{
+    const saved = localStorage.getItem('clova_gas_url')||'';
+    // 예전 버그로 말줄임표(…)가 낀 채 저장된 값이면 무시하고 기본값으로 되돌림
+    if(saved && saved.indexOf('…') === -1 && saved.indexOf('...') === -1) return saved;
+    if(saved){ try{ localStorage.removeItem('clova_gas_url'); }catch(e){} }
+    return 'https://script.google.com/macros/s/AKfycbwc9LjCdlwXiQUoC71Oo6MaE3LcGU4MB6Cxr2ONp-mnkem4EihQJPwr-3PoMrlA8H8Yvw/exec';
+  }catch(e){return '';}
 })();
 /* ════════════ 유틸 ════════════ */
 function setStatus(msg){ 
@@ -3314,7 +3321,7 @@ applyRecMode('stt');
 (function(){
   if(!clovaGasUrl) return;
   const inp = document.getElementById('clova-gas-url-input');
-  if(inp) inp.value = clovaGasUrl.length > 40 ? clovaGasUrl.slice(0,40)+'…' : clovaGasUrl;
+  if(inp) { inp.value = clovaGasUrl; inp.style.textOverflow = 'ellipsis'; inp.style.overflow = 'hidden'; inp.style.whiteSpace = 'nowrap'; }
   const cb2 = document.getElementById('btn-clova-transcribe2');
   if(cb2) cb2.disabled = false;
 })();
@@ -3324,9 +3331,14 @@ document.getElementById('btn-clova-gas-url-save').addEventListener('click', func
   const url = document.getElementById('clova-gas-url-input').value.trim();
   if(!url){ alert('GAS URL을 입력해 주세요.'); return; }
   if(!url.startsWith('https://')){ alert('올바른 URL이 아닙니다.'); return; }
+  if(url.indexOf('…') !== -1 || url.indexOf('...') !== -1){
+    alert('주소에 말줄임표(…)가 포함되어 있습니다. 입력창을 지우고 전체 주소를 다시 붙여넣어 주세요.');
+    return;
+  }
   clovaGasUrl = url;
   try{ localStorage.setItem('clova_gas_url', url); }catch(e){}
-  document.getElementById('clova-gas-url-input').value = url.length > 40 ? url.slice(0,40)+'…' : url;
+  const inp = document.getElementById('clova-gas-url-input');
+  if(inp) { inp.value = url; inp.style.textOverflow = 'ellipsis'; inp.style.overflow = 'hidden'; inp.style.whiteSpace = 'nowrap'; }
   const cb2 = document.getElementById('btn-clova-transcribe2');
   if(cb2) cb2.disabled = false;
   showBanner('✓ GAS URL이 저장되었습니다. 녹음 후 텍스트 추출 버튼을 누르세요.', 'ok');
