@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   admin.html 변경 이력
+  v3.6 (2026-07-17) - "사용시간" 탭에 Whisper 사용 내역(whisper_done)도 포함. 상세 내역에 "엔진"(CLOVA/Whisper) 열 추가, Whisper는 공유 키를 관리자가 결제하고 개인별로 청구하는 구조라 "Whisper 개인별 사용시간" 요약 표를 추가해 정산에 바로 활용 가능하도록 함.
   v3.5 (2026-07-17) - "일시" 표시가 여전히 "Wed Jul 15 2026 23:54:24 GMT+0900 (한국 표준시)"처럼 길게 나오던 문제 수정. 시트에서 넘어온 타임스탬프가 실제로는 JS Date.toString() 형식이라 이전 정규식이 매칭되지 않았음 — 이 형식도 인식해 "7/15 23:54"로 축약하도록 보강.
   v3.4 (2026-07-17) - "사용시간" 탭 상세 내역의 "일시" 표시를 "Fri Jul 17 2026" 같은 긴 형식 대신 "7/17 13:00" 형식으로 변경.
   v3.3 (2026-07-16) - 관리자(챕터추출)와 학생(개인녹음) CLOVA 사용시간을 하나로 합침. 상세 로그 CLOVA 필터와 사용시간 탭에 관리자 사용 내역(clova_extract)도 함께 표시.
@@ -664,12 +665,13 @@ function usageChapterLabel(chapterField){
 }
 
 function renderUsageTab(nameFilter=''){
-  const rows = allRows.filter(r => r['액션']==='clova_done' || r['액션']==='clova_extract')
+  const rows = allRows.filter(r => r['액션']==='clova_done' || r['액션']==='clova_extract' || r['액션']==='whisper_done')
     .map(r => ({
       ts: r['타임스탬프(KST)']||'',
       name: r['이름']||'',
       chapter: usageChapterLabel(r['챕터']),
       sec: Number(r['소요시간(초)']||0),
+      engine: r['액션']==='whisper_done' ? 'Whisper' : 'CLOVA',
     }))
     .filter(r => !nameFilter || r.name.includes(nameFilter))
     .sort((a,b) => b.ts.localeCompare(a.ts));
@@ -680,7 +682,7 @@ function renderUsageTab(nameFilter=''){
 
   if(!rows.length){
     summaryEl.innerHTML = '';
-    tableEl.innerHTML = '<div class="empty">CLOVA 사용 기록이 없습니다.</div>';
+    tableEl.innerHTML = '<div class="empty">CLOVA/Whisper 사용 기록이 없습니다.</div>';
     return;
   }
 
@@ -701,11 +703,29 @@ function renderUsageTab(nameFilter=''){
   const dayRows = Object.keys(byDay).sort().reverse().slice(0, 14)
     .map(d => `<tr><td>${d}</td><td>${fmtMin(byDay[d])}</td></tr>`).join('');
 
+  // ★ Whisper 개인별 사용시간 집계 (관리자가 개인별로 청구할 때 참고용)
+  const whisperByPerson = {};
+  rows.filter(r => r.engine === 'Whisper').forEach(r => {
+    whisperByPerson[r.name] = (whisperByPerson[r.name] || 0) + r.sec;
+  });
+  const whisperNames = Object.keys(whisperByPerson).sort((a,b) => whisperByPerson[b]-whisperByPerson[a]);
+  const whisperPersonRows = whisperNames
+    .map(n => `<tr><td>${n}</td><td style="text-align:right;">${fmtMin(whisperByPerson[n])}</td></tr>`).join('');
+  const whisperPersonBlock = whisperNames.length ? `
+    <div style="margin-bottom:14px;">
+      <div class="slabel" style="margin-bottom:6px;">🤖 Whisper 개인별 사용시간 (청구용)</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <tr style="color:var(--text-dim);"><th style="text-align:left;padding:4px 0;">성명</th><th style="text-align:right;padding:4px 0;">사용시간</th></tr>
+        ${whisperPersonRows}
+      </table>
+    </div>` : '';
+
   summaryEl.innerHTML = `
     <div class="summary-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
       <div class="sum-card"><div class="sum-lbl">전체 누적</div><div class="sum-val" style="color:var(--clova);">${fmtMin(totalSec)}</div></div>
       <div class="sum-card"><div class="sum-lbl">처리 건수</div><div class="sum-val">${rows.length}</div><div class="sum-sub">건</div></div>
     </div>
+    ${whisperPersonBlock}
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
       <div style="flex:1;min-width:140px;">
         <div class="slabel" style="margin-bottom:6px;">월별 합계</div>
@@ -742,6 +762,7 @@ function renderUsageTab(nameFilter=''){
       <tr style="color:var(--text-dim);border-bottom:1px solid var(--border);">
         <th style="text-align:left;padding:6px 4px;">일시</th>
         <th style="text-align:left;padding:6px 4px;">성명</th>
+        <th style="text-align:left;padding:6px 4px;">엔진</th>
         <th style="text-align:left;padding:6px 4px;">채널명</th>
         <th style="text-align:right;padding:6px 4px;">사용시간(분)</th>
       </tr>
@@ -749,6 +770,7 @@ function renderUsageTab(nameFilter=''){
         <tr style="border-bottom:1px solid var(--border);">
           <td style="padding:6px 4px;color:var(--text-dim);">${fmtTs(r.ts)}</td>
           <td style="padding:6px 4px;">${r.name}</td>
+          <td style="padding:6px 4px;color:${r.engine==='Whisper'?'#10a37f':'#03c75a'};">${r.engine}</td>
           <td style="padding:6px 4px;">${r.chapter}</td>
           <td style="padding:6px 4px;text-align:right;">${(r.sec/60).toFixed(1)}</td>
         </tr>`).join('')}
