@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   index.html 변경 이력
+  v2.41 (2026-07-17) - "내 CLOVA --" 사용시간 뱃지가 계속 갱신되지 않던 버그 수정. sendLog()가 navigator.sendBeacon으로 GAS에 로그를 보냈는데, GAS 웹앱의 302 리다이렉트 과정에서 POST 바디가 유실되어 'clova_done' 로그 기록이 누락되고 있었음. sendBeacon 대신 fetch(keepalive:true)로 통일.
   v2.40 (2026-07-17) - CLOVA 텍스트 추출 완료/실패 시 업로드 카드(#upload-status-cell)의 표시가 "🟢 추출 중..."에 멈춰있던 버그 수정. 완료 시 "✓ 추출 완료", 실패 시 "⚠ 추출 실패"로 갱신되도록 처리 추가 (기존엔 하단 상태줄(#clova-status)만 갱신되고 업로드 카드 자체는 갱신 코드가 없었음).
   v2.39 (2026-07-17) - ★진짜 진짜 원인★ 개인 CLOVA 기본 GAS 주소로 코드에 박혀있던 URL이 실제로는 삭제된(존재하지 않는) 배포였음 (직접 열어보니 "요청한 파일이 없습니다" 확인). 이미 정상 작동 확인된 로그인 담당 GAS 주소(AUTH_GAS_URL)로 기본값 교체.
   v2.38 (2026-07-17) - "녹음 방식 설정"의 CLOVA GAS 주소 입력창이 화면 표시용으로 말줄임표(…)를 붙여 보여주는데, "저장" 버튼이 그 잘린 텍스트를 그대로 다시 저장해버리는 버그 수정. 화면 표시는 CSS로만 처리, 저장 시 말줄임표 포함 여부 검증 추가, 기존에 이미 깨진 채 저장된 값은 자동 감지해 복구.
@@ -1704,9 +1705,12 @@ function sendLog(action, extra){
     chapter: (window._selectedChapters||[]).join(','),
     ua: navigator.userAgent.slice(0,80), ...extra };
   try{
-    navigator.sendBeacon
-      ? navigator.sendBeacon(AUTH_GAS_URL+'?act=log', JSON.stringify(payload))
-      : fetch(AUTH_GAS_URL+'?act=log',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload),keepalive:true}).catch(()=>{});
+    // ★ v2.41: navigator.sendBeacon은 GAS 웹앱의 302 리다이렉트(script.google.com → 
+    // script.googleusercontent.com) 과정에서 POST 바디가 유실되는 경우가 있어 
+    // 'clova_done' 로그가 조용히 누락되고, 그 결과 "내 CLOVA" 사용시간 뱃지가 계속 "--"로 
+    // 남아있는 원인이 되었음. sendBeacon 대신 fetch(keepalive:true)로 통일해 리다이렉트를 
+    // 안정적으로 따라가도록 수정.
+    fetch(AUTH_GAS_URL+'?act=log',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload),keepalive:true}).catch(()=>{});
   }catch(e){}
 }
 
