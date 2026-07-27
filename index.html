@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   index.html 변경 이력
+  v2.43-whisper (2026-07-17) - "Whisper 오류: Invalid file format" 수정. m4a 파일의 Content-Type을 mp3용인 audio/mpeg로 잘못 보내고 있어서, 확장자(.m4a)는 지원 목록에 있는데도 OpenAI가 형식을 거부하던 문제. m4a → audio/mp4로 수정.
   v2.42-whisper (2026-07-17) - ★진짜 원인★ clovaGasUrl의 기본값이 옛날 잘못된 GAS 주소(AKfycbwc9...)로 하드코딩되어 있었음. 이 값이 localStorage에 그대로 저장돼 있어서, Code.gs를 아무리 고치고 재배포해도 실제 요청은 계속 엉뚱한(예전/삭제된) GAS로 가고 있었음 — 그래서 서버 로그엔 안 남고 클라이언트만 "Failed to fetch"가 나던 것. 기본값을 올바른 주소로 수정하고, 이미 저장된 옛 주소도 자동 감지해 교체하도록 처리.
   v2.41-whisper (2026-07-17) - "내 CLOVA" 사용량 배지가 Whisper 모드에서도 항상 CLOVA 기준으로만 표시되어 혼란을 주던 문제 수정. 현재 선택된 모드(CLOVA/Whisper)에 맞춰 "🟢 CLOVA Xs" 또는 "🤖 Whisper Xs"로 전환 표시, 모드 변경 시 즉시 갱신.
   v2.40-whisper (2026-07-17) - Whisper를 개인 키 입력 방식에서 공유 키 방식으로 전환. 이제 오디오를 GAS로 전송하면 GAS가 보관 중인 공유 OpenAI 키로 대신 요청(act=whisper_transcribe) → 사용자는 키 입력 불필요, 개인별 사용량은 GAS가 서버에서 직접 기록해 관리자가 정산에 활용 가능.
@@ -1291,7 +1292,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.42-whisper (2026.07.17)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.43-whisper (2026.07.17)</span></p>
 
   </div>
 
@@ -3533,7 +3534,9 @@ document.getElementById('btn-whisper-transcribe2')?.addEventListener('click', as
 
   try {
     const ext = audioExt || 'webm';
-    const mimeMap = { m4a:'audio/mpeg', mp3:'audio/mpeg', webm:'audio/webm', ogg:'audio/ogg', wav:'audio/wav', flac:'audio/flac', aac:'audio/aac' };
+    // ★ m4a는 audio/mp4가 정확한 MIME(예전엔 mp3용인 audio/mpeg로 잘못 지정되어 있어서
+    // OpenAI Whisper가 "Invalid file format"으로 거부하던 원인이었음)
+    const mimeMap = { m4a:'audio/mp4', mp3:'audio/mpeg', webm:'audio/webm', ogg:'audio/ogg', wav:'audio/wav', flac:'audio/flac', aac:'audio/aac' };
     const mime = mimeMap[ext] || 'audio/mpeg';
 
     // audioBlob → base64
