@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.54 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.56 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.56 (2026-07-19) - "미리보기(A4)" 화면에서 손가락 핀치 줌인/줌아웃 지원. 앱 전체는 오작동 방지로 줌을 막아두지만(user-scalable=no), 미리보기 모달이 열려있는 동안만 뷰포트를 확대 가능하게 바꿨다가 닫으면 원복.
+  v2.55 (2026-07-19) - "미리보기(A4)" 화면의 프린트 버튼으로 인쇄/PDF 저장하면, 정작 메인 비교결과(단어별 목록 리포트) 스타일이 강제로 같이 섞여 나오던 문제 수정. body에 print-mode-preview 클래스로 어느 화면에서 인쇄했는지 구분해, 미리보기에서 누르면 미리보기 스타일만 출력되도록 분리.
   v2.54 (2026-07-18) - STT 오인식 교정 사전(STT_FIXES)을 stt-fixes-data.js로 분리(chapters-data.js와 동일한 패턴). 항목 추가/수정 시 이 파일을 건드릴 필요 없음.
   v2.53 (2026-07-18) - 원문의 "○ 집사님"(또는 "○○○")처럼 ○로 표기된 호칭/이름 자리를 와일드카드로 지원. 실제 어떤 이름/호칭을 말해도 정답으로 인정(wordsMatch에 isWildcard 추가).
   v2.52 (2026-07-18) - 원문의 "아들아[딸아]"처럼 대괄호로 표기된 대체 가능 단어를 지원. 대상에 따라 둘 중 어느 쪽을 말해도 정답으로 인정(altPairs + lcsOps의 wordsMatch). 챕터 재선택 시 이전 대체표현 정보는 초기화됨.
@@ -686,14 +688,17 @@ html.skin-warm .btn-fontsize:hover{border-color:#5b4fcf;color:#5b4fcf;}
   }
 
   /* 미리보기 모달 프린트 모드 */
-  .preview-modal {
+  /* ★ v2.55: "미리보기" 화면 안의 프린트 버튼으로 인쇄할 때(body.print-mode-preview)만
+     이 모달을 보여주고, 아래 result-area(단어별 목록 리포트)는 숨김 처리. 이전엔 어느
+     버튼으로 인쇄하든 항상 둘 다 강제로 보이게 되어 있어서 두 스타일이 섞여 나왔음. */
+  body.print-mode-preview .preview-modal {
     display: block !important;
     position: static !important;
     background: #ffffff !important;
     overflow: visible !important;
   }
-  .preview-toolbar { display: none !important; }
-  .preview-a4 {
+  body.print-mode-preview .preview-toolbar { display: none !important; }
+  body.print-mode-preview .preview-a4 {
     width: 100% !important;
     min-width: unset !important;
     min-height: unset !important;
@@ -703,16 +708,21 @@ html.skin-warm .btn-fontsize:hover{border-color:#5b4fcf;color:#5b4fcf;}
     background: #ffffff !important;
     color: #000000 !important;
   }
+  body.print-mode-preview .page,
+  body.print-mode-preview .page > *:not(.preview-modal) { display: none !important; }
 
-  /* 화면 UI 모두 숨기기 */
-  .header, .chapter-section, .input-card, .input-mode-card,
-  .recorded-preview, .bottom-btns, .legend,
-  .result-panel .score-bar .stats-row,
+  /* 화면 UI 모두 숨기기 (미리보기 모드가 아닐 때만) */
+  body:not(.print-mode-preview) .header, body:not(.print-mode-preview) .chapter-section,
+  body:not(.print-mode-preview) .input-card, body:not(.print-mode-preview) .input-mode-card,
+  body:not(.print-mode-preview) .recorded-preview, body:not(.print-mode-preview) .bottom-btns,
+  body:not(.print-mode-preview) .legend,
+  body:not(.print-mode-preview) .result-panel .score-bar .stats-row,
   #banner, .btn-print,
-  .page > *:not(#result-area) { display: none !important; }
-  .page { display: block !important; padding: 0 !important; max-width: none !important; }
+  body:not(.print-mode-preview) .page > *:not(#result-area) { display: none !important; }
+  body:not(.print-mode-preview) .page { display: block !important; padding: 0 !important; max-width: none !important; }
 
-  #result-area { display: block !important; }
+  body:not(.print-mode-preview) #result-area { display: block !important; }
+  body.print-mode-preview #result-area { display: none !important; }
   .result-panel { border: none !important; border-radius: 0 !important; box-shadow: none !important; }
 
   /* ── 인쇄 머리글 ── */
@@ -1278,7 +1288,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.54 (2026.07.18)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.56 (2026.07.19)</span></p>
 
   </div>
 
@@ -3828,16 +3838,32 @@ function buildPreviewHTML(d){
   `;
 }
 
+// ★ v2.56: 앱 전체는 오작동 방지를 위해 핀치 줌을 막아두지만("user-scalable=no"),
+// "미리보기(A4)" 화면만은 내용을 세밀하게 봐야 할 때가 많아 예외적으로 줌을 허용.
+// 모달이 열려있는 동안만 뷰포트 설정을 바꿨다가, 닫히면 원래대로 되돌림.
+const VIEWPORT_DEFAULT = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+const VIEWPORT_ZOOMABLE = 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover';
+function enablePreviewZoom(){
+  const vp = document.querySelector('meta[name="viewport"]');
+  if(vp) vp.setAttribute('content', VIEWPORT_ZOOMABLE);
+}
+function disablePreviewZoom(){
+  const vp = document.querySelector('meta[name="viewport"]');
+  if(vp) vp.setAttribute('content', VIEWPORT_DEFAULT);
+}
+
 document.getElementById('btn-preview').addEventListener('click', function(){
   if(!lastPreviewData){ alert('먼저 비교 분석을 실행해 주세요.'); return; }
   document.getElementById('preview-a4-content').innerHTML = buildPreviewHTML(lastPreviewData);
   document.getElementById('preview-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
+  enablePreviewZoom();
 });
 
 document.getElementById('preview-close-btn').addEventListener('click', function(){
   document.getElementById('preview-modal').classList.remove('open');
   document.body.style.overflow = '';
+  disablePreviewZoom();
 });
 
 /* ── 프린트 공통 유틸 ── */
@@ -3859,11 +3885,14 @@ document.getElementById('preview-print-btn').addEventListener('click', function(
   const origBg = document.body.style.background;
   const origColor = document.body.style.color;
   applyPrintStyle();
+  document.body.classList.add('print-mode-preview'); // ★ v2.55: 인쇄 시 미리보기 스타일만 보이도록
   modal.classList.remove('open');
   document.body.style.overflow = '';
+  disablePreviewZoom();
   setTimeout(() => {
     const handler = () => {
       restorePrintStyle(origBg, origColor);
+      document.body.classList.remove('print-mode-preview');
       window.removeEventListener('afterprint', handler);
     };
     window.addEventListener('afterprint', handler);
@@ -3876,6 +3905,7 @@ document.getElementById('preview-modal').addEventListener('click', function(e){
   if(e.target === this){
     this.classList.remove('open');
     document.body.style.overflow = '';
+    disablePreviewZoom();
   }
 });
 
@@ -3901,6 +3931,7 @@ document.getElementById('btn-print').addEventListener('click', function(){
 
   const origBg2 = document.body.style.background;
   const origColor2 = document.body.style.color;
+  document.body.classList.remove('print-mode-preview'); // ★ v2.55: 메인 리포트 인쇄 시 확실히 기본 모드로
   applyPrintStyle();
   const handler2 = () => {
     restorePrintStyle(origBg2, origColor2);
