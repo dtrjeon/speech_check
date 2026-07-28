@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   index.html 변경 이력
+  v2.47 (2026-07-18) - ★긴급 수정★ v2.44에서 Whisper 청크 업로드 기능을 추가하며 코드 일부가 실수로 중복 삽입되어 SyntaxError(전체 페이지 로딩 실패, 로그인 버튼 포함 모든 기능 마비)가 발생하던 문제 수정. 중복된 코드 블록 제거, 전체 스크립트 문법 검증 완료.
   v2.46 (2026-07-17) - "업로드" 칸의 "추출 중..." 표시가 실제로는 완료/무관한데도 이전 시도의 잔상으로 계속 남아있던 문제 수정. 새 녹음 시작, 녹음 지우기, 전체 초기화 시 업로드 상태 표시를 기본값("자동 추출")으로 되돌리도록 처리.
   v2.45-spacing (2026-07-17) - 비교 분석 시 띄어쓰기 차이로 단어가 합쳐지거나(예: "예를 들면"↔"예를들면") 나뉜 경우를 '누락'/'추가'가 아니라 '일치'로 자동 재분류하는 보정 로직 추가(reconcileSpacing). 순수 띄어쓰기 차이는 오답으로 집계되지 않음.
   v2.44-whisper (2026-07-17) - 긴 챕터 오디오(수십 분) Whisper 처리 지원. 4MB 초과 파일은 base64 통짜 전송 대신 2MB 단위로 조각내어 순차 업로드(act=whisper_chunk) 후 GAS가 Drive에서 이어붙여 완성(act=whisper_finish)하는 방식으로 전환 — 모바일 네트워크에서 큰 파일 전송이 끊기거나(Failed to fetch) 데이터가 손상되어 "Invalid file format"이 나던 문제 해결. 4MB 이하는 기존 방식 그대로 유지(빠름).
@@ -1295,7 +1296,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.46 (2026.07.17)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.47 (2026.07.18)</span></p>
 
   </div>
 
@@ -3653,48 +3654,6 @@ document.getElementById('btn-whisper-transcribe2')?.addEventListener('click', as
     if(data.error) throw new Error(data.error);
 
     const text = data.text ? data.text.trim() : '';
-    if(!text){ throw new Error('텍스트 변환 결과가 없습니다. 다시 녹음해 주세요.'); }
-
-    // 결과 적용
-    transcript = numToKor(text);
-    recordedText = numToKor(text);
-    updateRecordedPreview();
-
-    // 음성 저장 버튼 활성화 (텍스트 저장 포함)
-    const saveBtn = document.getElementById('btn-save-audio');
-    saveBtn.disabled = false; saveBtn.style.opacity = '1'; saveBtn.classList.add('ready');
-    if(recMode === 'stt'){
-      showBanner('✓ 녹음 완료! <strong>음성 저장</strong> 후 비교 분석하세요.', 'ok');
-    }
-
-    const gasVer = data.gas_version || '';
-    statusEl.textContent = '✓ 변환 완료! ' + text.length + '자' + (gasVer ? '  [' + gasVer + ']' : '');
-    const statusCellDoneW = document.getElementById('upload-status-cell');
-    if(statusCellDoneW){
-      const nameElDoneW = statusCellDoneW.querySelector('#clova-file-name');
-      if(nameElDoneW) nameElDoneW.textContent = '✓ 추출 완료';
-    }
-    showBanner('✓ Whisper 텍스트 추출 완료!<br>아래 <strong>비교 분석</strong> 버튼을 누르세요.', 'ok');
-    setStatus('Whisper 변환 완료 ✓ — 비교 분석 버튼을 누르세요');
-    // ★ 사용량은 GAS가 서버에서 직접 기록하므로 별도 whisper_done sendLog는 불필요
-    //   (durationSec은 OpenAI가 반환한 실제 오디오 길이를 GAS가 기록함 — 클라이언트의
-    //   경과시간보다 정확하고, sendBeacon 유실 위험도 없음)
-
-  } catch(e) {
-    statusEl.textContent = '⚠ ' + e.message;
-    const statusCellErrW = document.getElementById('upload-status-cell');
-    if(statusCellErrW){
-      const nameElErrW = statusCellErrW.querySelector('#clova-file-name');
-      if(nameElErrW) nameElErrW.textContent = '⚠ 추출 실패';
-    }
-    showBanner('⚠ ' + e.message, 'err');
-    sendLog('whisper_error', { durationSec:Math.round((Date.now()-_whisperT0)/1000), error:e.message.slice(0,120) });
-  } finally {
-    btn.disabled = false;
-    btn.classList.remove('loading');
-    document.getElementById('whisper-btn-label2').textContent = '녹음 후 텍스트 추출 (Whisper)';
-  }
-});
     if(!text){ throw new Error('텍스트 변환 결과가 없습니다. 다시 녹음해 주세요.'); }
 
     // 결과 적용
