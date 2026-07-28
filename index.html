@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   index.html 변경 이력
+  v2.48 (2026-07-18) - 원문에 "함이라" 라고"처럼 닫는 따옴표가 다음 단어에 붙어있는 경우, 문장부호를 삭제(빈 문자열)하는 방식이라 "함이라라고"처럼 두 단어가 실수로 합쳐져 오답 처리되던 문제 수정. stripPunct/normLine에서 문장부호를 삭제 대신 공백으로 치환해 단어 경계를 보존하도록 변경.
   v2.47 (2026-07-18) - ★긴급 수정★ v2.44에서 Whisper 청크 업로드 기능을 추가하며 코드 일부가 실수로 중복 삽입되어 SyntaxError(전체 페이지 로딩 실패, 로그인 버튼 포함 모든 기능 마비)가 발생하던 문제 수정. 중복된 코드 블록 제거, 전체 스크립트 문법 검증 완료.
   v2.46 (2026-07-17) - "업로드" 칸의 "추출 중..." 표시가 실제로는 완료/무관한데도 이전 시도의 잔상으로 계속 남아있던 문제 수정. 새 녹음 시작, 녹음 지우기, 전체 초기화 시 업로드 상태 표시를 기본값("자동 추출")으로 되돌리도록 처리.
   v2.45-spacing (2026-07-17) - 비교 분석 시 띄어쓰기 차이로 단어가 합쳐지거나(예: "예를 들면"↔"예를들면") 나뉜 경우를 '누락'/'추가'가 아니라 '일치'로 자동 재분류하는 보정 로직 추가(reconcileSpacing). 순수 띄어쓰기 차이는 오답으로 집계되지 않음.
@@ -1296,7 +1297,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.47 (2026.07.18)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.48 (2026.07.18)</span></p>
 
   </div>
 
@@ -2218,7 +2219,8 @@ function updateChapterUI(){
     else if(BIBLE_REF_RE.test(t)) t = t.replace(BIBLE_REF_RE,'');
     else t = t.replace(/^[1-9]\d*\s+/,'');
     t = numToKor(t);
-    return t.replace(/[^가-힣a-zA-Z0-9\s.?!…]/g,'').replace(/\s+/g,' ').trim();
+    // ★ v2.48: 문장부호(따옴표 등)를 삭제 대신 공백으로 치환 — 옆 단어와 붙어버리는 것 방지
+    return t.replace(/[^가-힣a-zA-Z0-9\s.?!…]/g,' ').replace(/\s+/g,' ').trim();
   }
 
   const combined = selected.map(id => {
@@ -3067,7 +3069,9 @@ function _numKor(num){
 
 // 구두점 제거 공통 함수
 function stripPunct(s){
-  return s.replace(/[^가-힣a-zA-Z0-9\s]/g,'')
+  // ★ v2.48: 따옴표 등 문장부호를 완전히 지우면(빈 문자열) 옆 단어와 실수로 붙어버림
+  // (예: 함이라" 라고 → 함이라라고). 삭제 대신 공백으로 바꿔 단어 경계를 보존.
+  return s.replace(/[^가-힣a-zA-Z0-9\s]/g,' ')
           .replace(/\s+/g,' ').trim().toLowerCase();
 }
 
