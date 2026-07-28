@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <!--
   index.html 변경 이력
+  v2.46 (2026-07-17) - "업로드" 칸의 "추출 중..." 표시가 실제로는 완료/무관한데도 이전 시도의 잔상으로 계속 남아있던 문제 수정. 새 녹음 시작, 녹음 지우기, 전체 초기화 시 업로드 상태 표시를 기본값("자동 추출")으로 되돌리도록 처리.
+  v2.45-spacing (2026-07-17) - 비교 분석 시 띄어쓰기 차이로 단어가 합쳐지거나(예: "예를 들면"↔"예를들면") 나뉜 경우를 '누락'/'추가'가 아니라 '일치'로 자동 재분류하는 보정 로직 추가(reconcileSpacing). 순수 띄어쓰기 차이는 오답으로 집계되지 않음.
+  v2.44-whisper (2026-07-17) - 긴 챕터 오디오(수십 분) Whisper 처리 지원. 4MB 초과 파일은 base64 통짜 전송 대신 2MB 단위로 조각내어 순차 업로드(act=whisper_chunk) 후 GAS가 Drive에서 이어붙여 완성(act=whisper_finish)하는 방식으로 전환 — 모바일 네트워크에서 큰 파일 전송이 끊기거나(Failed to fetch) 데이터가 손상되어 "Invalid file format"이 나던 문제 해결. 4MB 이하는 기존 방식 그대로 유지(빠름).
   v2.43-whisper (2026-07-17) - "Whisper 오류: Invalid file format" 수정. m4a 파일의 Content-Type을 mp3용인 audio/mpeg로 잘못 보내고 있어서, 확장자(.m4a)는 지원 목록에 있는데도 OpenAI가 형식을 거부하던 문제. m4a → audio/mp4로 수정.
   v2.42-whisper (2026-07-17) - ★진짜 원인★ clovaGasUrl의 기본값이 옛날 잘못된 GAS 주소(AKfycbwc9...)로 하드코딩되어 있었음. 이 값이 localStorage에 그대로 저장돼 있어서, Code.gs를 아무리 고치고 재배포해도 실제 요청은 계속 엉뚱한(예전/삭제된) GAS로 가고 있었음 — 그래서 서버 로그엔 안 남고 클라이언트만 "Failed to fetch"가 나던 것. 기본값을 올바른 주소로 수정하고, 이미 저장된 옛 주소도 자동 감지해 교체하도록 처리.
   v2.41-whisper (2026-07-17) - "내 CLOVA" 사용량 배지가 Whisper 모드에서도 항상 CLOVA 기준으로만 표시되어 혼란을 주던 문제 수정. 현재 선택된 모드(CLOVA/Whisper)에 맞춰 "🟢 CLOVA Xs" 또는 "🤖 Whisper Xs"로 전환 표시, 모드 변경 시 즉시 갱신.
@@ -1292,7 +1295,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.43-whisper (2026.07.17)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.46 (2026.07.17)</span></p>
 
   </div>
 
@@ -2607,6 +2610,10 @@ function startRec(){
   document.getElementById('btn-print').classList.remove('ready');
   document.getElementById('btn-preview').disabled = true;
   document.getElementById('btn-preview').classList.remove('ready');
+  // ★ v2.46: 이전 파일 업로드 시도의 "추출 중..." 잔상이 새 마이크 녹음 화면에
+  // 그대로 남아있지 않도록 초기화.
+  const uploadNameElStart = document.getElementById('clova-file-name');
+  if(uploadNameElStart) uploadNameElStart.textContent = '자동 추출';
 
   // ── CLOVA 모드: MediaRecorder 만 시작 (녹음 중지 시 자동 추출) ──
   if(recMode === 'clova'){
@@ -2981,6 +2988,12 @@ function _clearRecState(){
   const sttEl = document.getElementById('stt-live-text');
   if(sttEl) sttEl.textContent = '녹음 시작 후 여기에 텍스트가 표시됩니다';
   document.getElementById('whisper-status').textContent = '';
+  // ★ v2.46: "업로드" 칸의 "추출 중..." 표시가 이전 시도의 잔상으로 남아있지 않도록,
+  // 녹음 지우기/전체 초기화 시 업로드 상태 표시도 기본값으로 되돌림.
+  const uploadNameEl = document.getElementById('clova-file-name');
+  if(uploadNameEl) uploadNameEl.textContent = '자동 추출';
+  const uploadFileInput = document.getElementById('audio-file-input');
+  if(uploadFileInput) uploadFileInput.value = '';
 }
 
 document.getElementById('btn-clear-rec').addEventListener('click', function(){
@@ -3090,6 +3103,41 @@ function lcsOps(a,b){
   return ops;
 }
 
+// ★ 띄어쓰기 차이로 단어가 합쳐지거나(예: "예를 들면"↔"예를들면") 나뉜 경우를
+// '누락'/'추가'가 아니라 '일치'로 재분류. 연속된 miss들을 이어 붙였을 때 하나의
+// extra와 같은 글자가 되거나(혹은 그 반대) 하면 순수 띄어쓰기 차이로 간주함.
+function reconcileSpacing(ops){
+  const out = [];
+  let i = 0;
+  while(i < ops.length){
+    const o = ops[i];
+    if(o.t === 'miss'){
+      let j = i+1, concatB = '';
+      const extras = [];
+      while(j < ops.length && ops[j].t === 'extra'){
+        extras.push(ops[j]); concatB += ops[j].bw; j++;
+      }
+      if(extras.length && concatB === o.aw){
+        out.push({t:'ok', aw:o.aw, bw: extras.map(e=>e.bw).join(' ')});
+        i = j; continue;
+      }
+    }
+    if(o.t === 'extra'){
+      let j = i+1, concatA = '';
+      const misses = [];
+      while(j < ops.length && ops[j].t === 'miss'){
+        misses.push(ops[j]); concatA += ops[j].aw; j++;
+      }
+      if(misses.length && concatA === o.bw){
+        out.push({t:'ok', aw: misses.map(m=>m.aw).join(' '), bw:o.bw, count: misses.length});
+        i = j; continue;
+      }
+    }
+    out.push(o); i++;
+  }
+  return out;
+}
+
 function mergeOps(ops){
   const merged=[];
   for(let k=0;k<ops.length;){
@@ -3125,7 +3173,7 @@ function compare(){
   const origNorm2 = numToKor(origNorm);  // 숫자 → 한글 변환 (90→구십, 9→구 등)
   const {wordList:origWords, wordSentIdx} = splitSentences(origNorm2);
   const recWords = normWords(recRaw);
-  const ops = mergeOps(lcsOps(origWords, recWords));
+  const ops = mergeOps(reconcileSpacing(lcsOps(origWords, recWords)));
 
   let correct=0, missing=0, extra=0, sub=0;
   ops.forEach(o=>{ if(o.t==='ok')correct++; else if(o.t==='miss')missing++; else if(o.t==='extra')extra++; else sub++; });
@@ -3140,7 +3188,7 @@ function compare(){
     if(o.t!=='extra'){
       const si = wordSentIdx[origPtr]!==undefined ? wordSentIdx[origPtr] : lastSI;
       if(si!==lastSI && lastSI!==-1){ lH+=BR; rH+=BR; }
-      lastSI=si; origPtr++;
+      lastSI=si; origPtr += (o.count || 1);
     }
     if     (o.t==='ok')   { lH+=`<span class="w w-ok">${esc(o.aw)}</span>`;   rH+=`<span class="w w-ok">${esc(o.bw)}</span>`; }
     else if(o.t==='miss') { lH+=`<span class="w w-miss">${esc(o.aw)}</span>`; rH+=`<span class="w w-ph">—</span>`; }
@@ -3532,39 +3580,121 @@ document.getElementById('btn-whisper-transcribe2')?.addEventListener('click', as
   document.getElementById('whisper-btn-label2').textContent = '변환 중...';
   statusEl.textContent = '🤖 Whisper AI가 음성을 분석하고 있습니다...';
 
+  // ★ v2.44: 긴 챕터 오디오(수십 분)를 base64로 통째로 한 번에 보내면 모바일 네트워크에서
+  // 전송이 끊기거나(Failed to fetch), 큰 문자열 처리 중 데이터가 손상되어 "Invalid file
+  // format" 오류가 나던 문제가 있었음. 4MB를 넘는 파일은 작은 조각(청크)으로 나눠 순차
+  // 전송하고, GAS가 Drive에 이어붙인 뒤 완성된 파일을 서버 대 서버로 OpenAI에 보내도록 변경.
+  const CHUNK_THRESHOLD = 4 * 1024 * 1024; // 4MB
+  const CHUNK_SIZE = 2 * 1024 * 1024;      // 조각당 2MB(원본 기준)
+
+  function blobSliceToBase64(blob, start, end){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob.slice(start, end));
+    });
+  }
+
   try {
     const ext = audioExt || 'webm';
     // ★ m4a는 audio/mp4가 정확한 MIME(예전엔 mp3용인 audio/mpeg로 잘못 지정되어 있어서
     // OpenAI Whisper가 "Invalid file format"으로 거부하던 원인이었음)
     const mimeMap = { m4a:'audio/mp4', mp3:'audio/mpeg', webm:'audio/webm', ogg:'audio/ogg', wav:'audio/wav', flac:'audio/flac', aac:'audio/aac' };
     const mime = mimeMap[ext] || 'audio/mpeg';
+    const nameArgs = {
+      name: currentUser ? currentUser.name : '',
+      cls: currentUser ? currentUser.cls : '',
+      stage: currentUser ? currentUser.stage : '',
+    };
 
-    // audioBlob → base64
-    const base64Audio = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(',')[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(audioBlob);
-    });
+    let data;
 
-    // GAS로 전송 (act=whisper_transcribe로 명시 — CLOVA 라우팅과 겹치지 않도록)
-    const response = await fetch(clovaGasUrl + '?act=whisper_transcribe', {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        audio: base64Audio, mime, ext,
-        name: currentUser ? currentUser.name : '',
-        cls: currentUser ? currentUser.cls : '',
-        stage: currentUser ? currentUser.stage : '',
-      })
-    });
+    if(audioBlob.size <= CHUNK_THRESHOLD){
+      // ── 짧은 파일: 기존처럼 한 번에 전송 ──
+      const base64Audio = await blobSliceToBase64(audioBlob, 0, audioBlob.size);
+      const response = await fetch(clovaGasUrl + '?act=whisper_transcribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ audio: base64Audio, mime, ext, ...nameArgs })
+      });
+      if(!response.ok) throw new Error('GAS 요청 실패: ' + response.status);
+      data = await response.json();
+    } else {
+      // ── 긴 파일: 조각내서 순차 업로드 후 완성본 처리 요청 ──
+      const uploadId = Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+      const total = Math.ceil(audioBlob.size / CHUNK_SIZE);
 
-    if(!response.ok) throw new Error('GAS 요청 실패: ' + response.status);
+      for(let i = 0; i < total; i++){
+        statusEl.textContent = '🤖 업로드 중... (' + (i+1) + '/' + total + ')';
+        const start = i * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, audioBlob.size);
+        const chunkB64 = await blobSliceToBase64(audioBlob, start, end);
+        const cRes = await fetch(clovaGasUrl + '?act=whisper_chunk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ uploadId, index: i, total, chunk: chunkB64 })
+        });
+        if(!cRes.ok) throw new Error('업로드 실패 (' + (i+1) + '/' + total + '번째 조각): HTTP ' + cRes.status);
+        const cData = await cRes.json();
+        if(cData.error) throw new Error('업로드 실패 (' + (i+1) + '/' + total + '번째 조각): ' + cData.error);
+      }
 
-    const data = await response.json();
+      statusEl.textContent = '🤖 업로드 완료 — Whisper AI가 음성을 분석하고 있습니다... (긴 파일은 시간이 더 걸릴 수 있어요)';
+      const fRes = await fetch(clovaGasUrl + '?act=whisper_finish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ uploadId, mime, ext, ...nameArgs })
+      });
+      if(!fRes.ok) throw new Error('GAS 요청 실패: ' + fRes.status);
+      data = await fRes.json();
+    }
+
     if(data.error) throw new Error(data.error);
 
     const text = data.text ? data.text.trim() : '';
+    if(!text){ throw new Error('텍스트 변환 결과가 없습니다. 다시 녹음해 주세요.'); }
+
+    // 결과 적용
+    transcript = numToKor(text);
+    recordedText = numToKor(text);
+    updateRecordedPreview();
+
+    // 음성 저장 버튼 활성화 (텍스트 저장 포함)
+    const saveBtn = document.getElementById('btn-save-audio');
+    saveBtn.disabled = false; saveBtn.style.opacity = '1'; saveBtn.classList.add('ready');
+    if(recMode === 'stt'){
+      showBanner('✓ 녹음 완료! <strong>음성 저장</strong> 후 비교 분석하세요.', 'ok');
+    }
+
+    const gasVer = data.gas_version || '';
+    statusEl.textContent = '✓ 변환 완료! ' + text.length + '자' + (gasVer ? '  [' + gasVer + ']' : '');
+    const statusCellDoneW = document.getElementById('upload-status-cell');
+    if(statusCellDoneW){
+      const nameElDoneW = statusCellDoneW.querySelector('#clova-file-name');
+      if(nameElDoneW) nameElDoneW.textContent = '✓ 추출 완료';
+    }
+    showBanner('✓ Whisper 텍스트 추출 완료!<br>아래 <strong>비교 분석</strong> 버튼을 누르세요.', 'ok');
+    setStatus('Whisper 변환 완료 ✓ — 비교 분석 버튼을 누르세요');
+    // ★ 사용량은 GAS가 서버에서 직접 기록하므로 별도 whisper_done sendLog는 불필요
+    //   (durationSec은 OpenAI가 반환한 실제 오디오 길이를 GAS가 기록함 — 클라이언트의
+    //   경과시간보다 정확하고, sendBeacon 유실 위험도 없음)
+
+  } catch(e) {
+    statusEl.textContent = '⚠ ' + e.message;
+    const statusCellErrW = document.getElementById('upload-status-cell');
+    if(statusCellErrW){
+      const nameElErrW = statusCellErrW.querySelector('#clova-file-name');
+      if(nameElErrW) nameElErrW.textContent = '⚠ 추출 실패';
+    }
+    showBanner('⚠ ' + e.message, 'err');
+    sendLog('whisper_error', { durationSec:Math.round((Date.now()-_whisperT0)/1000), error:e.message.slice(0,120) });
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    document.getElementById('whisper-btn-label2').textContent = '녹음 후 텍스트 추출 (Whisper)';
+  }
+});
     if(!text){ throw new Error('텍스트 변환 결과가 없습니다. 다시 녹음해 주세요.'); }
 
     // 결과 적용
