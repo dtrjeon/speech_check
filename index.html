@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.50 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.54 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.54 (2026-07-18) - STT 오인식 교정 사전(STT_FIXES)을 stt-fixes-data.js로 분리(chapters-data.js와 동일한 패턴). 항목 추가/수정 시 이 파일을 건드릴 필요 없음.
+  v2.53 (2026-07-18) - 원문의 "○ 집사님"(또는 "○○○")처럼 ○로 표기된 호칭/이름 자리를 와일드카드로 지원. 실제 어떤 이름/호칭을 말해도 정답으로 인정(wordsMatch에 isWildcard 추가).
+  v2.52 (2026-07-18) - 원문의 "아들아[딸아]"처럼 대괄호로 표기된 대체 가능 단어를 지원. 대상에 따라 둘 중 어느 쪽을 말해도 정답으로 인정(altPairs + lcsOps의 wordsMatch). 챕터 재선택 시 이전 대체표현 정보는 초기화됨.
+  v2.51 (2026-07-18) - STT(CLOVA/Whisper) 오인식 자동 교정 사전 추가(applySttFixes). "내 죄"→"네 죄", "아니오"→"아니요", "내 집이"→"네 집이", "뿐으로"→"분으로" 등 자주 틀리는 구절을 비교 전에 자동 교정. 필요 시 STT_FIXES 배열에 항목 추가 가능.
   v2.50 (2026-07-18) - 비교 분석: 띄어쓰기 차이로 단어가 합쳐지거나 나뉜 경우(양방향) 오답 대신 일치로 재분류(reconcileSpacing 일반화).
   ── 이전 이력 요약 ──
   v2.47-2.49 (2026-07-18) - Whisper 청크 업로드 중복 코드로 인한 전체 로딩 장애 긴급 수정, 문장부호 처리 시 단어가 실수로 붙던 버그 수정(전 챕터 형식 적용).
@@ -1274,7 +1278,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.50 (2026.07.18)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.54 (2026.07.18)</span></p>
 
   </div>
 
@@ -1665,8 +1669,10 @@ html.skin-light .fulltext-body{color:var(--text);}
 </div>
 
 <script src="chapters-data.js"></script>
+<script src="stt-fixes-data.js"></script>
 <script>
-/* 챕터 데이터(CHAPTERS)는 chapters-data.js 에서 로드됨 */
+/* 챕터 데이터(CHAPTERS)는 chapters-data.js, STT 오인식 교정 사전(STT_FIXES)은
+   stt-fixes-data.js 에서 로드됨 */
 
 /* ════════════ 상태 ════════════ */
 let mode = 'single', selected = [];
@@ -1678,6 +1684,10 @@ let mediaRecorder = null;
 let micStream = null;          // iOS용: getUserMedia 스트림 재사용
 let audioChunks = [];
 let audioBlob = null;
+// ★ v2.52: 원문에 "아들아[딸아]"처럼 표기된 대체 가능 단어 쌍을 저장.
+// normLine 등에서 이 패턴을 발견할 때마다 채워지며, 비교 시 두 표현 중 어느 쪽을
+// 말해도 정답으로 인정하는 데 사용됨(altPairs['아들아']==='딸아', 그 반대도 성립).
+let altPairs = {};
 let audioMime = '';
 let audioExt  = 'webm';
 let lastPreviewData = null;
@@ -2173,6 +2183,7 @@ function toggleChapter(id){
   updateAudioPlayer();
 }
 function updateChapterUI(){
+  altPairs = {}; // ★ v2.52: 챕터 재선택마다 대체표현 맵 초기화 (이전 챕터 정보 잔류 방지)
   CHAPTERS.forEach(ch => {
     const btn = document.getElementById('ch-btn-'+ch.id);
     const ord = document.getElementById('ch-order-'+ch.id);
@@ -2196,15 +2207,24 @@ function updateChapterUI(){
     else if(BIBLE_REF_RE.test(t)) t = t.replace(BIBLE_REF_RE,'');
     else t = t.replace(/^[1-9]\d*\s+/,'');
     t = numToKor(t);
+    // ★ v2.52: "아들아[딸아]" 같은 대체표현 쌍을 altPairs에 기록하고, 원문 표시에는
+    // 기본형(아들아)만 남김. [SKIP] 제거보다 뒤, 문장부호 제거보다 앞에서 처리해야
+    // 대괄호가 살아있는 상태에서 정확히 인식됨.
+    t = t.replace(/([가-힣a-zA-Z0-9]+)\[([가-힣a-zA-Z0-9]+)\]/g, (m, a, b) => {
+      altPairs[a] = b; altPairs[b] = a;
+      return a;
+    });
     // ★ v2.48: 문장부호(따옴표 등)를 삭제 대신 공백으로 치환 — 옆 단어와 붙어버리는 것 방지
-    return t.replace(/[^가-힣a-zA-Z0-9\s.?!…]/g,' ').replace(/\s+/g,' ').trim();
+    return t.replace(/[^가-힣a-zA-Z0-9\s.?!…○]/g,' ').replace(/\s+/g,' ').trim();
   }
 
   const combined = selected.map(id => {
     const ch = CHAPTERS.find(c=>c.id===id);
     if(!ch) return '';
     if(ch.lines) return ch.lines.filter(l=>l.r).map(l=>normLine(l.t)).join(' ');
-    return numToKor((ch.text||'').replace(/[^가-힣a-zA-Z0-9\s.?!…]/g,' ').replace(/\s+/g,' ').trim());
+    return numToKor((ch.text||'')
+      .replace(/([가-힣a-zA-Z0-9]+)\[([가-힣a-zA-Z0-9]+)\]/g, (m,a,b)=>{ altPairs[a]=b; altPairs[b]=a; return a; })
+      .replace(/[^가-힣a-zA-Z0-9\s.?!…○]/g,' ').replace(/\s+/g,' ').trim());
   }).join(' ');
   const chips = selected.map(id => {
     const c = CHAPTERS.find(x=>x.id===id);
@@ -2498,7 +2518,9 @@ function updateChapterUI(){
       const ch = CHAPTERS.find(c=>c.id===id);
       if(!ch) return '';
       if(ch.lines) return ch.lines.filter(l=>l.r).map(l=>normLine(l.t)).join('\n');
-      return numToKor((ch.text||'').replace(/[^가-힣a-zA-Z0-9\s.?!…]/g,' ').replace(/\s+/g,' ').trim());
+      return numToKor((ch.text||'')
+        .replace(/([가-힣a-zA-Z0-9]+)\[([가-힣a-zA-Z0-9]+)\]/g, (m,a,b)=>{ altPairs[a]=b; altPairs[b]=a; return a; })
+        .replace(/[^가-힣a-zA-Z0-9\s.?!…○]/g,' ').replace(/\s+/g,' ').trim());
     }).filter(Boolean).join('\n');
     document.getElementById('original').value = multiRecText;
     return;
@@ -3048,7 +3070,8 @@ function _numKor(num){
 function stripPunct(s){
   // ★ v2.48: 따옴표 등 문장부호를 완전히 지우면(빈 문자열) 옆 단어와 실수로 붙어버림
   // (예: 함이라" 라고 → 함이라라고). 삭제 대신 공백으로 바꿔 단어 경계를 보존.
-  return s.replace(/[^가-힣a-zA-Z0-9\s]/g,' ')
+  // ★ v2.53: "○"(호칭 와일드카드, 예: ○ 집사님)도 살려둬야 wordsMatch에서 인식 가능.
+  return s.replace(/[^가-힣a-zA-Z0-9\s○]/g,' ')
           .replace(/\s+/g,' ').trim().toLowerCase();
 }
 
@@ -3071,14 +3094,23 @@ function normWords(s){
   return stripPunct(s).split(' ').filter(Boolean);
 }
 
+// ★ v2.52: 두 단어가 완전히 같지 않아도 "아들아"↔"딸아"처럼 altPairs에 등록된
+// 대체표현 쌍이면 일치로 인정.
+// ★ v2.53: "○ 집사님"처럼 ○(또는 ○○○)로 표기된 자리는 호칭/이름을 자유롭게 채워
+// 말하는 위치라서, 어떤 단어가 오든 일치로 인정(와일드카드).
+function isWildcard(w){ return /^○+$/.test(w); }
+function wordsMatch(a, b){
+  if(isWildcard(a) || isWildcard(b)) return true;
+  return a === b || altPairs[a] === b || altPairs[b] === a;
+}
 function lcsOps(a,b){
   const m=a.length, n=b.length;
   const dp=Array.from({length:m+1},()=>new Array(n+1).fill(0));
   for(let i=1;i<=m;i++) for(let j=1;j<=n;j++)
-    dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]+1:Math.max(dp[i-1][j],dp[i][j-1]);
+    dp[i][j]=wordsMatch(a[i-1],b[j-1])?dp[i-1][j-1]+1:Math.max(dp[i-1][j],dp[i][j-1]);
   let i=m,j=n; const ops=[];
   while(i>0||j>0){
-    if(i>0&&j>0&&a[i-1]===b[j-1]){ ops.unshift({t:'ok',aw:a[i-1],bw:b[j-1]}); i--;j--; }
+    if(i>0&&j>0&&wordsMatch(a[i-1],b[j-1])){ ops.unshift({t:'ok',aw:a[i-1],bw:b[j-1]}); i--;j--; }
     else if(j>0&&(i===0||dp[i][j-1]>=dp[i-1][j])){ ops.unshift({t:'extra',bw:b[j-1]}); j--; }
     else{ ops.unshift({t:'miss',aw:a[i-1]}); i--; }
   }
@@ -3133,6 +3165,17 @@ function mergeOps(ops){
   return merged;
 }
 
+// ★ v2.51: STT(CLOVA/Whisper)가 자주 틀리는 특정 단어/구절을 비교 전에 자동 교정.
+// ★ v2.54: 교정 데이터(STT_FIXES)는 stt-fixes-data.js로 분리됨 — 항목 추가/수정은
+// 그 파일만 고치면 되고, 이 로직 코드는 건드릴 필요 없음.
+function applySttFixes(text){
+  let out = text;
+  (STT_FIXES || []).forEach(([wrong, right]) => {
+    out = out.split(wrong).join(right);
+  });
+  return out;
+}
+
 function compare(){
   sendLog('analyze', { recMode, origLen:(document.getElementById('original').value||'').length, recLen:recordedText.length });
   // stopRec() 전에 먼저 현재 텍스트 캡처 (mediaRecorder.onstop 은 비동기이므로)
@@ -3143,7 +3186,7 @@ function compare(){
   const origRaw = document.getElementById('original').value.trim();
   // recordedText 와 transcript 둘 다 확인
   if(!recordedText.trim() && transcript.trim()) recordedText = transcript;
-  const recRaw  = recordedText.trim();
+  const recRaw  = applySttFixes(recordedText.trim());
   if(!origRaw){ alert('원본 텍스트를 선택하거나 입력해 주세요.'); return; }
   if(!recRaw) { alert('녹음 텍스트가 없습니다.\n마이크 녹음 또는 클로바노트 파일/붙여넣기를 먼저 해주세요.'); return; }
 
