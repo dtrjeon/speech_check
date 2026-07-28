@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.57 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.58 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.58 (2026-07-29) - 서론 등 원문 시작 전에 말하는 개인 간증(자유 발언) 부분을 비교 대상에서 자동 제외. 녹음 텍스트에서 "선생님 제가 질문..."이 처음 나오는 지점을 찾아 그 앞부분은 잘라내고 비교(trimBeforeIntroMarker). 해당 문구가 없는 챕터는 영향 없음.
   v2.57 (2026-07-29) - "미리보기(A4)" 모바일 레이아웃을 반응형으로 변경 — 이전엔 A4 실제 크기(210mm)로 고정되어 가로 스크롤/줌아웃이 필요했음, 이제 화면 너비에 맞게 자동 축소되어 원본/녹음 두 열이 한 화면에 들어옴. 줌 최소 배율(minimum-scale) 누락으로 줌아웃이 안 되던 것도 함께 수정.
   v2.56 (2026-07-19) - "미리보기(A4)" 화면에서 손가락 핀치 줌인/줌아웃 지원. 앱 전체는 오작동 방지로 줌을 막아두지만(user-scalable=no), 미리보기 모달이 열려있는 동안만 뷰포트를 확대 가능하게 바꿨다가 닫으면 원복.
   v2.55 (2026-07-19) - "미리보기(A4)" 화면의 프린트 버튼으로 인쇄/PDF 저장하면, 정작 메인 비교결과(단어별 목록 리포트) 스타일이 강제로 같이 섞여 나오던 문제 수정. body에 print-mode-preview 클래스로 어느 화면에서 인쇄했는지 구분해, 미리보기에서 누르면 미리보기 스타일만 출력되도록 분리.
@@ -1300,7 +1301,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.57 (2026.07.29)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.58 (2026.07.29)</span></p>
 
   </div>
 
@@ -3198,6 +3199,18 @@ function applySttFixes(text){
   return out;
 }
 
+// ★ v2.58: 서론 등 일부 챕터는 원문 시작 전에 개인 간증(자유 발언)을 먼저 말하는 경우가
+// 많음. 이 부분은 비교 대상이 아니므로, 녹음 텍스트에서 실제 원문이 시작되는 지점
+// ("선생님 제가 질문...")을 찾아 그 앞부분은 비교에서 제외함. 이 문구가 없으면(= 다른
+// 챕터라 해당 없음) 원본 그대로 사용 — 안전하게 항상 적용 가능.
+const INTRO_SKIP_MARKER = '선생님제가질문';
+function trimBeforeIntroMarker(text){
+  const pattern = INTRO_SKIP_MARKER.split('').join('\\s*');
+  const re = new RegExp(pattern);
+  const m = re.exec(text);
+  return m ? text.slice(m.index) : text;
+}
+
 function compare(){
   sendLog('analyze', { recMode, origLen:(document.getElementById('original').value||'').length, recLen:recordedText.length });
   // stopRec() 전에 먼저 현재 텍스트 캡처 (mediaRecorder.onstop 은 비동기이므로)
@@ -3208,7 +3221,7 @@ function compare(){
   const origRaw = document.getElementById('original').value.trim();
   // recordedText 와 transcript 둘 다 확인
   if(!recordedText.trim() && transcript.trim()) recordedText = transcript;
-  const recRaw  = applySttFixes(recordedText.trim());
+  const recRaw  = trimBeforeIntroMarker(applySttFixes(recordedText.trim()));
   if(!origRaw){ alert('원본 텍스트를 선택하거나 입력해 주세요.'); return; }
   if(!recRaw) { alert('녹음 텍스트가 없습니다.\n마이크 녹음 또는 클로바노트 파일/붙여넣기를 먼저 해주세요.'); return; }
 
