@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   index.html 변경 이력
+  v2.49 (2026-07-18) - v2.48에서 lines 배열 없이 통짜 텍스트(ch.text)로 된 챕터의 경우, 같은 따옴표-단어 병합 버그를 고치는 걸 빠뜨렸던 부분 추가 수정(원본 콤바인 함수 2곳). 이제 모든 챕터 형식에서 동일하게 적용됨.
   v2.48 (2026-07-18) - 원문에 "함이라" 라고"처럼 닫는 따옴표가 다음 단어에 붙어있는 경우, 문장부호를 삭제(빈 문자열)하는 방식이라 "함이라라고"처럼 두 단어가 실수로 합쳐져 오답 처리되던 문제 수정. stripPunct/normLine에서 문장부호를 삭제 대신 공백으로 치환해 단어 경계를 보존하도록 변경.
   v2.47 (2026-07-18) - ★긴급 수정★ v2.44에서 Whisper 청크 업로드 기능을 추가하며 코드 일부가 실수로 중복 삽입되어 SyntaxError(전체 페이지 로딩 실패, 로그인 버튼 포함 모든 기능 마비)가 발생하던 문제 수정. 중복된 코드 블록 제거, 전체 스크립트 문법 검증 완료.
   v2.46 (2026-07-17) - "업로드" 칸의 "추출 중..." 표시가 실제로는 완료/무관한데도 이전 시도의 잔상으로 계속 남아있던 문제 수정. 새 녹음 시작, 녹음 지우기, 전체 초기화 시 업로드 상태 표시를 기본값("자동 추출")으로 되돌리도록 처리.
@@ -1297,7 +1298,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.48 (2026.07.18)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.49 (2026.07.18)</span></p>
 
   </div>
 
@@ -2227,7 +2228,7 @@ function updateChapterUI(){
     const ch = CHAPTERS.find(c=>c.id===id);
     if(!ch) return '';
     if(ch.lines) return ch.lines.filter(l=>l.r).map(l=>normLine(l.t)).join(' ');
-    return numToKor((ch.text||'').replace(/[^가-힣a-zA-Z0-9\s.?!…]/g,''));
+    return numToKor((ch.text||'').replace(/[^가-힣a-zA-Z0-9\s.?!…]/g,' ').replace(/\s+/g,' ').trim());
   }).join(' ');
   const chips = selected.map(id => {
     const c = CHAPTERS.find(x=>x.id===id);
@@ -2521,7 +2522,7 @@ function updateChapterUI(){
       const ch = CHAPTERS.find(c=>c.id===id);
       if(!ch) return '';
       if(ch.lines) return ch.lines.filter(l=>l.r).map(l=>normLine(l.t)).join('\n');
-      return numToKor((ch.text||'').replace(/[^가-힣a-zA-Z0-9\s.?!…]/g,''));
+      return numToKor((ch.text||'').replace(/[^가-힣a-zA-Z0-9\s.?!…]/g,' ').replace(/\s+/g,' ').trim());
     }).filter(Boolean).join('\n');
     document.getElementById('original').value = multiRecText;
     return;
