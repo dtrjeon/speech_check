@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.56 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.57 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.57 (2026-07-29) - "미리보기(A4)" 모바일 레이아웃을 반응형으로 변경 — 이전엔 A4 실제 크기(210mm)로 고정되어 가로 스크롤/줌아웃이 필요했음, 이제 화면 너비에 맞게 자동 축소되어 원본/녹음 두 열이 한 화면에 들어옴. 줌 최소 배율(minimum-scale) 누락으로 줌아웃이 안 되던 것도 함께 수정.
   v2.56 (2026-07-19) - "미리보기(A4)" 화면에서 손가락 핀치 줌인/줌아웃 지원. 앱 전체는 오작동 방지로 줌을 막아두지만(user-scalable=no), 미리보기 모달이 열려있는 동안만 뷰포트를 확대 가능하게 바꿨다가 닫으면 원복.
   v2.55 (2026-07-19) - "미리보기(A4)" 화면의 프린트 버튼으로 인쇄/PDF 저장하면, 정작 메인 비교결과(단어별 목록 리포트) 스타일이 강제로 같이 섞여 나오던 문제 수정. body에 print-mode-preview 클래스로 어느 화면에서 인쇄했는지 구분해, 미리보기에서 누르면 미리보기 스타일만 출력되도록 분리.
   v2.54 (2026-07-18) - STT 오인식 교정 사전(STT_FIXES)을 stt-fixes-data.js로 분리(chapters-data.js와 동일한 패턴). 항목 추가/수정 시 이 파일을 건드릴 필요 없음.
@@ -877,19 +878,30 @@ html.skin-warm .btn-fontsize:hover{border-color:#5b4fcf;color:#5b4fcf;}
   font-size:10pt;
   box-sizing:border-box;
 }
-/* 모바일에서도 A4 너비 유지 — 가로 스크롤로 확인 */
+/* 모바일에서는 화면 너비에 맞게 축소 — 원본/녹음 두 열이 한 화면에 들어오도록 */
+/* ★ v2.57: 이전엔 모바일에서도 A4 실제 크기(210mm)로 고정해 가로 스크롤이 필요했음.
+   화면 너비에 맞춰 자동으로 줄어들도록 변경(내용 비율은 그대로 유지되므로 인쇄 시엔
+   영향 없음 — 인쇄는 @media print에서 별도 처리됨). */
 @media screen and (max-width:600px){
   .preview-modal{
-    overflow-x:auto;
+    overflow-x:hidden;
     overflow-y:auto;
   }
   .preview-a4{
-    width:210mm;
-    min-width:210mm;
+    width:100%;
+    min-width:unset;
+    max-width:210mm;
     margin:0 auto;
     border-radius:0;
-    padding:12mm 10mm;
+    padding:12px 10px;
+    box-sizing:border-box;
   }
+  .pv-cell{ padding:2mm 1.5mm; font-size:9pt; line-height:1.7; }
+  .pw{ font-size:8.5pt; padding:0 3px; margin:1px; }
+  .pv-th{ font-size:7pt; padding:1.5mm 2mm; }
+  .pv-title{ font-size:12pt; }
+  .pv-meta{ font-size:7.5pt; }
+  .pv-legend{ font-size:7pt; gap:4mm; }
 }
 
 /* 미리보기 머리글 */
@@ -1288,7 +1300,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.56 (2026.07.19)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.57 (2026.07.29)</span></p>
 
   </div>
 
@@ -3842,7 +3854,7 @@ function buildPreviewHTML(d){
 // "미리보기(A4)" 화면만은 내용을 세밀하게 봐야 할 때가 많아 예외적으로 줌을 허용.
 // 모달이 열려있는 동안만 뷰포트 설정을 바꿨다가, 닫히면 원래대로 되돌림.
 const VIEWPORT_DEFAULT = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
-const VIEWPORT_ZOOMABLE = 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover';
+const VIEWPORT_ZOOMABLE = 'width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover';
 function enablePreviewZoom(){
   const vp = document.querySelector('meta[name="viewport"]');
   if(vp) vp.setAttribute('content', VIEWPORT_ZOOMABLE);
