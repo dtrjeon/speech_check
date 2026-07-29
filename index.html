@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.72 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.74 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.74 (2026-07-29) - ★진짜 원인★ "프린트 출력" 박스가 "미리보기(A4)" 박스보다 낮아 보이던 문제 수정. .btn-print에 예전(단독 버튼 시절) 잔재인 width:100%/margin-bottom:10px가 남아있어서, 같은 줄(.btn-preview-wrap)에 나란히 있는 두 버튼 중 이 버튼에만 여백이 끼어 높이가 어긋났던 것. 레이아웃/여백을 래퍼가 전담하도록 제거.
+  v2.73 (2026-07-29) - status-bar("클로바노트 텍스트 적용 완료" 등)가 테두리 없는 민짜 텍스트라 다른 박스들보다 여백이 좁아 보이는 착시 보정 — margin-top을 10px→14px로 조정.
   v2.72 (2026-07-29) - 메인 화면의 박스/버튼 간 위아래 간격이 8px/10px/14px로 제각각이던 것을 10px로 통일 (banner, 비교분석 버튼, 미리보기/프린트 버튼, 범례).
   v2.71 (2026-07-29) - "검색종료" 클릭 시 강조만 꺼지고 화면은 그대로 있어 점수판을 다시 찾아 올라가야 했던 문제 개선. 이제 검색종료를 누르면 점수판(결과 상단)으로 자동 스크롤 이동.
   v2.70 (2026-07-29) - "검색종료" 버튼이 눌러도 반응 없던 문제 보강. onclick 직접 할당 대신 addEventListener + stopPropagation/preventDefault로 변경, z-index를 200으로 높이고 pointer-events:auto 명시해 다른 요소에 클릭이 가로채이지 않도록 함.
@@ -445,7 +447,11 @@ textarea::placeholder{color:var(--text-dim);}
 .btn-save:active{background:var(--border);}
 .btn-save.ready{border-color:var(--green-border);background:var(--green-bg);color:var(--green);}
 .btn-save[disabled]{opacity:.3;cursor:not-allowed;}
-.btn-print{width:100%;margin-bottom:10px;}
+/* ★ v2.74: width:100%/margin-bottom은 예전에 이 버튼이 단독 전체너비였을 때의 잔재.
+   지금은 .btn-preview-wrap 안에서 미리보기 버튼과 나란히 배치되는데, 이 버튼에만
+   margin-bottom이 남아있어서 같은 줄의 두 버튼 높이가 어긋나 보이던 원인이었음.
+   레이아웃/여백은 이제 .btn-preview-wrap이 전담하므로 제거. */
+.btn-print{}
 .btn-preview-wrap{display:flex;gap:8px;margin-bottom:10px;}
 .btn-preview-wrap .btn-save{flex:1;min-height:56px;border-radius:10px;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
@@ -534,7 +540,7 @@ textarea::placeholder{color:var(--text-dim);}
   touch-action:manipulation;
 }
 .btn-sm:active{background:var(--border);}
-.status-bar{font-size:11px;color:var(--text-dim);margin-top:10px;min-height:20px;padding:4px 8px;line-height:1.6;}
+.status-bar{font-size:11px;color:var(--text-dim);margin-top:14px;min-height:20px;padding:4px 8px;line-height:1.6;}
 
 /* 범례 */
 .legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;}
@@ -1341,7 +1347,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.72 (2026.07.29)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.74 (2026.07.29)</span></p>
 
   </div>
 
