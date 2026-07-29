@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.76 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.77 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.77 (2026-07-29) - whisper_finish에 원본 파일 전체 바이트 수(totalBytes)도 함께 보내도록
+    수정. GAS가 조립된 오디오 크기를 원본과 비교해 진단하는 데 사용함(Code.gs v2.49 이상 필요).
   v2.76 (2026-07-29) - whisper_finish 호출 시 전체 조각 개수(total)를 함께 보내도록 수정.
     GAS가 조각이 다 모였는지 개수로 검증해서 "Invalid file format"(조각 누락으로 인한 손상)을
     방지하는 데 사용함. ⚠ 이 패치는 Code.gs(GAS) v2.48 이상과 함께 써야 동작함.
@@ -3904,7 +3906,7 @@ document.getElementById('btn-whisper-transcribe2')?.addEventListener('click', as
       const fRes = await fetch(clovaGasUrl + '?act=whisper_finish', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ uploadId, mime, ext, total, ...nameArgs })
+        body: JSON.stringify({ uploadId, mime, ext, total, totalBytes: audioBlob.size, ...nameArgs })
       });
       if(!fRes.ok) throw new Error('GAS 요청 실패: ' + fRes.status);
       const fData = await fRes.json();
