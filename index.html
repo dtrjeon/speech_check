@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.79 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.80 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.80 (2026-07-29) - trimBeforeIntroMarker(간증 앞부분 자동 제외)가 Whisper 인식 결과에서
+    안 먹히던 문제 수정. 공백만 허용하던 매칭 패턴에 쉼표·마침표 등 문장부호도 허용하도록
+    완화 — STT 엔진마다 문장부호를 넣는 방식이 달라 공백만으로는 매칭이 깨지고 있었음.
   v2.79 (2026-07-29) - 긴 파일 업로드에 "이어 올리기" 추가. 조각 재시도(3번)로도 못 버틸 만큼
     네트워크가 오래 끊겨 업로드가 실패하면, 다음에 같은 파일(이름+크기로 식별)로 다시 시도할 때
     처음부터가 아니라 실패했던 조각부터 이어서 올라감(localStorage에 진행 상태 저장). 성공하면
@@ -1366,7 +1369,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.79 (2026.07.29)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.80 (2026.07.29)</span></p>
 
   </div>
 
@@ -3295,9 +3298,12 @@ function applySttFixes(text){
 // 많음. 이 부분은 비교 대상이 아니므로, 녹음 텍스트에서 실제 원문이 시작되는 지점
 // ("선생님 제가 질문...")을 찾아 그 앞부분은 비교에서 제외함. 이 문구가 없으면(= 다른
 // 챕터라 해당 없음) 원본 그대로 사용 — 안전하게 항상 적용 가능.
+// ★ v2.80: 공백만 허용하던 걸 쉼표·마침표 등 문장부호도 허용하도록 완화. STT 엔진(특히
+// Whisper)이 "선생님, 제가 질문"처럼 문장부호를 넣어 인식하면 공백만 허용하는 패턴은
+// 매칭에 실패해 트리밍이 아예 안 먹히던 문제가 있었음.
 const INTRO_SKIP_MARKER = '선생님제가질문';
 function trimBeforeIntroMarker(text){
-  const pattern = INTRO_SKIP_MARKER.split('').join('\\s*');
+  const pattern = INTRO_SKIP_MARKER.split('').join('[\\s,.!?~·…\\-]*');
   const re = new RegExp(pattern);
   const m = re.exec(text);
   return m ? text.slice(m.index) : text;
