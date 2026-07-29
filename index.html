@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.64 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.65 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.65 (2026-07-29) - 점수판의 누락/추가/대체 칩을 누르면 해당 단어 위치로 이동, 다시 누르면 다음 위치로 순환 이동하는 기능 추가. 점수판(score-bar)을 화면 상단에 고정(sticky)해서 스크롤한 상태에서도 계속 눌러가며 이동 가능.
   v2.64 (2026-07-29) - v2.63으로도 PDF 출력 시 표 오른쪽 테두리가 여전히 안 보이던 문제 추가 수정. 원인은 인쇄 시 .preview-a4의 좌우 여백을 완전히 0으로 강제해서, 표 오른쪽 테두리가 페이지 인쇄 가능 영역 경계선과 정확히 겹쳐 잘려나가고 있었음. 여백을 완전히 0 대신 1.5mm로 살짝 남겨 테두리가 안전하게 보이도록 수정.
   v2.63 (2026-07-29) - PDF 출력 시 비교표 오른쪽 바깥 테두리 선이 안 보이던 문제 수정. 테두리를 0.5pt→1px로 두껍게 하고 box-sizing:border-box를 명시해 렌더링 시 잘려나가지 않도록 보강.
   v2.62 (2026-07-29) - ★진짜 원인★ 인쇄 시 여전히 예전 리포트 스타일이 나오던 문제 재수정. v2.60은 "미리보기 모달이 열려있을 때만" 예쁜 스타일을 적용했는데, 미리보기를 열지 않고 바로 인쇄(브라우저 자체 메뉴 등)하면 조건이 성립 안 해 예전 스타일로 빠졌음(크롬에서도 동일 재현 확인). 이제 모달이 열려있는지와 무관하게, 비교 분석 결과만 있으면 인쇄 직전 항상 미리보기 내용을 새로 채워 넣고 그 스타일로 통일.
@@ -541,7 +542,21 @@ textarea::placeholder{color:var(--text-dim);}
 /* 결과 */
 .result-panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
 .empty-state{padding:36px 20px;text-align:center;color:var(--text-dim);font-size:13px;}
-.score-bar{padding:16px;background:var(--surface2);border-bottom:1px solid var(--border);}
+.score-bar{padding:16px;background:var(--surface2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(0,0,0,.15);}
+.stat-chip{transition:transform .15s;}
+.stat-chip:active{transform:scale(.95);}
+/* ★ v2.65: 이동 클릭 시 대상 단어를 잠깐 강조 표시 */
+@keyframes w-jump-flash{
+  0%{outline-offset:4px;}
+  50%{outline-offset:1px;}
+  100%{outline-offset:4px;}
+}
+.w-jump-active{
+  outline:3px solid var(--accent) !important;
+  outline-offset:2px;
+  border-radius:3px;
+  animation:w-jump-flash 1s ease-in-out 2;
+}
 .score-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
 .score-badge{font-size:38px;font-weight:700;line-height:1;}
 .score-info{flex:1;}
@@ -1315,7 +1330,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.64 (2026.07.29)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.65 (2026.07.29)</span></p>
 
   </div>
 
@@ -3341,11 +3356,11 @@ function compare(){
       <div class="diff-section">
         <div class="diff-block">
           <div class="diff-block-title">원본 텍스트</div>
-          <div class="diff-content">${lH||'<span style="color:var(--text-dim);">내용 없음</span>'}</div>
+          <div class="diff-content" id="diff-content-orig">${lH||'<span style="color:var(--text-dim);">내용 없음</span>'}</div>
         </div>
         <div class="diff-block">
           <div class="diff-block-title">녹음 텍스트</div>
-          <div class="diff-content">${rH||'<span style="color:var(--text-dim);">내용 없음</span>'}</div>
+          <div class="diff-content" id="diff-content-rec">${rH||'<span style="color:var(--text-dim);">내용 없음</span>'}</div>
         </div>
       </div>
       <div class="progress-wrap">
@@ -3353,6 +3368,8 @@ function compare(){
         <div class="progress-track"><div class="progress-fill" style="width:${accuracy}%;background:${bc};"></div></div>
       </div>
     </div>`;
+  // ★ v2.65: 누락/추가/대체 칩을 눌러 해당 위치로 순환 이동하는 기능 초기화
+  initStatChipNav();
 
   // 프린트 / 미리보기 버튼 활성화
   const pb = document.getElementById('btn-print');
@@ -3368,6 +3385,43 @@ function compare(){
   };
 
   setTimeout(()=>document.getElementById('result-area').scrollIntoView({behavior:'smooth',block:'start'}),150);
+}
+
+// ★ v2.65: 점수판의 누락/추가/대체 칩을 누르면 해당 단어 위치로 이동, 다시 누르면
+// 다음 위치로 순환 이동. 원본 텍스트(누락/대체)와 녹음 텍스트(추가)에서 각각 찾음.
+// 점수판 자체는 CSS(position:sticky)로 화면 상단에 고정되어, 스크롤한 상태에서도
+// 계속 눌러가며 이동할 수 있음.
+let _statNavIdx = { miss: -1, extra: -1, sub: -1 };
+function initStatChipNav(){
+  _statNavIdx = { miss: -1, extra: -1, sub: -1 };
+  const chips = document.querySelectorAll('.stats-row .stat-chip');
+  // 순서: 일치, 누락, 추가, 대체 (일치는 이동 대상 아님)
+  const configs = [
+    null,
+    { key:'miss',  selector:'#diff-content-orig .w-miss' },
+    { key:'extra', selector:'#diff-content-rec .w-extra' },
+    { key:'sub',   selector:'#diff-content-orig .w-sub'  },
+  ];
+  chips.forEach((chip, i) => {
+    const cfg = configs[i];
+    if(!cfg){ chip.style.cursor = 'default'; return; }
+    chip.style.cursor = 'pointer';
+    chip.onclick = () => jumpToStatItem(cfg.key, cfg.selector);
+  });
+}
+function jumpToStatItem(key, selector){
+  const items = document.querySelectorAll(selector);
+  if(!items.length) return;
+  _statNavIdx[key] = (_statNavIdx[key] + 1) % items.length;
+  const target = items[_statNavIdx[key]];
+  // 이전 강조 표시 제거 후 현재 위치 강조
+  document.querySelectorAll('.w-jump-active').forEach(el => el.classList.remove('w-jump-active'));
+  target.classList.add('w-jump-active');
+  // 상단 고정된 점수판에 가리지 않도록 여유를 두고 스크롤
+  const scoreBar = document.querySelector('.score-bar');
+  const offset = (scoreBar ? scoreBar.offsetHeight : 0) + 16;
+  const y = target.getBoundingClientRect().top + window.scrollY - offset;
+  window.scrollTo({ top: y, behavior: 'smooth' });
 }
 
 /* ════════════ 원본 텍스트 접기/펼치기 ════════════ */
