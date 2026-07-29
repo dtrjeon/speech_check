@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.60 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.61 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.61 (2026-07-29) - PDF 저장 시 색상이 회색으로 나오는 문제 완화 시도: pw-miss/pw-extra/pw-sub 클래스에 print-color-adjust를 직접 !important로 재명시(중복 보강). ⚠ 안드로이드 "PDF로 저장" 가상 프린터 자체가 배경색을 무시하는 기기/브라우저 조합이 있어 완전한 해결은 아닐 수 있음 — 실제 프린터 인쇄나 다른 브라우저로 시도해보는 것도 대안.
   v2.60 (2026-07-29) - 인쇄/PDF 저장 시 여전히 예전 리포트 스타일(회색조 범례)이 나오던 문제 재수정. 특정 버튼 클릭 시에만 미리보기 스타일을 걸어두던 방식 대신, 인쇄가 실제로 시작되는 순간(beforeprint)에 미리보기 모달이 열려있는지 직접 확인해 자동 적용하도록 변경 — 브라우저 자체 인쇄 메뉴 등 어떤 경로로 인쇄해도 정확하게 동작.
   v2.59 (2026-07-29) - reconcileSpacing이 같은 구간에 진짜 다른 표현(예: "위하여"→"위해")과 띄어쓰기 병합("(선생님)을"→"선생님을")이 함께 섞여 있으면 통째로 비교하다 실패하던 문제 수정. 구간 내에서 부분적으로 이어붙여 일치하는 조각을 먼저 찾아내고, 나머지 진짜 차이는 그대로 '대체'로 표시.
   v2.58 (2026-07-29) - 서론 등 원문 시작 전에 말하는 개인 간증(자유 발언) 부분을 비교 대상에서 자동 제외. 녹음 텍스트에서 "선생님 제가 질문..."이 처음 나오는 지점을 찾아 그 앞부분은 잘라내고 비교(trimBeforeIntroMarker). 해당 문구가 없는 챕터는 영향 없음.
@@ -957,9 +958,9 @@ html.skin-warm .btn-fontsize:hover{border-color:#5b4fcf;color:#5b4fcf;}
 /* 미리보기 단어 색상 */
 .pw{display:inline-block;border-radius:3px;padding:0 4px;margin:1px 2px;font-size:10pt;}
 .pw-ok{color:#000;}
-.pw-miss{background:#fff0f0;border:1px solid #ff4444;color:#cc0000;text-decoration:line-through;}
-.pw-extra{background:#f0f4ff;border:1px solid #4466ff;color:#0033cc;}
-.pw-sub{background:#f8f0ff;border:1px solid #8833cc;color:#6600aa;}
+.pw-miss{background:#fff0f0;border:1px solid #ff4444;color:#cc0000;text-decoration:line-through;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+.pw-extra{background:#f0f4ff;border:1px solid #4466ff;color:#0033cc;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+.pw-sub{background:#f8f0ff;border:1px solid #8833cc;color:#6600aa;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
 .pw-ph{color:#bbb;font-size:8pt;}
 
 /* 일치율 바 */
@@ -1303,7 +1304,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.60 (2026.07.29)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.61 (2026.07.29)</span></p>
 
   </div>
 
