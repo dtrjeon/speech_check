@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.74 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.75 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.75 (2026-07-29) - 긴 오디오 업로드 시 whisper_finish 대기 중 "Failed to fetch"가 나던 문제 수정.
+    whisper_finish는 이제 처리 시작만 알리고 즉시 응답하고(GAS가 트리거로 백그라운드 변환), 클라이언트는
+    새 whisper_status 액션을 3초 간격으로 폴링해서 완료를 기다림(최대 5분). 오래 열어두는 fetch가 없어져
+    모바일 네트워크 끊김의 영향을 받지 않음. ⚠ 이 패치는 GAS(Code.gs) 쪽도 함께 업데이트해야 동작함
+    (whisper_finish 비동기화 + processWhisperJob 트리거 + whisper_status 액션 추가).
   v2.74 (2026-07-29) - ★진짜 원인★ "프린트 출력" 박스가 "미리보기(A4)" 박스보다 낮아 보이던 문제 수정. .btn-print에 예전(단독 버튼 시절) 잔재인 width:100%/margin-bottom:10px가 남아있어서, 같은 줄(.btn-preview-wrap)에 나란히 있는 두 버튼 중 이 버튼에만 여백이 끼어 높이가 어긋났던 것. 레이아웃/여백을 래퍼가 전담하도록 제거.
   v2.73 (2026-07-29) - status-bar("클로바노트 텍스트 적용 완료" 등)가 테두리 없는 민짜 텍스트라 다른 박스들보다 여백이 좁아 보이는 착시 보정 — margin-top을 10px→14px로 조정.
   v2.72 (2026-07-29) - 메인 화면의 박스/버튼 간 위아래 간격이 8px/10px/14px로 제각각이던 것을 10px로 통일 (banner, 비교분석 버튼, 미리보기/프린트 버튼, 범례).
@@ -3774,6 +3779,50 @@ document.getElementById('btn-clova-transcribe2').addEventListener('click', async
 
 /* ════════════ Whisper API (공유 키 — GAS 경유) ════════════ */
 
+// ★ v2.75: whisper_finish가 결과를 바로 주지 않고(비동기 처리) 처리 시작만 알리도록
+// GAS를 바꿨음. 완료될 때까지 whisper_status를 짧은 간격으로 반복 조회(폴링)해서
+// 결과를 받아온다. 하나의 긴 fetch를 오래 열어두지 않으므로 모바일 네트워크가
+// 끊겨도 "Failed to fetch"가 나지 않음.
+async function pollWhisperStatus(uploadId, statusEl){
+  const POLL_INTERVAL = 3000;        // 3초마다 조회
+  const MAX_WAIT_MS   = 5 * 60 * 1000; // 최대 5분 대기
+  const startedAt = Date.now();
+  let dots = 0;
+
+  while(true){
+    if(Date.now() - startedAt > MAX_WAIT_MS){
+      throw new Error('처리 시간이 너무 오래 걸립니다. 잠시 후 다시 시도해 주세요.');
+    }
+
+    await new Promise(r => setTimeout(r, POLL_INTERVAL));
+
+    dots = (dots + 1) % 4;
+    if(statusEl){
+      statusEl.textContent = '🤖 Whisper AI가 음성을 분석하고 있습니다'
+        + '.'.repeat(dots) + ' (긴 파일은 시간이 더 걸릴 수 있어요)';
+    }
+
+    let sRes;
+    try {
+      sRes = await fetch(
+        clovaGasUrl + '?act=whisper_status&uploadId=' + encodeURIComponent(uploadId),
+        { cache: 'no-store' }
+      );
+    } catch(netErr) {
+      // 폴링용 요청 하나가 실패해도(짧은 요청이라 드묾) 계속 재시도.
+      continue;
+    }
+    if(!sRes.ok) continue;
+
+    let sData;
+    try { sData = await sRes.json(); } catch(e) { continue; }
+
+    if(sData.status === 'done'){ return sData; }
+    if(sData.status === 'error'){ throw new Error(sData.message || '변환 중 오류가 발생했습니다.'); }
+    // 'processing' 또는 'unknown'(아직 등록 반영 전)이면 계속 대기
+  }
+}
+
 // Whisper 텍스트 추출 — 오디오를 GAS로 보내면 GAS가 보관 중인 공유 키로 대신 요청함
 document.getElementById('btn-whisper-transcribe2')?.addEventListener('click', async function(){
   if(!audioBlob){ alert('먼저 녹음을 완료해 주세요.\n녹음 시작 → 말하기 → 녹음 중지'); return; }
@@ -3855,7 +3904,12 @@ document.getElementById('btn-whisper-transcribe2')?.addEventListener('click', as
         body: JSON.stringify({ uploadId, mime, ext, ...nameArgs })
       });
       if(!fRes.ok) throw new Error('GAS 요청 실패: ' + fRes.status);
-      data = await fRes.json();
+      const fData = await fRes.json();
+      if(fData.error) throw new Error(fData.error);
+
+      // ★ v2.75: whisper_finish는 이제 처리 시작만 알리고 바로 응답한다(비동기).
+      // 완료될 때까지 whisper_status를 폴링해서 실제 결과를 받아온다.
+      data = await pollWhisperStatus(fData.uploadId, statusEl);
     }
 
     if(data.error) throw new Error(data.error);
