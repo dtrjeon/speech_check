@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.71 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.72 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.72 (2026-07-29) - 메인 화면의 박스/버튼 간 위아래 간격이 8px/10px/14px로 제각각이던 것을 10px로 통일 (banner, 비교분석 버튼, 미리보기/프린트 버튼, 범례).
   v2.71 (2026-07-29) - "검색종료" 클릭 시 강조만 꺼지고 화면은 그대로 있어 점수판을 다시 찾아 올라가야 했던 문제 개선. 이제 검색종료를 누르면 점수판(결과 상단)으로 자동 스크롤 이동.
   v2.70 (2026-07-29) - "검색종료" 버튼이 눌러도 반응 없던 문제 보강. onclick 직접 할당 대신 addEventListener + stopPropagation/preventDefault로 변경, z-index를 200으로 높이고 pointer-events:auto 명시해 다른 요소에 클릭이 가로채이지 않도록 함.
   v2.69 (2026-07-29) - 코드 정리: 실제로 안 쓰이는 CSS 클래스 제거(page-wrap/wrap/main 등 대응 요소 없는 선택자, preview-snip, btn-aligned, btn-icon, btn-text). 함수 84개 전수 스캔해 죽은 코드 없음 확인. 기능/로직은 변경 없음(순수 정리).
@@ -175,7 +176,7 @@ h1{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.2;}
 .slabel{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;}
 
 /* 배너 */
-.banner{border-radius:10px;padding:12px 14px;font-size:13px;margin-bottom:14px;line-height:1.6;display:none;}
+.banner{border-radius:10px;padding:12px 14px;font-size:13px;margin-bottom:10px;line-height:1.6;display:none;}
 .banner-warn{background:var(--amber-bg);border:1px solid var(--amber-border);color:var(--amber);}
 .banner-ok{background:var(--green-bg);border:1px solid var(--green-border);color:var(--green);}
 .banner-err{background:var(--red-bg);border:1px solid var(--red-border);color:var(--red);}
@@ -444,8 +445,8 @@ textarea::placeholder{color:var(--text-dim);}
 .btn-save:active{background:var(--border);}
 .btn-save.ready{border-color:var(--green-border);background:var(--green-bg);color:var(--green);}
 .btn-save[disabled]{opacity:.3;cursor:not-allowed;}
-.btn-print{width:100%;margin-bottom:8px;}
-.btn-preview-wrap{display:flex;gap:8px;margin-bottom:8px;}
+.btn-print{width:100%;margin-bottom:10px;}
+.btn-preview-wrap{display:flex;gap:8px;margin-bottom:10px;}
 .btn-preview-wrap .btn-save{flex:1;min-height:56px;border-radius:10px;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 @keyframes pulse-border{0%,100%{box-shadow:0 0 0 0 rgba(220,53,69,.5);}50%{box-shadow:0 0 0 8px rgba(220,53,69,0);}}
@@ -520,7 +521,7 @@ textarea::placeholder{color:var(--text-dim);}
   border:none;background:var(--accent);color:#fff;
   font-family:'Noto Sans KR',sans-serif;font-size:17px;font-weight:500;
   cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
-  touch-action:manipulation;margin-bottom:8px;
+  touch-action:manipulation;margin-bottom:10px;
 }
 .btn-analyze:active{background:#6a59ee;}
 .btn-row2{display:flex;gap:8px;}
@@ -536,7 +537,7 @@ textarea::placeholder{color:var(--text-dim);}
 .status-bar{font-size:11px;color:var(--text-dim);margin-top:10px;min-height:20px;padding:4px 8px;line-height:1.6;}
 
 /* 범례 */
-.legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;}
 .leg{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-muted);}
 .leg-chip{display:inline-block;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:500;}
 
@@ -1340,7 +1341,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.71 (2026.07.29)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.72 (2026.07.29)</span></p>
 
   </div>
 
