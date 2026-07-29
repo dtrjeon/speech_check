@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.62 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.63 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.63 (2026-07-29) - PDF 출력 시 비교표 오른쪽 바깥 테두리 선이 안 보이던 문제 수정. 테두리를 0.5pt→1px로 두껍게 하고 box-sizing:border-box를 명시해 렌더링 시 잘려나가지 않도록 보강.
   v2.62 (2026-07-29) - ★진짜 원인★ 인쇄 시 여전히 예전 리포트 스타일이 나오던 문제 재수정. v2.60은 "미리보기 모달이 열려있을 때만" 예쁜 스타일을 적용했는데, 미리보기를 열지 않고 바로 인쇄(브라우저 자체 메뉴 등)하면 조건이 성립 안 해 예전 스타일로 빠졌음(크롬에서도 동일 재현 확인). 이제 모달이 열려있는지와 무관하게, 비교 분석 결과만 있으면 인쇄 직전 항상 미리보기 내용을 새로 채워 넣고 그 스타일로 통일.
   v2.61 (2026-07-29) - PDF 저장 시 색상이 회색으로 나오는 문제 완화 시도: pw-miss/pw-extra/pw-sub 클래스에 print-color-adjust를 직접 !important로 재명시(중복 보강). ⚠ 안드로이드 "PDF로 저장" 가상 프린터 자체가 배경색을 무시하는 기기/브라우저 조합이 있어 완전한 해결은 아닐 수 있음 — 실제 프린터 인쇄나 다른 브라우저로 시도해보는 것도 대안.
   v2.60 (2026-07-29) - 인쇄/PDF 저장 시 여전히 예전 리포트 스타일(회색조 범례)이 나오던 문제 재수정. 특정 버튼 클릭 시에만 미리보기 스타일을 걸어두던 방식 대신, 인쇄가 실제로 시작되는 순간(beforeprint)에 미리보기 모달이 열려있는지 직접 확인해 자동 적용하도록 변경 — 브라우저 자체 인쇄 메뉴 등 어떤 경로로 인쇄해도 정확하게 동작.
@@ -924,19 +925,24 @@ html.skin-warm .btn-fontsize:hover{border-color:#5b4fcf;color:#5b4fcf;}
 /* 2단 비교 */
 .pv-subtitle{font-size:10pt;color:#444;margin-bottom:1mm;}
 /* 표 형식 */
-.pv-table{border:0.5pt solid #bbb;border-radius:2mm;overflow:hidden;}
+.pv-table{
+  border:1px solid #999;border-radius:2mm;overflow:hidden;
+  box-sizing:border-box;width:100%;
+}
 .pv-table-header{
   display:grid;grid-template-columns:1fr 1fr;
   background:#f0f0f0;border-bottom:1pt solid #bbb;
+  box-sizing:border-box;width:100%;
 }
 .pv-th{
   padding:2mm 3mm;font-size:8pt;font-weight:700;
   color:#333;letter-spacing:.06em;text-transform:uppercase;
 }
-.pv-th:first-child{border-right:0.5pt solid #bbb;}
+.pv-th:first-child{border-right:1px solid #999;}
 .pv-row{
   display:grid;grid-template-columns:1fr 1fr;
   border-bottom:0.5pt solid #e0e0e0;
+  box-sizing:border-box;width:100%;
 }
 .pv-row:last-child{border-bottom:none;}
 .pv-cell{
@@ -1305,7 +1311,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.62 (2026.07.29)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.63 (2026.07.29)</span></p>
 
   </div>
 
