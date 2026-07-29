@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.61 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.62 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.62 (2026-07-29) - ★진짜 원인★ 인쇄 시 여전히 예전 리포트 스타일이 나오던 문제 재수정. v2.60은 "미리보기 모달이 열려있을 때만" 예쁜 스타일을 적용했는데, 미리보기를 열지 않고 바로 인쇄(브라우저 자체 메뉴 등)하면 조건이 성립 안 해 예전 스타일로 빠졌음(크롬에서도 동일 재현 확인). 이제 모달이 열려있는지와 무관하게, 비교 분석 결과만 있으면 인쇄 직전 항상 미리보기 내용을 새로 채워 넣고 그 스타일로 통일.
   v2.61 (2026-07-29) - PDF 저장 시 색상이 회색으로 나오는 문제 완화 시도: pw-miss/pw-extra/pw-sub 클래스에 print-color-adjust를 직접 !important로 재명시(중복 보강). ⚠ 안드로이드 "PDF로 저장" 가상 프린터 자체가 배경색을 무시하는 기기/브라우저 조합이 있어 완전한 해결은 아닐 수 있음 — 실제 프린터 인쇄나 다른 브라우저로 시도해보는 것도 대안.
   v2.60 (2026-07-29) - 인쇄/PDF 저장 시 여전히 예전 리포트 스타일(회색조 범례)이 나오던 문제 재수정. 특정 버튼 클릭 시에만 미리보기 스타일을 걸어두던 방식 대신, 인쇄가 실제로 시작되는 순간(beforeprint)에 미리보기 모달이 열려있는지 직접 확인해 자동 적용하도록 변경 — 브라우저 자체 인쇄 메뉴 등 어떤 경로로 인쇄해도 정확하게 동작.
   v2.59 (2026-07-29) - reconcileSpacing이 같은 구간에 진짜 다른 표현(예: "위하여"→"위해")과 띄어쓰기 병합("(선생님)을"→"선생님을")이 함께 섞여 있으면 통째로 비교하다 실패하던 문제 수정. 구간 내에서 부분적으로 이어붙여 일치하는 조각을 먼저 찾아내고, 나머지 진짜 차이는 그대로 '대체'로 표시.
@@ -1304,7 +1305,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.61 (2026.07.29)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.62 (2026.07.29)</span></p>
 
   </div>
 
@@ -3935,13 +3936,14 @@ function restorePrintStyle(origBg, origColor) {
   document.documentElement.style.colorScheme = '';
 }
 
-// ★ v2.60: preview-print-btn 클릭 시에만 미리보기 스타일을 적용하던 방식은, 브라우저
-// 자체 인쇄 메뉴 등 다른 경로로 인쇄가 시작되면 적용되지 않는 문제가 있었음. 대신
-// "인쇄가 시작되는 바로 그 순간(beforeprint)"에 미리보기 모달이 열려있는지 직접 확인해서
-// 자동으로 올바른 스타일을 적용 — 어떤 경로로 인쇄하든 항상 정확하게 동작함.
+// ★ v2.62: "모달이 열려있을 때만" 미리보기 스타일을 적용하던 v2.60 방식은, 사용자가
+// 미리보기를 아예 열지 않고 바로(브라우저 자체 메뉴 등으로) 인쇄하면 여전히 예전
+// 리포트 스타일로 빠지는 문제가 있었음. 이제 모달이 열려있는지와 무관하게, 비교 분석
+// 결과(lastPreviewData)만 있으면 인쇄 직전에 항상 미리보기 내용을 새로 채워 넣고
+// 미리보기 스타일로 통일 — 어떤 경로로 인쇄하든 항상 같은(예쁜) 결과가 나옴.
 window.addEventListener('beforeprint', function(){
-  const modal = document.getElementById('preview-modal');
-  if(modal && modal.classList.contains('open')){
+  if(lastPreviewData){
+    document.getElementById('preview-a4-content').innerHTML = buildPreviewHTML(lastPreviewData);
     document.body.classList.add('print-mode-preview');
   } else {
     document.body.classList.remove('print-mode-preview');
