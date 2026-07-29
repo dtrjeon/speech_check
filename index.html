@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.69 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.70 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.70 (2026-07-29) - "검색종료" 버튼이 눌러도 반응 없던 문제 보강. onclick 직접 할당 대신 addEventListener + stopPropagation/preventDefault로 변경, z-index를 200으로 높이고 pointer-events:auto 명시해 다른 요소에 클릭이 가로채이지 않도록 함.
   v2.69 (2026-07-29) - 코드 정리: 실제로 안 쓰이는 CSS 클래스 제거(page-wrap/wrap/main 등 대응 요소 없는 선택자, preview-snip, btn-aligned, btn-icon, btn-text). 함수 84개 전수 스캔해 죽은 코드 없음 확인. 기능/로직은 변경 없음(순수 정리).
   v2.68 (2026-07-29) - 점수판 우측 상단(대체 칸 위쪽)에 "✕ 검색종료" 버튼 추가. 누락/추가/대체 이동 중 언제든 눌러서 바로 강조 해제 가능 (순환 중일 때만 표시됨).
   v2.67 (2026-07-29) - 누락/추가/대체 클릭 이동 기능에 "해제" 추가. 마지막 항목까지 순환한 뒤 한 번 더 누르면 강조 표시가 꺼짐(다음 클릭부터 처음부터 다시 시작) — 이전엔 끝없이 순환만 해서 강조를 끌 방법이 없었음.
@@ -543,14 +544,15 @@ textarea::placeholder{color:var(--text-dim);}
 .empty-state{padding:36px 20px;text-align:center;color:var(--text-dim);font-size:13px;}
 .score-bar{padding:16px;background:var(--surface2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(0,0,0,.15);border-radius:14px 14px 0 0;}
 .nav-clear-btn{
-  position:absolute;top:10px;right:10px;z-index:51;
+  position:absolute;top:10px;right:10px;z-index:200;
   background:var(--surface);border:1px solid var(--border2);
   color:var(--text-muted);font-family:'Noto Sans KR',sans-serif;
-  font-size:11px;padding:4px 9px;border-radius:20px;
+  font-size:11px;padding:6px 10px;border-radius:20px;
   cursor:pointer;touch-action:manipulation;
+  pointer-events:auto;
 }
 .nav-clear-btn:active{transform:scale(.95);}
-.stat-chip{transition:transform .15s;}
+.stat-chip{transition:transform .15s;pointer-events:auto;}
 .stat-chip:active{transform:scale(.95);}
 /* ★ v2.65: 이동 클릭 시 대상 단어를 잠깐 강조 표시 */
 @keyframes w-jump-flash{
@@ -1337,7 +1339,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.69 (2026.07.29)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.70 (2026.07.29)</span></p>
 
   </div>
 
@@ -3416,12 +3418,19 @@ function initStatChipNav(){
     const cfg = configs[i];
     if(!cfg){ chip.style.cursor = 'default'; return; }
     chip.style.cursor = 'pointer';
-    chip.onclick = () => jumpToStatItem(cfg.key, cfg.selector);
+    chip.addEventListener('click', function(e){
+      e.stopPropagation();
+      jumpToStatItem(cfg.key, cfg.selector);
+    });
   });
   const clearBtn = document.getElementById('btn-nav-clear');
   if(clearBtn){
     clearBtn.style.display = 'none';
-    clearBtn.onclick = clearStatNav;
+    clearBtn.addEventListener('click', function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      clearStatNav();
+    });
   }
 }
 function clearStatNav(){
