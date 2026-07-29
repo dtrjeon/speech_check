@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.75 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.76 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.76 (2026-07-29) - whisper_finish 호출 시 전체 조각 개수(total)를 함께 보내도록 수정.
+    GAS가 조각이 다 모였는지 개수로 검증해서 "Invalid file format"(조각 누락으로 인한 손상)을
+    방지하는 데 사용함. ⚠ 이 패치는 Code.gs(GAS) v2.48 이상과 함께 써야 동작함.
   v2.75 (2026-07-29) - 긴 오디오 업로드 시 whisper_finish 대기 중 "Failed to fetch"가 나던 문제 수정.
     whisper_finish는 이제 처리 시작만 알리고 즉시 응답하고(GAS가 트리거로 백그라운드 변환), 클라이언트는
     새 whisper_status 액션을 3초 간격으로 폴링해서 완료를 기다림(최대 5분). 오래 열어두는 fetch가 없어져
@@ -3901,7 +3904,7 @@ document.getElementById('btn-whisper-transcribe2')?.addEventListener('click', as
       const fRes = await fetch(clovaGasUrl + '?act=whisper_finish', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ uploadId, mime, ext, ...nameArgs })
+        body: JSON.stringify({ uploadId, mime, ext, total, ...nameArgs })
       });
       if(!fRes.ok) throw new Error('GAS 요청 실패: ' + fRes.status);
       const fData = await fRes.json();
