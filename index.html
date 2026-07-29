@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.58 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.59 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.59 (2026-07-29) - reconcileSpacing이 같은 구간에 진짜 다른 표현(예: "위하여"→"위해")과 띄어쓰기 병합("(선생님)을"→"선생님을")이 함께 섞여 있으면 통째로 비교하다 실패하던 문제 수정. 구간 내에서 부분적으로 이어붙여 일치하는 조각을 먼저 찾아내고, 나머지 진짜 차이는 그대로 '대체'로 표시.
   v2.58 (2026-07-29) - 서론 등 원문 시작 전에 말하는 개인 간증(자유 발언) 부분을 비교 대상에서 자동 제외. 녹음 텍스트에서 "선생님 제가 질문..."이 처음 나오는 지점을 찾아 그 앞부분은 잘라내고 비교(trimBeforeIntroMarker). 해당 문구가 없는 챕터는 영향 없음.
   v2.57 (2026-07-29) - "미리보기(A4)" 모바일 레이아웃을 반응형으로 변경 — 이전엔 A4 실제 크기(210mm)로 고정되어 가로 스크롤/줌아웃이 필요했음, 이제 화면 너비에 맞게 자동 축소되어 원본/녹음 두 열이 한 화면에 들어옴. 줌 최소 배율(minimum-scale) 누락으로 줌아웃이 안 되던 것도 함께 수정.
   v2.56 (2026-07-19) - "미리보기(A4)" 화면에서 손가락 핀치 줌인/줌아웃 지원. 앱 전체는 오작동 방지로 줌을 막아두지만(user-scalable=no), 미리보기 모달이 열려있는 동안만 뷰포트를 확대 가능하게 바꿨다가 닫으면 원복.
@@ -1301,7 +1302,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.58 (2026.07.29)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.59 (2026.07.29)</span></p>
 
   </div>
 
@@ -3143,11 +3144,44 @@ function lcsOps(a,b){
 // ★ 띄어쓰기 차이로 단어가 합쳐지거나(예: "예를 들면"↔"예를들면") 나뉜 경우를
 // '누락'/'추가'가 아니라 '일치'로 재분류. 연속된 miss들을 이어 붙였을 때 하나의
 // extra와 같은 글자가 되거나(혹은 그 반대) 하면 순수 띄어쓰기 차이로 간주함.
-// ★ v2.50: 이전 버전은 "원문 1단어=인식 여러단어"(miss 뒤에 extra들) 방향만 처리해서,
-// 실제로 자주 나오는 "원문 여러단어=인식 1단어"(예: 원문 "못하더니"+"라고" 두 단어인데
-// 낭독 시 붙여 읽어 인식은 "못하더니라고" 한 단어로 나온 경우, ops 순서가 miss,miss,extra)
-// 케이스를 놓쳤음. miss/extra가 연속된 구간을 통째로 모아서, 순서와 무관하게 이어붙인
-// 글자가 서로 같으면 하나의 '일치'로 재분류하도록 일반화.
+// ★ v2.50: "원문 여러단어=인식 1단어" 방향(양방향)까지 일반화.
+// ★ v2.59: 같은 구간 안에 진짜 다른 표현(예: "위하여"→"위해")이 함께 섞여 있으면
+// 구간 전체를 통째로 비교하던 v2.50 방식은 매칭에 실패했음(예: "(선생님)을"→"선생님","을"
+// 두 단어인데 "위하여"까지 같은 구간에 있어 "선생님을"과 통째로 안 맞아떨어짐).
+// 이제 구간 안에서 부분적으로라도 이어붙여 일치하는 조각을 찾아내고, 나머지(진짜 다른
+// 표현)는 그대로 남겨 기존처럼 '대체'로 표시되게 함.
+function reconcileRun(runMiss, runExtra){
+  const misses = runMiss.slice(), extras = runExtra.slice();
+  const matches = [];
+  let changed = true;
+  while(changed){
+    changed = false;
+    for(let mi=0; mi<misses.length && !changed; mi++){
+      for(let mj=mi+1; mj<=misses.length && !changed; mj++){
+        const a = misses.slice(mi,mj).map(o=>o.aw).join('');
+        for(let ei=0; ei<extras.length && !changed; ei++){
+          for(let ej=ei+1; ej<=extras.length && !changed; ej++){
+            const b = extras.slice(ei,ej).map(o=>o.bw).join('');
+            if(a === b){
+              matches.push({
+                t:'ok',
+                aw: misses.slice(mi,mj).map(o=>o.aw).join(' '),
+                bw: extras.slice(ei,ej).map(o=>o.bw).join(' '),
+                count: mj-mi,
+              });
+              misses.splice(mi, mj-mi);
+              extras.splice(ei, ej-ei);
+              changed = true;
+            }
+          }
+        }
+      }
+    }
+  }
+  // 매치된 조각 먼저, 남은(진짜 다른 표현) miss/extra는 원래 순서대로 이어서 반환
+  // → mergeOps가 인접한 나머지를 기존처럼 '대체'로 묶어줌
+  return [...matches, ...misses, ...extras];
+}
 function reconcileSpacing(ops){
   const out = [];
   let i = 0;
@@ -3159,15 +3193,8 @@ function reconcileSpacing(ops){
         if(ops[j].t === 'miss') runMiss.push(ops[j]); else runExtra.push(ops[j]);
         j++;
       }
-      const concatA = runMiss.map(o=>o.aw).join('');
-      const concatB = runExtra.map(o=>o.bw).join('');
-      if(runMiss.length && runExtra.length && concatA === concatB){
-        out.push({
-          t:'ok',
-          aw: runMiss.map(o=>o.aw).join(' '),
-          bw: runExtra.map(o=>o.bw).join(' '),
-          count: runMiss.length,
-        });
+      if(runMiss.length && runExtra.length){
+        out.push(...reconcileRun(runMiss, runExtra));
       } else {
         for(const o of ops.slice(i,j)) out.push(o);
       }
@@ -3177,6 +3204,7 @@ function reconcileSpacing(ops){
   }
   return out;
 }
+
 
 function mergeOps(ops){
   const merged=[];
