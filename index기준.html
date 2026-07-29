@@ -1,11 +1,6 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.69 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
-  v2.69 (2026-07-29) - 코드 정리: 실제로 안 쓰이는 CSS 클래스 제거(page-wrap/wrap/main 등 대응 요소 없는 선택자, preview-snip, btn-aligned, btn-icon, btn-text). 함수 84개 전수 스캔해 죽은 코드 없음 확인. 기능/로직은 변경 없음(순수 정리).
-  v2.68 (2026-07-29) - 점수판 우측 상단(대체 칸 위쪽)에 "✕ 검색종료" 버튼 추가. 누락/추가/대체 이동 중 언제든 눌러서 바로 강조 해제 가능 (순환 중일 때만 표시됨).
-  v2.67 (2026-07-29) - 누락/추가/대체 클릭 이동 기능에 "해제" 추가. 마지막 항목까지 순환한 뒤 한 번 더 누르면 강조 표시가 꺼짐(다음 클릭부터 처음부터 다시 시작) — 이전엔 끝없이 순환만 해서 강조를 끌 방법이 없었음.
-  v2.66 (2026-07-29) - v2.65에서 만든 점수판 고정(sticky)이 실제로는 안 먹히던 문제 수정. .result-panel의 overflow:hidden이 sticky를 무력화시키는 원인이었음(둥근 모서리를 자르려고 넣은 속성). overflow:hidden 대신 첫/마지막 자식(score-bar/progress-wrap)에 직접 둥근 모서리를 줘서 시각은 그대로 유지하면서 sticky가 정상 작동하도록 수정.
-  v2.65 (2026-07-29) - 점수판의 누락/추가/대체 칩을 누르면 해당 단어 위치로 이동, 다시 누르면 다음 위치로 순환 이동하는 기능 추가. 점수판(score-bar)을 화면 상단에 고정(sticky)해서 스크롤한 상태에서도 계속 눌러가며 이동 가능.
+  index.html 변경 이력 (v2.64 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
   v2.64 (2026-07-29) - v2.63으로도 PDF 출력 시 표 오른쪽 테두리가 여전히 안 보이던 문제 추가 수정. 원인은 인쇄 시 .preview-a4의 좌우 여백을 완전히 0으로 강제해서, 표 오른쪽 테두리가 페이지 인쇄 가능 영역 경계선과 정확히 겹쳐 잘려나가고 있었음. 여백을 완전히 0 대신 1.5mm로 살짝 남겨 테두리가 안전하게 보이도록 수정.
   v2.63 (2026-07-29) - PDF 출력 시 비교표 오른쪽 바깥 테두리 선이 안 보이던 문제 수정. 테두리를 0.5pt→1px로 두껍게 하고 box-sizing:border-box를 명시해 렌더링 시 잘려나가지 않도록 보강.
   v2.62 (2026-07-29) - ★진짜 원인★ 인쇄 시 여전히 예전 리포트 스타일이 나오던 문제 재수정. v2.60은 "미리보기 모달이 열려있을 때만" 예쁜 스타일을 적용했는데, 미리보기를 열지 않고 바로 인쇄(브라우저 자체 메뉴 등)하면 조건이 성립 안 해 예전 스타일로 빠졌음(크롬에서도 동일 재현 확인). 이제 모달이 열려있는지와 무관하게, 비교 분석 결과만 있으면 인쇄 직전 항상 미리보기 내용을 새로 채워 넣고 그 스타일로 통일.
@@ -163,6 +158,7 @@ html.skin-warm .skin-toggle-btn{
 html{background:var(--bg);}
 html,body{min-height:100%;}
 body{background:var(--bg);padding-bottom:env(safe-area-inset-bottom);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-weight:300;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+#app-root,#root,.page-wrap,.wrap,main{max-width:480px;width:100%;margin:0 auto;}
 .page{max-width:480px;width:100%;margin:0 auto;padding:20px 16px 48px;box-shadow:0 0 40px rgba(0,0,0,0.5);min-height:100vh;}
 
 /* Header */
@@ -197,6 +193,7 @@ h1{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.2;}
 .box-expand-btn:active{opacity:.8;}
 .preview-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px;}
 .preview-chip{background:var(--accent-glow);border:1px solid var(--accent);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--accent);}
+.preview-snip{font-size:12px;color:var(--text-muted);line-height:1.5;}
 .preview-empty{font-size:12px;color:var(--text-dim);}
 .outline-lines{margin-top:6px;font-size:13px;line-height:1.9;max-height:340px;overflow-y:auto;padding-right:4px;}
 
@@ -450,7 +447,10 @@ textarea::placeholder{color:var(--text-dim);}
 @keyframes rec-blink{0%,100%{opacity:1;}50%{opacity:.25;}}
 
 /* 버튼 왼쪽 정렬 */
+.btn-aligned{justify-content:flex-start !important;padding-left:20px !important;}
+.btn-icon{display:none;}
 .btn-num{display:inline-block;width:28px;flex-shrink:0;font-weight:600;}
+.btn-text{flex:1;text-align:left;}
 
 .clova-guide{
   background:var(--clova-bg);border:1px solid var(--clova-border);
@@ -539,31 +539,9 @@ textarea::placeholder{color:var(--text-dim);}
 .leg-chip{display:inline-block;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:500;}
 
 /* 결과 */
-.result-panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;}
+.result-panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
 .empty-state{padding:36px 20px;text-align:center;color:var(--text-dim);font-size:13px;}
-.score-bar{padding:16px;background:var(--surface2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(0,0,0,.15);border-radius:14px 14px 0 0;}
-.nav-clear-btn{
-  position:absolute;top:10px;right:10px;z-index:51;
-  background:var(--surface);border:1px solid var(--border2);
-  color:var(--text-muted);font-family:'Noto Sans KR',sans-serif;
-  font-size:11px;padding:4px 9px;border-radius:20px;
-  cursor:pointer;touch-action:manipulation;
-}
-.nav-clear-btn:active{transform:scale(.95);}
-.stat-chip{transition:transform .15s;}
-.stat-chip:active{transform:scale(.95);}
-/* ★ v2.65: 이동 클릭 시 대상 단어를 잠깐 강조 표시 */
-@keyframes w-jump-flash{
-  0%{outline-offset:4px;}
-  50%{outline-offset:1px;}
-  100%{outline-offset:4px;}
-}
-.w-jump-active{
-  outline:3px solid var(--accent) !important;
-  outline-offset:2px;
-  border-radius:3px;
-  animation:w-jump-flash 1s ease-in-out 2;
-}
+.score-bar{padding:16px;background:var(--surface2);border-bottom:1px solid var(--border);}
 .score-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
 .score-badge{font-size:38px;font-weight:700;line-height:1;}
 .score-info{flex:1;}
@@ -585,7 +563,7 @@ textarea::placeholder{color:var(--text-dim);}
 .w-extra{background:var(--amber-bg);border:1px solid var(--amber-border);color:var(--amber);}
 .w-sub{background:var(--blue-bg);border:1px solid var(--blue-border);color:var(--blue);}
 .w-ph{color:var(--text-dim);font-size:12px;padding:2px 6px;}
-.progress-wrap{padding:12px 16px;border-top:1px solid var(--border);background:var(--surface2);border-radius:0 0 14px 14px;}
+.progress-wrap{padding:12px 16px;border-top:1px solid var(--border);background:var(--surface2);}
 .progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text-dim);margin-bottom:6px;}
 .progress-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
 .progress-fill{height:100%;border-radius:3px;transition:width .7s ease;}
@@ -1337,7 +1315,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.69 (2026.07.29)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.64 (2026.07.29)</span></p>
 
   </div>
 
@@ -3335,7 +3313,6 @@ function compare(){
   document.getElementById('result-area').innerHTML=`
     <div class="result-panel">
       <div class="score-bar">
-        <button id="btn-nav-clear" class="nav-clear-btn" title="이동 강조 해제" style="display:none;">✕ 검색종료</button>
         <div class="score-top">
           <div class="score-badge" style="color:${sc};">${accuracy}%</div>
           <div class="score-info">
@@ -3351,7 +3328,6 @@ function compare(){
           <div class="stat-chip" style="background:var(--blue-bg);border-color:var(--blue-border);color:var(--blue);"><span class="stat-num">${sub}</span><span class="stat-lbl">대체</span></div>
         </div>
       </div>
-      
       <!-- 프린트 전용 머리글 -->
       <div class="print-header" id="print-header">
         <div class="print-header-title" id="print-title">음성 텍스트 비교 결과</div>
@@ -3365,11 +3341,11 @@ function compare(){
       <div class="diff-section">
         <div class="diff-block">
           <div class="diff-block-title">원본 텍스트</div>
-          <div class="diff-content" id="diff-content-orig">${lH||'<span style="color:var(--text-dim);">내용 없음</span>'}</div>
+          <div class="diff-content">${lH||'<span style="color:var(--text-dim);">내용 없음</span>'}</div>
         </div>
         <div class="diff-block">
           <div class="diff-block-title">녹음 텍스트</div>
-          <div class="diff-content" id="diff-content-rec">${rH||'<span style="color:var(--text-dim);">내용 없음</span>'}</div>
+          <div class="diff-content">${rH||'<span style="color:var(--text-dim);">내용 없음</span>'}</div>
         </div>
       </div>
       <div class="progress-wrap">
@@ -3377,8 +3353,6 @@ function compare(){
         <div class="progress-track"><div class="progress-fill" style="width:${accuracy}%;background:${bc};"></div></div>
       </div>
     </div>`;
-  // ★ v2.65: 누락/추가/대체 칩을 눌러 해당 위치로 순환 이동하는 기능 초기화
-  initStatChipNav();
 
   // 프린트 / 미리보기 버튼 활성화
   const pb = document.getElementById('btn-print');
@@ -3394,63 +3368,6 @@ function compare(){
   };
 
   setTimeout(()=>document.getElementById('result-area').scrollIntoView({behavior:'smooth',block:'start'}),150);
-}
-
-// ★ v2.65: 점수판의 누락/추가/대체 칩을 누르면 해당 단어 위치로 이동, 다시 누르면
-// 다음 위치로 순환 이동. 원본 텍스트(누락/대체)와 녹음 텍스트(추가)에서 각각 찾음.
-// 점수판 자체는 CSS(position:sticky)로 화면 상단에 고정되어, 스크롤한 상태에서도
-// 계속 눌러가며 이동할 수 있음.
-// ★ v2.68: "검색종료" 버튼 추가 — 순환 중 언제든 눌러서 바로 강조 해제 가능.
-let _statNavIdx = { miss: -1, extra: -1, sub: -1 };
-function initStatChipNav(){
-  _statNavIdx = { miss: -1, extra: -1, sub: -1 };
-  const chips = document.querySelectorAll('.stats-row .stat-chip');
-  // 순서: 일치, 누락, 추가, 대체 (일치는 이동 대상 아님)
-  const configs = [
-    null,
-    { key:'miss',  selector:'#diff-content-orig .w-miss' },
-    { key:'extra', selector:'#diff-content-rec .w-extra' },
-    { key:'sub',   selector:'#diff-content-orig .w-sub'  },
-  ];
-  chips.forEach((chip, i) => {
-    const cfg = configs[i];
-    if(!cfg){ chip.style.cursor = 'default'; return; }
-    chip.style.cursor = 'pointer';
-    chip.onclick = () => jumpToStatItem(cfg.key, cfg.selector);
-  });
-  const clearBtn = document.getElementById('btn-nav-clear');
-  if(clearBtn){
-    clearBtn.style.display = 'none';
-    clearBtn.onclick = clearStatNav;
-  }
-}
-function clearStatNav(){
-  document.querySelectorAll('.w-jump-active').forEach(el => el.classList.remove('w-jump-active'));
-  _statNavIdx = { miss: -1, extra: -1, sub: -1 };
-  const clearBtn = document.getElementById('btn-nav-clear');
-  if(clearBtn) clearBtn.style.display = 'none';
-}
-function jumpToStatItem(key, selector){
-  const items = document.querySelectorAll(selector);
-  if(!items.length) return;
-  // 마지막 항목이었다면 이번 클릭은 "다음으로 이동" 대신 강조만 해제하고 끝냄
-  // (한 바퀴를 다 돌면 자동으로 해제되고, 그다음 클릭부터 처음부터 다시 시작).
-  if(_statNavIdx[key] === items.length - 1){
-    clearStatNav();
-    return;
-  }
-  _statNavIdx[key] = _statNavIdx[key] + 1;
-  const target = items[_statNavIdx[key]];
-  // 이전 강조 표시 제거 후 현재 위치 강조
-  document.querySelectorAll('.w-jump-active').forEach(el => el.classList.remove('w-jump-active'));
-  target.classList.add('w-jump-active');
-  const clearBtn = document.getElementById('btn-nav-clear');
-  if(clearBtn) clearBtn.style.display = 'inline-block';
-  // 상단 고정된 점수판에 가리지 않도록 여유를 두고 스크롤
-  const scoreBar = document.querySelector('.score-bar');
-  const offset = (scoreBar ? scoreBar.offsetHeight : 0) + 16;
-  const y = target.getBoundingClientRect().top + window.scrollY - offset;
-  window.scrollTo({ top: y, behavior: 'smooth' });
 }
 
 /* ════════════ 원본 텍스트 접기/펼치기 ════════════ */
