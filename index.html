@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.77 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.78 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.78 (2026-07-29) - 디버그 콘솔로 확인한 실제 원인 수정: 모바일 네트워크가 느릴 때 조각(2MB)
+    하나 업로드에 7~17초씩 걸렸고, 그 중 하나라도 전송 도중 끊기면(status 0) 전체 업로드가
+    실패하고 있었음. 조각 하나가 실패해도 전체를 포기하지 않고 그 조각만 최대 3번(1.5초 간격)
+    재시도하도록 수정 — 지금까지의 "Invalid file format"/"Failed to fetch"는 코드 로직 버그가
+    아니라 이 네트워크 취약성이 근본 원인이었음.
   v2.77 (2026-07-29) - whisper_finish에 원본 파일 전체 바이트 수(totalBytes)도 함께 보내도록
     수정. GAS가 조립된 오디오 크기를 원본과 비교해 진단하는 데 사용함(Code.gs v2.49 이상 필요).
   v2.76 (2026-07-29) - whisper_finish 호출 시 전체 조각 개수(total)를 함께 보내도록 수정.
@@ -1357,7 +1362,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.77 (2026.07.29)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.78 (2026.07.29)</span></p>
 
   </div>
 
@@ -3888,18 +3893,37 @@ document.getElementById('btn-whisper-transcribe2')?.addEventListener('click', as
       const total = Math.ceil(audioBlob.size / CHUNK_SIZE);
 
       for(let i = 0; i < total; i++){
-        statusEl.textContent = '🤖 업로드 중... (' + (i+1) + '/' + total + ')';
         const start = i * CHUNK_SIZE;
         const end = Math.min(start + CHUNK_SIZE, audioBlob.size);
         const chunkB64 = await blobSliceToBase64(audioBlob, start, end);
-        const cRes = await fetch(clovaGasUrl + '?act=whisper_chunk', {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ uploadId, index: i, total, chunk: chunkB64 })
-        });
-        if(!cRes.ok) throw new Error('업로드 실패 (' + (i+1) + '/' + total + '번째 조각): HTTP ' + cRes.status);
-        const cData = await cRes.json();
-        if(cData.error) throw new Error('업로드 실패 (' + (i+1) + '/' + total + '번째 조각): ' + cData.error);
+
+        // ★ v2.78: 모바일 네트워크가 느리거나 불안정할 때 조각 하나(2MB)를 올리는 데도
+        // 7~17초씩 걸리는 경우가 있고, 그 중 하나라도 전송 도중 끊기면(status 0) 그동안
+        // 올린 나머지 조각까지 전부 버려지고 있었음. 조각 하나가 실패해도 전체를 포기하지
+        // 않고, 그 조각만 최대 3번까지 재시도(1.5초 간격)하도록 변경.
+        const MAX_CHUNK_RETRIES = 3;
+        let lastErr = null;
+        let chunkOk = false;
+        for(let attempt = 1; attempt <= MAX_CHUNK_RETRIES; attempt++){
+          statusEl.textContent = '🤖 업로드 중... (' + (i+1) + '/' + total + ')'
+            + (attempt > 1 ? ' — 재시도 ' + attempt + '/' + MAX_CHUNK_RETRIES : '');
+          try{
+            const cRes = await fetch(clovaGasUrl + '?act=whisper_chunk', {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' },
+              body: JSON.stringify({ uploadId, index: i, total, chunk: chunkB64 })
+            });
+            if(!cRes.ok) throw new Error('HTTP ' + cRes.status);
+            const cData = await cRes.json();
+            if(cData.error) throw new Error(cData.error);
+            chunkOk = true;
+            break;
+          }catch(chunkErr){
+            lastErr = chunkErr;
+            if(attempt < MAX_CHUNK_RETRIES) await new Promise(r => setTimeout(r, 1500));
+          }
+        }
+        if(!chunkOk) throw new Error('업로드 실패 (' + (i+1) + '/' + total + '번째 조각, ' + MAX_CHUNK_RETRIES + '번 재시도 후 포기): ' + (lastErr ? lastErr.message : ''));
       }
 
       statusEl.textContent = '🤖 업로드 완료 — Whisper AI가 음성을 분석하고 있습니다... (긴 파일은 시간이 더 걸릴 수 있어요)';
