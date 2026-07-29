@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.63 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.64 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.64 (2026-07-29) - v2.63으로도 PDF 출력 시 표 오른쪽 테두리가 여전히 안 보이던 문제 추가 수정. 원인은 인쇄 시 .preview-a4의 좌우 여백을 완전히 0으로 강제해서, 표 오른쪽 테두리가 페이지 인쇄 가능 영역 경계선과 정확히 겹쳐 잘려나가고 있었음. 여백을 완전히 0 대신 1.5mm로 살짝 남겨 테두리가 안전하게 보이도록 수정.
   v2.63 (2026-07-29) - PDF 출력 시 비교표 오른쪽 바깥 테두리 선이 안 보이던 문제 수정. 테두리를 0.5pt→1px로 두껍게 하고 box-sizing:border-box를 명시해 렌더링 시 잘려나가지 않도록 보강.
   v2.62 (2026-07-29) - ★진짜 원인★ 인쇄 시 여전히 예전 리포트 스타일이 나오던 문제 재수정. v2.60은 "미리보기 모달이 열려있을 때만" 예쁜 스타일을 적용했는데, 미리보기를 열지 않고 바로 인쇄(브라우저 자체 메뉴 등)하면 조건이 성립 안 해 예전 스타일로 빠졌음(크롬에서도 동일 재현 확인). 이제 모달이 열려있는지와 무관하게, 비교 분석 결과만 있으면 인쇄 직전 항상 미리보기 내용을 새로 채워 넣고 그 스타일로 통일.
   v2.61 (2026-07-29) - PDF 저장 시 색상이 회색으로 나오는 문제 완화 시도: pw-miss/pw-extra/pw-sub 클래스에 print-color-adjust를 직접 !important로 재명시(중복 보강). ⚠ 안드로이드 "PDF로 저장" 가상 프린터 자체가 배경색을 무시하는 기기/브라우저 조합이 있어 완전한 해결은 아닐 수 있음 — 실제 프린터 인쇄나 다른 브라우저로 시도해보는 것도 대안.
@@ -710,7 +711,10 @@ html.skin-warm .btn-fontsize:hover{border-color:#5b4fcf;color:#5b4fcf;}
     min-width: unset !important;
     min-height: unset !important;
     margin: 0 !important;
-    padding: 0 !important;
+    /* ★ v2.64: padding을 완전히 0으로 하면 표 오른쪽 테두리가 페이지 인쇄 가능 영역의
+       경계선과 정확히 겹쳐서 잘려나가는 경우가 있었음. 아주 약간(1.5mm) 여백을 남겨
+       테두리가 안전하게 보이도록 함. */
+    padding: 0 1.5mm !important;
     box-shadow: none !important;
     background: #ffffff !important;
     color: #000000 !important;
@@ -1311,7 +1315,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.63 (2026.07.29)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.64 (2026.07.29)</span></p>
 
   </div>
 
