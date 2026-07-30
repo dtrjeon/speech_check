@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.82 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.83 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.83 (2026-07-30) - v2.81에서 "업로드 → 자동추출 → 자동저장(텍스트)"을 Whisper에만 적용하고
+    CLOVA를 빠뜨렸던 것 수정. 이제 CLOVA로 추출해도 업로드 흐름이면 동일하게 추출 완료 즉시
+    텍스트(.txt, 파일명 끝 _c)가 자동 저장됨.
   v2.82 (2026-07-30) - 텍스트 저장 파일명에 추출 방식 접미사 추가: Whisper로 추출한 텍스트는
     파일명 끝에 "_w", CLOVA로 추출한 텍스트는 "_c"가 붙음(예: JUSTEE_녹음_260730_0900_w.txt).
     브라우저 자체 실시간 인식(마이크 녹음 중 즉시 인식)은 접미사 없음. 새 녹음을 시작하거나
@@ -1377,7 +1380,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.82 (2026.07.30)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.83 (2026.07.30)</span></p>
 
   </div>
 
@@ -3805,8 +3808,23 @@ document.getElementById('btn-clova-transcribe2').addEventListener('click', async
 
     const gasVer = data.gas_version || '';
     statusEl.textContent = '✓ 변환 완료! ' + text.length + '자' + (gasVer ? '  [' + gasVer + ']' : '');
-    showBanner('✓ CLOVA 텍스트 추출 완료!' + (gasVer ? ' <span style="font-size:11px;opacity:.7">' + gasVer + '</span>' : '') + '<br>아래 <strong>비교 분석</strong> 버튼을 누르세요.', 'ok');
-    setStatus('CLOVA 변환 완료 ✓ — 비교 분석 버튼을 누르세요');
+
+    // ★ v2.83: 업로드(기존 오디오 파일) → 자동추출 흐름이면 CLOVA도 Whisper와 동일하게
+    // 추출 완료 즉시 텍스트(.txt)를 자동 저장한다.
+    if(isUploadedAudioFile){
+      const ts = makeTimestamp();
+      const savedOk = saveTxtFile(ts, transcript || recordedText);
+      const statusCellDoneC = document.getElementById('upload-status-cell');
+      if(statusCellDoneC){
+        const nameElDoneC = statusCellDoneC.querySelector('#clova-file-name');
+        if(nameElDoneC) nameElDoneC.textContent = savedOk ? '✓ 추출+저장 완료' : '✓ 추출 완료';
+      }
+      showBanner('✓ 업로드 → 텍스트 추출 → <strong>텍스트 저장</strong>까지 자동 완료!' + (gasVer ? ' <span style="font-size:11px;opacity:.7">' + gasVer + '</span>' : '') + '<br>아래 <strong>비교 분석</strong> 버튼을 누르세요.', 'ok');
+      setStatus('CLOVA 변환 및 텍스트 저장 완료 ✓ — 비교 분석 버튼을 누르세요');
+    } else {
+      showBanner('✓ CLOVA 텍스트 추출 완료!' + (gasVer ? ' <span style="font-size:11px;opacity:.7">' + gasVer + '</span>' : '') + '<br>아래 <strong>비교 분석</strong> 버튼을 누르세요.', 'ok');
+      setStatus('CLOVA 변환 완료 ✓ — 비교 분석 버튼을 누르세요');
+    }
     sendLog('clova_done', { durationSec:Math.round((Date.now()-_clovaT0)/1000), charCount:text.length, fileSizeKB:audioBlob?Math.round(audioBlob.size/1024):0, ext:audioExt||'webm' });
     setTimeout(loadMyClovaUsage, 1500); // 방금 기록된 사용시간이 반영되도록 잠시 후 새로고침
 
