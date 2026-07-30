@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.83 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.84 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.84 (2026-07-30) - "챕터 원본" 확대 모달에 글자 크기 조절(가-/가+) 버튼 추가. 브라우저
+    핀치줌은 레이아웃 폭이 그대로라 긴 문장이 화면 밖으로 밀려 잘려 보일 수 있는데, 이 버튼은
+    박스 안에서 글자 크기만 키워 줄바꿈 폭을 유지하므로 화면을 벗어나지 않음. 마지막으로
+    설정한 크기는 기기에 저장되어 다음에 열 때도 유지됨.
   v2.83 (2026-07-30) - v2.81에서 "업로드 → 자동추출 → 자동저장(텍스트)"을 Whisper에만 적용하고
     CLOVA를 빠뜨렸던 것 수정. 이제 CLOVA로 추출해도 업로드 흐름이면 동일하게 추출 완료 즉시
     텍스트(.txt, 파일명 끝 _c)가 자동 저장됨.
@@ -1380,7 +1384,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.83 (2026.07.30)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.84 (2026.07.30)</span></p>
 
   </div>
 
@@ -1586,7 +1590,11 @@ html.skin-light .fulltext-body{color:var(--text);}
   <div class="fulltext-modal" id="chapter-expand-modal" role="dialog" aria-modal="true">
     <div class="fulltext-toolbar">
       <span class="fulltext-toolbar-title">📋 챕터 원본</span>
-      <button class="fulltext-close-btn" id="chapter-expand-close">✕ 닫기</button>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <button class="fulltext-close-btn" id="chapter-font-minus" title="글자 작게" style="padding:7px 12px;font-size:12px;">가-</button>
+        <button class="fulltext-close-btn" id="chapter-font-plus" title="글자 크게" style="padding:7px 12px;font-size:16px;">가+</button>
+        <button class="fulltext-close-btn" id="chapter-expand-close">✕ 닫기</button>
+      </div>
     </div>
     <div class="fulltext-body" id="chapter-expand-body" style="font-size:15px;line-height:2;"></div>
   </div>
@@ -2661,12 +2669,30 @@ function updateChapterUI(){
     }
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
+    body.style.fontSize = getFontSize() + 'px'; // ★ v2.84: 저장된 글자 크기 적용
   }
 
   function close(){
     modal.classList.remove('open');
     document.body.style.overflow = '';
   }
+
+  // ★ v2.84: 챕터 원본 확대 모달의 글자 크기 조절(가-/가+).
+  // 핀치줌(브라우저 전체 화면 확대)은 레이아웃 폭이 그대로라 줄바꿈된 문장이
+  // 화면 밖으로 밀려나 보일 수 있음. 대신 이 버튼으로 박스 안에서 글자 크기만
+  // 키우면 줄바꿈 폭이 유지되어 화면을 벗어나지 않음. 마지막 설정은 기기에 저장됨.
+  const FONT_MIN = 13, FONT_MAX = 26, FONT_STEP = 2;
+  function getFontSize(){
+    const saved = parseInt(localStorage.getItem('chapterExpandFontSize'), 10);
+    return (saved && saved >= FONT_MIN && saved <= FONT_MAX) ? saved : 15;
+  }
+  function setFontSize(px){
+    const clamped = Math.max(FONT_MIN, Math.min(FONT_MAX, px));
+    body.style.fontSize = clamped + 'px';
+    localStorage.setItem('chapterExpandFontSize', String(clamped));
+  }
+  document.getElementById('chapter-font-plus').addEventListener('click', () => setFontSize(getFontSize() + FONT_STEP));
+  document.getElementById('chapter-font-minus').addEventListener('click', () => setFontSize(getFontSize() - FONT_STEP));
 
   document.getElementById('preview-box').addEventListener('click', function(e){
     if(e.target.closest('#box-expand-btn')) open();
