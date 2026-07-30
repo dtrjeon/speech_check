@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.80 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.82 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.82 (2026-07-30) - 텍스트 저장 파일명에 추출 방식 접미사 추가: Whisper로 추출한 텍스트는
+    파일명 끝에 "_w", CLOVA로 추출한 텍스트는 "_c"가 붙음(예: JUSTEE_녹음_260730_0900_w.txt).
+    브라우저 자체 실시간 인식(마이크 녹음 중 즉시 인식)은 접미사 없음. 새 녹음을 시작하거나
+    새 파일을 선택하면 이전 접미사는 초기화되고, 추출이 성공한 시점에 다시 설정됨.
+  v2.81 (2026-07-30) - 기존 오디오 파일 업로드(Whisper) 흐름에 자동 저장 추가: "파일 선택 →
+    자동 텍스트 추출"까지는 기존과 동일하되, 추출이 끝나면 저장 버튼을 누르지 않아도 텍스트(.txt)
+    파일이 곧바로 자동 다운로드됨(업로드 흐름일 때만 적용 — 여기서 "저장"은 텍스트 저장만
+    의미하며 음성 파일은 자동 저장하지 않음). 마이크 녹음 흐름은 기존처럼 수동 저장 유지.
   v2.80 (2026-07-29) - trimBeforeIntroMarker(간증 앞부분 자동 제외)가 Whisper 인식 결과에서
     안 먹히던 문제 수정. 공백만 허용하던 매칭 패턴에 쉼표·마침표 등 문장부호도 허용하도록
     완화 — STT 엔진마다 문장부호를 넣는 방식이 달라 공백만으로는 매칭이 깨지고 있었음.
@@ -1775,6 +1783,15 @@ let mediaRecorder = null;
 let micStream = null;          // iOS용: getUserMedia 스트림 재사용
 let audioChunks = [];
 let audioBlob = null;
+// ★ v2.81: "업로드 → 자동추출 → 자동저장(텍스트)" 흐름 판별용. 마이크 녹음이 아니라
+// 기존 오디오 파일을 업로드해서 만들어진 audioBlob일 때만 true. Whisper 추출 완료
+// 시점에 이 값이 true이면 사용자가 저장 버튼을 누르지 않아도 텍스트(.txt)를 자동
+// 저장한다. 마이크 녹음 흐름은 기존처럼 수동 저장 유지.
+let isUploadedAudioFile = false;
+// ★ v2.82: 저장 파일명 접미사용 — 어떤 방식으로 텍스트를 추출했는지 기록.
+// Whisper로 추출하면 '_w', CLOVA로 추출하면 '_c'가 저장 파일명 끝에 붙는다.
+// 브라우저 자체 실시간 인식(recMode 'stt')은 접미사 없음.
+let sttSourceSuffix = '';
 // ★ v2.52: 원문에 "아들아[딸아]"처럼 표기된 대체 가능 단어 쌍을 저장.
 // normLine 등에서 이 패턴을 발견할 때마다 채워지며, 비교 시 두 표현 중 어느 쪽을
 // 말해도 정답으로 인정하는 데 사용됨(altPairs['아들아']==='딸아', 그 반대도 성립).
@@ -2697,6 +2714,8 @@ document.getElementById('btn-rec').addEventListener('click', function(){
 function startRec(){
   hideBanner();
   audioChunks = []; audioBlob = null; audioMime = ''; audioExt = 'webm';
+  isUploadedAudioFile = false; // 마이크 녹음 시작 시 업로드 흐름 플래그 해제
+  sttSourceSuffix = ''; // 새 녹음 시작 시 이전 추출 소스 접미사 초기화
   document.getElementById('btn-save-audio').disabled = true;
   document.getElementById('btn-save-audio').classList.remove('ready');
   document.getElementById('btn-print').disabled = true;
@@ -2884,7 +2903,7 @@ function saveTxtFile(ts, text){
   const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'JUSTEE_녹음_' + ts + '.txt';
+  a.href = url; a.download = 'JUSTEE_녹음_' + ts + sttSourceSuffix + '.txt';
   document.body.appendChild(a); a.click();
   document.body.removeChild(a); URL.revokeObjectURL(url);
   return true;
@@ -2936,7 +2955,7 @@ document.getElementById('btn-save-audio').addEventListener('click', function(){
     const textOnly = savedText;
     if(!textOnly){ alert('저장할 내용이 없습니다.'); return; }
     doSaveText(textOnly);
-    setStatus('텍스트 파일이 저장되었습니다: JUSTEE_녹음_' + ts + '.txt');
+    setStatus('텍스트 파일이 저장되었습니다: JUSTEE_녹음_' + ts + sttSourceSuffix + '.txt');
     return;
   }
   if(recMode === 'api'){
@@ -3664,6 +3683,8 @@ document.getElementById('whisper-file-input')?.addEventListener('change', functi
   const file = this.files[0];
   if(!file) return;
   audioBlob = file;
+  isUploadedAudioFile = true;
+  sttSourceSuffix = '';
   const ext = file.name.split('.').pop().toLowerCase();
   audioExt  = ext || 'm4a';
   audioMime = file.type || 'audio/mp4';
@@ -3682,6 +3703,8 @@ document.getElementById('audio-file-input').addEventListener('change', function(
   const file = this.files[0];
   if(!file) return;
   audioBlob = file;
+  isUploadedAudioFile = true;
+  sttSourceSuffix = '';
   const ext = file.name.split('.').pop().toLowerCase();
   audioExt  = ext || 'm4a';
   audioMime = file.type || 'audio/mp4';
@@ -3772,6 +3795,7 @@ document.getElementById('btn-clova-transcribe2').addEventListener('click', async
 
     transcript = numToKor(text);
     recordedText = numToKor(text);
+    sttSourceSuffix = '_c';
     updateRecordedPreview();
     const saveBtn = document.getElementById('btn-save-audio');
     saveBtn.disabled = false; saveBtn.style.opacity = '1'; saveBtn.classList.add('ready');
@@ -4007,6 +4031,7 @@ document.getElementById('btn-whisper-transcribe2')?.addEventListener('click', as
     // 결과 적용
     transcript = numToKor(text);
     recordedText = numToKor(text);
+    sttSourceSuffix = '_w';
     updateRecordedPreview();
 
     // 음성 저장 버튼 활성화 (텍스트 저장 포함)
@@ -4023,8 +4048,23 @@ document.getElementById('btn-whisper-transcribe2')?.addEventListener('click', as
       const nameElDoneW = statusCellDoneW.querySelector('#clova-file-name');
       if(nameElDoneW) nameElDoneW.textContent = '✓ 추출 완료';
     }
-    showBanner('✓ Whisper 텍스트 추출 완료!<br>아래 <strong>비교 분석</strong> 버튼을 누르세요.', 'ok');
-    setStatus('Whisper 변환 완료 ✓ — 비교 분석 버튼을 누르세요');
+
+    // ★ v2.81: 업로드(기존 오디오 파일) → 자동추출 흐름이면, 추출이 끝나는 즉시
+    // 사용자가 저장 버튼을 누르지 않아도 텍스트(.txt)를 자동으로 저장한다.
+    // (음성 파일 자체는 자동 저장하지 않음 — 여기서 "저장"은 텍스트 저장만 의미)
+    if(isUploadedAudioFile){
+      const ts = makeTimestamp();
+      const savedOk = saveTxtFile(ts, transcript || recordedText);
+      if(statusCellDoneW){
+        const nameElDoneW2 = statusCellDoneW.querySelector('#clova-file-name');
+        if(nameElDoneW2) nameElDoneW2.textContent = savedOk ? '✓ 추출+저장 완료' : '✓ 추출 완료';
+      }
+      showBanner('✓ 업로드 → 텍스트 추출 → <strong>텍스트 저장</strong>까지 자동 완료!<br>아래 <strong>비교 분석</strong> 버튼을 누르세요.', 'ok');
+      setStatus('Whisper 변환 및 텍스트 저장 완료 ✓ — 비교 분석 버튼을 누르세요');
+    } else {
+      showBanner('✓ Whisper 텍스트 추출 완료!<br>아래 <strong>비교 분석</strong> 버튼을 누르세요.', 'ok');
+      setStatus('Whisper 변환 완료 ✓ — 비교 분석 버튼을 누르세요');
+    }
     // ★ 사용량은 GAS가 서버에서 직접 기록하므로 별도 whisper_done sendLog는 불필요
     //   (durationSec은 OpenAI가 반환한 실제 오디오 길이를 GAS가 기록함 — 클라이언트의
     //   경과시간보다 정확하고, sendBeacon 유실 위험도 없음)
