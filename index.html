@@ -1,6 +1,23 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.84 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.89 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.89 (2026-07-31) - "클로바노트 붙여넣기" 탭 이름을 "텍스트 파일 불러오기"로 변경. 이 탭은
+    실제로는 특정 앱(클로바노트) 전용이 아니라 이미 변환된 텍스트를 불러오거나(방법 A) 붙여
+    넣는(방법 B) 범용 기능이라, 기존 이름이 CLOVA API와도 헷갈리고 기능보다 좁게 느껴져서 변경.
+    관련 안내 문구·상태 메시지도 함께 정리(외부 앱 예시로 "클로바노트"는 남겨둠).
+  v2.88 (2026-07-31) - 챕터를 선택하지 않은 상태에서 녹음 시작 버튼을 누르면 "먼저 녹음할
+    챕터를 클릭해서 선택해 주세요" 안내 배너를 띄우고 녹음을 시작하지 않도록 함(원본 없이
+    녹음하면 나중에 비교 분석을 할 수 없으므로).
+  v2.87 (2026-07-31) - 구두점검 범위(단일/복수 선택)에 따라 추천 STT 방식으로 자동 전환.
+    단일 선택(챕터 1개)로 바꾸면 Whisper, 복수 선택(여러 챕터)으로 바꾸면 CLOVA로 자동 전환됨.
+    강제 고정은 아니며, ⚙ 설정에서 언제든 직접 다른 방식으로 바꿀 수 있음.
+  v2.86 (2026-07-31) - 녹음 방식 기본값을 실시간 STT → Whisper로 변경. 처음 접속하는 사용자는
+    Whisper가 기본 선택됨(기존에 다른 방식을 써본 사용자는 저장된 본인 선택이 그대로 유지됨).
+    상단 ⚙ 간단 드롭다운에도 Whisper 항목 추가(기존엔 실시간 STT/CLOVA만 있어서 Whisper가
+    기본일 때 드롭다운에 선택 표시가 안 뜨던 문제 수정).
+  v2.85 (2026-07-31) - iOS Safari 비공개 브라우징 모드 대비: save_mode/chapterExpandFontSize
+    관련 localStorage 접근 4곳에 try/catch 누락돼 있던 것 추가(다른 localStorage 접근부와 동일한
+    패턴으로 통일). 비공개 모드에서 setItem 예외로 앱이 멈추는 것을 방지.
   v2.84 (2026-07-30) - "챕터 원본" 확대 모달에 글자 크기 조절(가-/가+) 버튼 추가. 브라우저
     핀치줌은 레이아웃 폭이 그대로라 긴 문장이 화면 밖으로 밀려 잘려 보일 수 있는데, 이 버튼은
     박스 안에서 글자 크기만 키워 줄바꿈 폭을 유지하므로 화면을 벗어나지 않음. 마지막으로
@@ -1384,7 +1401,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.84 (2026.07.30)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.89 (2026.07.31)</span></p>
 
   </div>
 
@@ -1428,11 +1445,11 @@ html.skin-light .fulltext-body{color:var(--text);}
           <div id="stt-live-text" style="font-size:13px;color:var(--text-muted);min-height:40px;background:var(--surface2);border-radius:8px;padding:8px 12px;line-height:1.6;margin-bottom:10px;">
             녹음 시작 후 여기에 텍스트가 표시됩니다
           </div>
-          <!-- 클로바노트 안내 -->
+          <!-- 텍스트 파일 불러오기 안내 -->
           <div class="stt-bubble show" id="stt-fail-bubble">
             STT가 안 될 경우 (아이폰 등)<br>
-            <strong>👉 클로바노트 탭</strong>을 사용하세요.<br>
-            클로바노트 앱으로 별도 녹음 → 텍스트 자동변환 → 복사 → 붙여넣기 → 적용
+            <strong>👉 텍스트 파일 불러오기 탭</strong>을 사용하세요.<br>
+            클로바노트 등 별도 앱으로 녹음 → 텍스트 자동변환 → 복사 → 붙여넣기 → 적용
           </div>
         </div>
       </div>
@@ -1608,7 +1625,7 @@ html.skin-light .fulltext-body{color:var(--text);}
       </button>
       <button class="input-tab" id="tab-clova">
         <span class="tab-icon">📋</span>
-        <span class="tab-label">클로바노트 붙여넣기</span>
+        <span class="tab-label">텍스트 파일 불러오기</span>
       </button>
 
     </div>
@@ -1673,12 +1690,12 @@ html.skin-light .fulltext-body{color:var(--text);}
       <div style="display:none;" class="save-row" id="save-audio-row"></div>
     </div>
 
-    <!-- 클로바노트 패널 -->
+    <!-- 텍스트 파일 불러오기 패널 -->
     <div class="tab-panel" id="panel-clova">
       <div class="clova-guide">
-        <strong>📱 클로바노트 사용 방법 (2가지)</strong>
+        <strong>📱 텍스트 파일 불러오기 방법 (2가지)</strong>
         <ol>
-          <li>클로바노트 앱 → 녹음 → 텍스트 변환</li>
+          <li>클로바노트 등 외부 앱 → 녹음 → 텍스트 변환</li>
           <li><b>방법A</b> 파일저장: 공유 → txt 저장 → 아래 📂 불러오기</li>
           <li><b>방법B</b> 복사: 전체선택 → 복사 → 아래 칸에 붙여넣기</li>
           <li>적용 버튼 누르기</li>
@@ -1749,7 +1766,7 @@ html.skin-light .fulltext-body{color:var(--text);}
       <button class="btn-sm" id="btn-clear-all">전체 초기화</button>
     </div>
     <div id="banner" class="banner"></div>
-    <div class="status-bar" id="status">마이크 또는 클로바노트로 텍스트를 입력하세요</div>
+    <div class="status-bar" id="status">마이크 녹음 또는 텍스트 파일 불러오기로 입력하세요</div>
   </div>
 
   <!-- 범례 -->
@@ -1920,7 +1937,7 @@ document.getElementById('btn-logout').addEventListener('click', ()=>{ sendLog('l
 // 세션 복원
 (function(){ try{ const s=localStorage.getItem(SESSION_KEY); if(s){ currentUser=JSON.parse(s); showApp(); } }catch(e){} })();
 
-let recMode = 'stt'; // 'api' | 'stt' | 'clova'
+let recMode = 'api'; // 'api' | 'stt' | 'clova' — 기본값: Whisper
 const CORRECT_GAS_URL = 'https://script.google.com/macros/s/AKfycby404YrDV4qCQBOqkFv4S9jQz6nOTX_9zdjXKIoKav0C2O3RIdq4Z-gBVpVtk_8bwjbXQ/exec';
 let clovaGasUrl = (function(){
   try{
@@ -1960,7 +1977,7 @@ function updateRecordedPreview(){
 /* ════════════ 탭 전환 ════════════ */
 const TAB_CONFIG = {
   mic:   { activeClass: 'active-mic',   status: null },
-  clova: { activeClass: 'active-clova', status: '클로바노트 파일 불러오기 또는 텍스트 붙여넣기 후 적용하세요' }
+  clova: { activeClass: 'active-clova', status: '텍스트 파일 불러오기 또는 텍스트 붙여넣기 후 적용하세요' }
 };
 function switchTab(activeTab) {
   Object.keys(TAB_CONFIG).forEach(name => {
@@ -2292,6 +2309,11 @@ function setMode(m){
   document.getElementById('mode-multi').classList.toggle('active',  m==='multi');
   updateChapterUI();
   updateAudioPlayer();
+
+  // ★ v2.87: 구두점검 범위(단일/복수)에 따라 추천 STT 방식으로 자동 전환.
+  // 단일 선택(챕터 1개, 분량 짧음) → Whisper / 복수 선택(여러 챕터, 분량 김) → CLOVA
+  // 사용자가 이후 ⚙ 설정에서 언제든 직접 다른 방식으로 바꿀 수 있음(강제 고정 아님).
+  applyRecMode(m === 'single' ? 'api' : 'clova');
 }
 function toggleChapter(id){
   if(mode==='single'){ selected = selected[0]===id ? [] : [id]; }
@@ -2683,13 +2705,14 @@ function updateChapterUI(){
   // 키우면 줄바꿈 폭이 유지되어 화면을 벗어나지 않음. 마지막 설정은 기기에 저장됨.
   const FONT_MIN = 13, FONT_MAX = 26, FONT_STEP = 2;
   function getFontSize(){
-    const saved = parseInt(localStorage.getItem('chapterExpandFontSize'), 10);
+    let saved = null;
+    try{ saved = parseInt(localStorage.getItem('chapterExpandFontSize'), 10); }catch(e){}
     return (saved && saved >= FONT_MIN && saved <= FONT_MAX) ? saved : 15;
   }
   function setFontSize(px){
     const clamped = Math.max(FONT_MIN, Math.min(FONT_MAX, px));
     body.style.fontSize = clamped + 'px';
-    localStorage.setItem('chapterExpandFontSize', String(clamped));
+    try{ localStorage.setItem('chapterExpandFontSize', String(clamped)); }catch(e){}
   }
   document.getElementById('chapter-font-plus').addEventListener('click', () => setFontSize(getFontSize() + FONT_STEP));
   document.getElementById('chapter-font-minus').addEventListener('click', () => setFontSize(getFontSize() - FONT_STEP));
@@ -2704,7 +2727,7 @@ document.getElementById('btn-permission').addEventListener('click', async functi
   try {
     setStatus('마이크 권한 요청 중...');
     if(typeof MediaRecorder === 'undefined'){
-    setStatus('⚠ 이 브라우저는 녹음을 지원하지 않습니다. 클로바노트 탭을 이용하세요.');
+    setStatus('⚠ 이 브라우저는 녹음을 지원하지 않습니다. 텍스트 파일 불러오기 탭을 이용하세요.');
     return;
   }
   // iOS Safari: 스트림을 닫지 않고 재사용 (두 번째 getUserMedia 호출 방지)
@@ -2735,6 +2758,11 @@ document.getElementById('btn-permission').addEventListener('click', async functi
 document.getElementById('btn-rec').addEventListener('click', function(){
   if(!micGranted){
     showBanner('⚠ 먼저 위의 <strong>마이크 권한 허용</strong> 버튼을 눌러 주세요.', 'warn');
+    return;
+  }
+  // ★ v2.88: 녹음할 챕터를 아직 선택 안 했으면 먼저 선택하도록 안내 (비교 분석 시 원본이 없어 비교 불가하므로)
+  if(!isRecording && selected.length === 0){
+    showBanner('⚠ 먼저 <strong>녹음할 챕터를 클릭</strong>해서 선택해 주세요.', 'warn');
     return;
   }
   isRecording ? stopRec() : startRec();
@@ -2943,7 +2971,7 @@ document.getElementById('btn-save-audio').addEventListener('click', function(){
   sendLog('stt_save', { recMode, charCount: (transcript.trim()||recordedText.trim()).length });
   const ts = makeTimestamp();
   const audioFilename = 'JUSTEE_녹음_' + ts + '.' + (audioExt || 'webm');
-  const saveMode = localStorage.getItem('save_mode') || 'both';
+  let saveMode = 'both'; try{ saveMode = localStorage.getItem('save_mode') || 'both'; }catch(e){}
 
   if(saveMode === 'none'){ setStatus('저장 방식이 "저장 안 함"으로 설정되어 있습니다.'); return; }
 
@@ -3103,7 +3131,7 @@ document.getElementById('btn-clova-apply').addEventListener('click', function(){
   updateRecordedPreview();
   hideBanner();
   showBanner('✓ 텍스트가 적용되었습니다. 비교 분석 버튼을 누르세요.', 'ok');
-  setStatus('클로바노트 텍스트 적용 완료 ✓');
+  setStatus('텍스트 적용 완료 ✓');
 });
 
 /* ════════════ 지우기 / 초기화 (공통 함수) ════════════ */
@@ -3369,7 +3397,7 @@ function compare(){
   if(!recordedText.trim() && transcript.trim()) recordedText = transcript;
   const recRaw  = trimBeforeIntroMarker(applySttFixes(recordedText.trim()));
   if(!origRaw){ alert('원본 텍스트를 선택하거나 입력해 주세요.'); return; }
-  if(!recRaw) { alert('녹음 텍스트가 없습니다.\n마이크 녹음 또는 클로바노트 파일/붙여넣기를 먼저 해주세요.'); return; }
+  if(!recRaw) { alert('녹음 텍스트가 없습니다.\n마이크 녹음 또는 텍스트 파일 불러오기를 먼저 해주세요.'); return; }
 
   // 원본 텍스트에서 성경구절 괄호·쉼표 제거 후 비교
   const origNorm = origRaw
@@ -3574,6 +3602,7 @@ function buildSettingDropdownItems(){
   const modes = [
     { key:'stt',   label:'🎙 실시간 STT' },
     { key:'clova', label:'📱 CLOVA' },
+    { key:'api',   label:'🤖 Whisper' },
   ];
   wrap.innerHTML = modes.map(m=>`
     <div onclick="setRecModeFromDropdown('${m.key}')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;font-size:13px;color:var(--text);cursor:pointer;background:${recMode===m.key?'var(--surface2)':'transparent'};">
@@ -3601,7 +3630,7 @@ function toggleRecModeSetting(){
   const p = document.getElementById('rec-mode-setting-panel');
   if(p){
     // 저장 방식 라디오 초기화
-    const savedMode = localStorage.getItem('save_mode') || 'both';
+    let savedMode = 'both'; try{ savedMode = localStorage.getItem('save_mode') || 'both'; }catch(e){}
     const radio = document.getElementById('save-mode-' + savedMode);
     if(radio) radio.checked = true;
     p.style.display = p.style.display === 'none' ? 'flex' : 'none';
@@ -3611,7 +3640,7 @@ function closeRecModeSetting(){
   // 저장 방식 선택값 localStorage에 저장
   const selected = document.querySelector('input[name="save-mode"]:checked');
   if(selected) {
-    localStorage.setItem('save_mode', selected.value);
+    try{ localStorage.setItem('save_mode', selected.value); }catch(e){}
     updateSaveBtn(selected.value);
   }
   const p = document.getElementById('rec-mode-setting-panel');
@@ -3678,8 +3707,8 @@ function applyRecMode(newMode){
   if(typeof currentUser !== 'undefined' && currentUser) loadMyClovaUsage();
 }
 
-// 초기 상태 적용 (기본: stt)
-applyRecMode('stt');
+// 초기 상태 적용 (기본: Whisper)
+applyRecMode('api');
 
 /* ── btn-clova-transcribe2 / btn-whisper-transcribe2 이벤트는 아래에서 직접 등록 ── */
 
@@ -4445,7 +4474,7 @@ try{ const _rm=localStorage.getItem('recMode'); if(_rm) applyRecMode(_rm); }catc
 
 // 저장 방식 초기 적용
 (function(){
-  const saveMode = localStorage.getItem('save_mode') || 'both';
+  let saveMode = 'both'; try{ saveMode = localStorage.getItem('save_mode') || 'both'; }catch(e){}
   updateSaveBtn(saveMode);
 })();
 </script>

@@ -97,7 +97,7 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
     <a href="#s3"><span class="toc-num">3</span>챕터 선택</a>
     <a href="#s4"><span class="toc-num">4</span>원본 텍스트 확인</a>
     <a href="#s5"><span class="toc-num">5</span>음성 입력 방식 (실시간 STT·CLOVA·Whisper)</a>
-    <a href="#s6"><span class="toc-num">6</span>음성 입력 — 클로바노트</a>
+    <a href="#s6"><span class="toc-num">6</span>텍스트 파일 불러오기</a>
     <a href="#s6b"><span class="toc-num">7</span>업로드 파일 자동 추출 · STT 오인식 교정</a>
     <a href="#s7"><span class="toc-num">8</span>비교 분석 실행</a>
     <a href="#s8"><span class="toc-num">9</span>결과 화면 보는 법</a>
@@ -120,7 +120,7 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
         <tr><td>사용자 바</td><td>로그인 이름·반·단계 표시, 로그아웃 버튼</td></tr>
         <tr><td>① 챕터 선택</td><td>암기할 장(章)을 1개 이상 선택</td></tr>
         <tr><td>② 원본 텍스트</td><td>선택된 챕터의 정답 대사 자동 로드</td></tr>
-        <tr><td>③ 음성 입력</td><td>STT 또는 클로바노트로 녹음 텍스트 입력</td></tr>
+        <tr><td>③ 음성 입력</td><td>STT 또는 텍스트 파일 불러오기로 녹음 텍스트 입력</td></tr>
         <tr><td>④ 비교 분석</td><td>원본과 녹음 텍스트를 단어 단위로 비교</td></tr>
         <tr><td>⑤ 결과 패널</td><td>일치율·누락·추가·대체 단어 색상 표시</td></tr>
       </table>
@@ -218,7 +218,7 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
     <h2>음성 입력 방식 선택 (실시간 STT · CLOVA · Whisper)</h2>
 
     <div class="info-box info-warn">
-      ⚠ <strong>아이폰(iOS)</strong>은 실시간 STT를 지원하지 않습니다. CLOVA 또는 Whisper 방식이나, 아래 클로바노트 방식(Section 06)을 사용하세요.
+      ⚠ <strong>아이폰(iOS)</strong>은 실시간 STT를 지원하지 않습니다. CLOVA 또는 Whisper 방식이나, 아래 텍스트 파일 불러오기 방식(Section 06)을 사용하세요.
     </div>
 
     <div class="card">
@@ -245,7 +245,7 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
           <td style="text-align:center;"><span style="color:var(--green);font-weight:600;">✓</span></td>
         </tr>
         <tr>
-          <td>📱 클로바노트</td>
+          <td>📱 텍스트 파일 불러오기</td>
           <td style="text-align:center;"><span style="color:var(--green);font-weight:600;">✓</span></td>
           <td style="text-align:center;"><span style="color:var(--green);font-weight:600;">✓</span></td>
         </tr>
@@ -312,20 +312,20 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
 
   <hr class="divider">
 
-  <!-- ── 6. 클로바노트 ── -->
+  <!-- ── 6. 텍스트 파일 불러오기 ── -->
   <div class="section" id="s6">
     <div class="sec-label">Section 06</div>
-    <h2>음성 입력 — 클로바노트</h2>
+    <h2>텍스트 파일 불러오기</h2>
 
     <div class="info-box info-clova">
-      📱 네이버 <strong>클로바노트</strong> 앱(무료)을 이용하면 아이폰에서도 고품질 음성-텍스트 변환이 가능합니다.
+      📱 이미 다른 방법으로 변환해둔 텍스트를 파일로 불러오거나 직접 붙여넣는 기능입니다.<br>네이버 <strong>클로바노트</strong> 앱(무료)으로 녹음·변환하면, 아이폰에서도 이 방법으로 고품질 텍스트를 가져올 수 있습니다.
     </div>
 
     <div class="card">
       <div class="card-title">방법 A — 파일 저장 후 불러오기</div>
       <ul class="steps">
-        <li><p>클로바노트 앱 → 녹음 → 변환 완료 → <strong>공유 → .txt 저장</strong></p></li>
-        <li><p>이 앱 → 클로바노트 탭 → <span class="btn-ex clova">📂 파일 불러오기</span></p></li>
+        <li><p>클로바노트 등 외부 앱 → 녹음 → 변환 완료 → <strong>공유 → .txt 저장</strong></p></li>
+        <li><p>이 앱 → <strong>텍스트 파일 불러오기</strong> 탭 → <span class="btn-ex clova">📂 파일 불러오기</span></p></li>
         <li><p><span class="btn-ex clova">녹음 텍스트로 적용하기</span></p></li>
       </ul>
     </div>
@@ -333,8 +333,8 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
     <div class="card">
       <div class="card-title">방법 B — 직접 붙여넣기</div>
       <ul class="steps">
-        <li><p>클로바노트 앱 → 녹음 완료 → <strong>전체 선택 → 복사</strong></p></li>
-        <li><p>이 앱 → 클로바노트 탭 텍스트 칸 → <strong>길게 탭 → 붙여넣기</strong></p></li>
+        <li><p>클로바노트 등 외부 앱 → 녹음 완료 → <strong>전체 선택 → 복사</strong></p></li>
+        <li><p>이 앱 → <strong>텍스트 파일 불러오기</strong> 탭 텍스트 칸 → <strong>길게 탭 → 붙여넣기</strong></p></li>
         <li><p><span class="btn-ex clova">녹음 텍스트로 적용하기</span></p></li>
       </ul>
     </div>
@@ -624,7 +624,7 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
     <h2>자주 묻는 질문 (FAQ)</h2>
 
     <h3>Q. 아이폰에서 녹음이 안 됩니다</h3>
-    <p>iOS Safari는 <strong>실시간 STT</strong>(Web Speech API)를 지원하지 않습니다. ⚙ 설정에서 <strong>CLOVA</strong> 또는 <strong>Whisper</strong> 방식을 선택하거나, <strong>클로바노트</strong> 탭을 이용하세요.</p>
+    <p>iOS Safari는 <strong>실시간 STT</strong>(Web Speech API)를 지원하지 않습니다. ⚙ 설정에서 <strong>CLOVA</strong> 또는 <strong>Whisper</strong> 방식을 선택하거나, <strong>텍스트 파일 불러오기</strong> 탭을 이용하세요.</p>
 
     <h3>Q. 비밀번호를 모릅니다</h3>
     <p>2단계 교사(관리자)에게 문의하세요. 관리자는 Google Sheets <code>user_list</code> 시트에서 직접 변경할 수 있습니다.</p>
@@ -654,7 +654,7 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
       <li>로그인 (이름 + 비밀번호)</li>
       <li>챕터 선택 (1개 이상)</li>
       <li>원본 텍스트 확인 (자동 로드)</li>
-      <li>녹음 방식 선택 (실시간 STT / CLOVA / Whisper / 클로바노트)</li>
+      <li>녹음 방식 선택 (실시간 STT / CLOVA / Whisper / 텍스트 파일 불러오기)</li>
       <li>복음 대사 낭독 및 텍스트 저장</li>
       <li>비교 분석 버튼 실행</li>
       <li>색상 강조로 오류 확인</li>
