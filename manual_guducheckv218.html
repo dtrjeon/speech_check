@@ -112,7 +112,7 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
   <div class="section" id="s1">
     <div class="sec-label">Section 01</div>
     <h2>앱 개요 및 화면 구성</h2>
-    <p>전도폭발(EE) 훈련생이 복음제시 대사를 <strong>소리 내어 연습</strong>하고, 녹음된 음성과 원본 텍스트를 <strong>단어 단위로 비교</strong>하여 암기 정확도를 점검하는 도구입니다.</p>
+    <p>전도폭발(EE) 훈련생이 복음 제시 대사를 <strong>소리 내어 연습</strong>하고, 녹음된 음성과 원본 텍스트를 <strong>단어 단위로 비교</strong>하여 암기 정확도를 점검하는 도구입니다.</p>
 
     <div class="card">
       <div class="card-title">화면 구성</div>
@@ -218,7 +218,7 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
     <h2>음성 입력 방식 선택 (실시간 STT · CLOVA · Whisper)</h2>
 
     <div class="info-box info-warn">
-      ⚠ <strong>아이폰(iOS)</strong>은 실시간 STT를 지원하지 않습니다. CLOVA 또는 Whisper 방식이나 6절 클로바노트 방식을 사용하세요.
+      ⚠ <strong>아이폰(iOS)</strong>은 실시간 STT를 지원하지 않습니다. CLOVA 또는 Whisper 방식이나, 아래 클로바노트 방식(Section 06)을 사용하세요.
     </div>
 
     <div class="card">
@@ -289,7 +289,7 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
       <div class="card-title">방법 A — 파일 저장 후 불러오기</div>
       <ul class="steps">
         <li><p>클로바노트 앱 → 녹음 → 변환 완료 → <strong>공유 → .txt 저장</strong></p></li>
-        <li><p>앱 클로바노트 탭 → <span class="btn-ex clova">📂 파일 불러오기</span></p></li>
+        <li><p>이 앱 → 클로바노트 탭 → <span class="btn-ex clova">📂 파일 불러오기</span></p></li>
         <li><p><span class="btn-ex clova">녹음 텍스트로 적용하기</span></p></li>
       </ul>
     </div>
@@ -425,7 +425,7 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
       <div class="card-title">읽는 법</div>
       <table class="kv">
         <tr><td><span style="color:var(--red);font-weight:700;">빨간 번호</span></td><td>오류가 있는 문장 번호</td></tr>
-        <tr><td><span style="color:var(--text-dim);">회색 번호</span></td><td>정확히 일치한 문장</td></tr>
+        <tr><td><span style="color:var(--text-dim);">회색 번호</span></td><td>정확히 일치하는 문장</td></tr>
         <tr><td><span class="badge b-sub">하려</span></td><td>대체 단어 — 원본과 다르게 말한 단어 (보라색)</td></tr>
         <tr><td><span class="badge b-miss" style="text-decoration:line-through;">값없이</span></td><td>누락 단어 — 말하지 않은 단어 (빨간색 취소선)</td></tr>
         <tr><td><span style="text-decoration:line-through;color:var(--border2);">—</span></td><td>원본의 해당 위치 (발화에서 누락)</td></tr>
@@ -480,6 +480,8 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
     </div>
   </div>
 
+  <hr class="divider">
+
   <!-- ── 9. 프린트 ── -->
   <div class="section" id="s9">
     <div class="sec-label">Section 11</div>
@@ -520,6 +522,11 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
     <div class="sec-label">Section 13</div>
     <h2>홈화면 설치 (PWA)</h2>
     <p>앱을 스마트폰 홈화면에 설치하면 일반 앱처럼 아이콘으로 실행할 수 있습니다.</p>
+
+    <div style="text-align:center;margin:14px 0;">
+      <img src="data:image/png;base64,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" alt="전문 구두점검 앱 아이콘" style="width:76px;height:76px;border-radius:18px;box-shadow:0 4px 16px rgba(0,0,0,.25);">
+      <p style="font-size:11px;color:var(--text-dim);margin-top:8px;">설치하면 홈 화면에 이 아이콘이 생깁니다</p>
+    </div>
 
     <div class="info-box info-warn">
       ⚠ <strong>카카오톡 등 메신저로 받은 링크</strong>를 눌러서 열었다면, 그 화면(카카오톡 인앱 브라우저)에서는 <strong>홈 화면 추가가 되지 않습니다.</strong> 아래 방법으로 먼저 진짜 브라우저(Safari/Chrome/삼성 인터넷)로 옮긴 뒤, 그 다음 카드의 설치 방법을 따라하세요.
@@ -581,13 +588,13 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
     <h2>자주 묻는 질문 (FAQ)</h2>
 
     <h3>Q. 아이폰에서 녹음이 안 됩니다</h3>
-    <p>iOS Safari는 <strong>실시간 STT</strong>(Web Speech API)만 지원하지 않습니다. ⚙ 설정에서 <strong>CLOVA</strong> 또는 <strong>Whisper</strong> 방식을 선택하거나, <strong>클로바노트</strong> 탭을 이용하세요.</p>
+    <p>iOS Safari는 <strong>실시간 STT</strong>(Web Speech API)를 지원하지 않습니다. ⚙ 설정에서 <strong>CLOVA</strong> 또는 <strong>Whisper</strong> 방식을 선택하거나, <strong>클로바노트</strong> 탭을 이용하세요.</p>
 
     <h3>Q. 비밀번호를 모릅니다</h3>
     <p>2단계 교사(관리자)에게 문의하세요. 관리자는 Google Sheets <code>user_list</code> 시트에서 직접 변경할 수 있습니다.</p>
 
     <h3>Q. 여러 챕터를 한 번에 점검하려면?</h3>
-    <p>챕터 카드를 순서대로 탭하여 다중 선택하면 원본 텍스트가 연결됩니다.</p>
+    <p>상단에서 <strong>"복수 선택"</strong> 모드로 바꾼 뒤 챕터 카드를 순서대로 탭하세요. 선택한 순서대로 원본 텍스트가 이어집니다.</p>
 
     <h3>Q. 성경 구절이 틀렸다고 표시됩니다</h3>
     <p>앱 원본 텍스트의 성경 구절은 <code>[SKIP]</code> 태그로 자동 제외됩니다. 직접 입력한 텍스트에는 동일하게 태그를 추가하거나 해당 구절을 삭제하세요.</p>
@@ -611,7 +618,7 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
       <li>로그인 (이름 + 비밀번호)</li>
       <li>챕터 선택 (1개 이상)</li>
       <li>원본 텍스트 확인 (자동 로드)</li>
-      <li>녹음 방식 선택 (STT / 클로바노트)</li>
+      <li>녹음 방식 선택 (실시간 STT / CLOVA / Whisper / 클로바노트)</li>
       <li>복음 대사 낭독 및 텍스트 저장</li>
       <li>비교 분석 버튼 실행</li>
       <li>색상 강조로 오류 확인</li>
