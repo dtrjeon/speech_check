@@ -1,5 +1,8 @@
 /* ════════════ Service Worker — 전폭전문구두점검 ════════════ */
-const CACHE_NAME = 'jee-speech-v1';
+// index.html(관리자/전체기능판)과 index_speech.html(훈련생 배포판)은 서로 다른 별도 페이지.
+// PWA 홈 화면 설치는 index_speech.html 기준(manifest.json start_url)이라 이걸 우선 캐시하고,
+// index.html도 관리자가 오프라인에서 열 수 있도록 함께 캐시함.
+const CACHE_NAME = 'jee-speech-v2';
 
 // 설치 시 기본 파일 캐시
 self.addEventListener('install', event => {
@@ -8,7 +11,8 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME).then(cache =>
       cache.addAll([
         '/speech_check/',
-        '/speech_check/index.html'
+        '/speech_check/index_speech.html',  // 훈련생 배포판 (PWA 기본 시작 페이지)
+        '/speech_check/index.html'          // 관리자/전체기능판
       ])
     )
   );

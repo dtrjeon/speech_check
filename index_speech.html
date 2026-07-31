@@ -1,6 +1,22 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.90 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index_speech.html 변경 이력 (v2.94 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  ※ v2.93부터 index.html(관리자/전체기능판)과 index_speech.html(훈련생 배포판)이 분리됨.
+  아래 이력은 분리 시점(v2.92)까지는 공통이며, 이후로는 index_speech.html 전용 변경만 기록.
+
+  v2.94 (2026-07-31) - [버그 수정] 이전에 저장된 recMode(실시간 STT 등)를 페이지 로드 시
+    복원하던 코드 제거. STT 선택 UI가 없는 배포판에서 예전에 다른 기기/화면(index.html
+    포함)에서 실시간 STT를 써본 이력이 있으면 그 값이 복원되어 바꿀 수 없이 갇히는 문제가
+    있었음. 이제 단일/복수 선택 자동추천(Whisper/CLOVA)만 항상 적용됨.
+  v2.93 (2026-07-31) - 훈련생용 배포판으로 UI 단순화: ⚙ STT 방식 선택 드롭다운/상세설정
+    모달 완전히 숨김(단일→Whisper·복수→CLOVA 자동추천만 내부 적용, 수동 전환 불가). 저장
+    방식도 선택 UI 없이 "음성+텍스트 저장"으로 항상 고정. 관리자 대시보드 링크도 이 드롭다운
+    안에 있었기 때문에 자연히 같이 숨겨짐(관리자는 index.html 사용).
+  v2.92 (2026-07-31) - 파일명을 index.html → index_speech.html 로 변경. 기존 index.html 자리에는
+    자동으로 index_speech.html 로 넘겨주는 리다이렉트 페이지를 대신 넣어, 폴더 주소로 접속하던
+    사용자나 기존 홈 화면 설치 아이콘도 그대로 계속 작동하도록 함.
+  v2.91 (2026-07-31) - 설명서 링크를 manual_guducheckv218.html → manual_guducheckv290.html로
+    변경(매뉴얼 파일명을 앱 버전에 맞춰 갱신한 것에 맞춤).
   v2.90 (2026-07-31) - "업로드" 라벨에 현재 적용될 STT 방식을 표시(예: "업로드 (Whisper)" /
     "업로드 (CLOVA)"). 단일/복수 선택 전환 시 자동으로 바뀌는 방식을 사용자가 업로드 전에
     바로 확인할 수 있도록 함. 실시간 STT 모드일 때는 업로드가 CLOVA로 처리되므로 (CLOVA)로 표시.
@@ -1374,7 +1390,9 @@ html.skin-light .fulltext-body{color:var(--text);}
     </div>
     <div style="display:flex;align-items:center;gap:4px;flex-wrap:nowrap;justify-content:flex-end;">
       <!-- 설정 드롭다운 -->
-      <div style="position:relative;flex:0 1 auto;min-width:0;" id="setting-dropdown-wrap">
+      <!-- ★ index_speech.html 전용: 훈련생용 배포판이라 STT 방식 선택 UI를 완전히 숨김.
+           단일/복수 선택 시 자동추천(Whisper/CLOVA)만 내부적으로 적용됨. -->
+      <div style="position:relative;flex:0 1 auto;min-width:0;display:none;" id="setting-dropdown-wrap">
         <button id="rec-mode-setting-btn" onclick="toggleSettingDropdown(event)" title="설정" style="background:transparent;border:1px solid var(--border2);border-radius:7px;padding:0 8px;cursor:pointer;color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:11px;height:32px;white-space:nowrap;">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           <span id="rec-mode-setting-label" style="overflow:hidden;text-overflow:ellipsis;">STT</span> <span style="font-size:9px;flex-shrink:0;">▼</span>
@@ -1394,7 +1412,7 @@ html.skin-light .fulltext-body{color:var(--text);}
       <!-- CLOVA 누적 사용시간 -->
       <span id="clova-usage-badge" style="flex:0 1 auto;min-width:0;text-align:center;background:rgba(0,0,0,.35);border:1px solid var(--border2);color:#7CFFB2;font-size:10px;font-weight:600;padding:4px 8px;border-radius:12px;font-family:sans-serif;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">CLOVA --</span>
       <!-- 설명서 -->
-      <a href="manual_guducheckv218.html" title="설명서" style="flex:0 0 auto;background:transparent;border:1px solid var(--border2);border-radius:7px;width:32px;height:32px;color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;font-size:14px;text-decoration:none;">📖</a>
+      <a href="manual_guducheckv290.html" title="설명서" style="flex:0 0 auto;background:transparent;border:1px solid var(--border2);border-radius:7px;width:32px;height:32px;color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;font-size:14px;text-decoration:none;">📖</a>
       <!-- 온라인 상태 -->
       <span id="online-dot" title="온라인 연결" style="width:10px;height:10px;border-radius:50%;background:var(--text-dim);flex-shrink:0;transition:background .4s;display:inline-block;"></span>
       <!-- 로그아웃 -->
@@ -1404,7 +1422,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.90 (2026.07.31)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.94 (2026.07.31)</span></p>
 
   </div>
 
@@ -2974,9 +2992,8 @@ document.getElementById('btn-save-audio').addEventListener('click', function(){
   sendLog('stt_save', { recMode, charCount: (transcript.trim()||recordedText.trim()).length });
   const ts = makeTimestamp();
   const audioFilename = 'JUSTEE_녹음_' + ts + '.' + (audioExt || 'webm');
-  let saveMode = 'both'; try{ saveMode = localStorage.getItem('save_mode') || 'both'; }catch(e){}
-
-  if(saveMode === 'none'){ setStatus('저장 방식이 "저장 안 함"으로 설정되어 있습니다.'); return; }
+  // ★ index_speech.html 전용: 저장 방식 선택 UI를 없앴으므로 항상 "음성+텍스트 저장" 고정
+  const saveMode = 'both';
 
   function doSaveAudio(){
     if(!audioBlob){ setStatus('저장할 음성이 없습니다.'); return; }
@@ -4478,13 +4495,11 @@ document.getElementById('btn-print').addEventListener('click', function(){
 })();
 
 renderChapters();
-try{ const _rm=localStorage.getItem('recMode'); if(_rm) applyRecMode(_rm); }catch(e){}
+// ★ index_speech.html 전용: 이전에 저장된 recMode(예: 실시간 STT)를 복원하지 않음.
+// STT 방식 선택 UI가 없으므로, 단일/복수 선택에 따른 자동추천(Whisper/CLOVA)만 항상 적용됨.
 
-// 저장 방식 초기 적용
-(function(){
-  let saveMode = 'both'; try{ saveMode = localStorage.getItem('save_mode') || 'both'; }catch(e){}
-  updateSaveBtn(saveMode);
-})();
+// 저장 방식 초기 적용 (index_speech.html: 항상 both 고정)
+updateSaveBtn('both');
 </script>
 
 <!-- ══ PWA 설치 배너 (Android Chrome) ══ -->

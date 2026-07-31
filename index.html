@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <!--
-  index.html 변경 이력 (v2.89 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index.html 변경 이력 (v2.91 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  v2.91 (2026-07-31) - 설명서 링크를 manual_guducheckv218.html → manual_guducheckv290.html로
+    변경(매뉴얼 파일명을 앱 버전에 맞춰 갱신한 것에 맞춤).
+  v2.90 (2026-07-31) - "업로드" 라벨에 현재 적용될 STT 방식을 표시(예: "업로드 (Whisper)" /
+    "업로드 (CLOVA)"). 단일/복수 선택 전환 시 자동으로 바뀌는 방식을 사용자가 업로드 전에
+    바로 확인할 수 있도록 함. 실시간 STT 모드일 때는 업로드가 CLOVA로 처리되므로 (CLOVA)로 표시.
   v2.89 (2026-07-31) - "클로바노트 붙여넣기" 탭 이름을 "텍스트 파일 불러오기"로 변경. 이 탭은
     실제로는 특정 앱(클로바노트) 전용이 아니라 이미 변환된 텍스트를 불러오거나(방법 A) 붙여
     넣는(방법 B) 범용 기능이라, 기존 이름이 CLOVA API와도 헷갈리고 기능보다 좁게 느껴져서 변경.
@@ -1165,7 +1170,7 @@ html.skin-warm .btn-fontsize:hover{border-color:#5b4fcf;color:#5b4fcf;}
 }
 .rec-row-label{
   font-size:11px; font-weight:600; color:var(--text-muted);
-  white-space:nowrap; min-width:44px;
+  white-space:nowrap; min-width:44px; line-height:1.5;
 }
 .rec-row-btns{ display:flex; align-items:center; gap:6px; flex:1; }
 .rec-row-btn{
@@ -1401,7 +1406,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.89 (2026.07.31)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.91 (2026.07.31)</span></p>
 
   </div>
 
@@ -1656,7 +1661,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
         <!-- 2행: 파일 업로드 -->
         <div class="rec-row">
-          <span class="rec-row-label">📁 업로드</span>
+          <span class="rec-row-label" id="upload-row-label">📁 업로드</span>
           <div class="rec-row-btns">
             <label for="audio-file-input" class="rec-row-btn blue" style="cursor:pointer;">
               ⓐ 파일 선택
@@ -3665,6 +3670,11 @@ function applyRecMode(newMode){
   // 설정 아이콘 라벨
   const lbl = document.getElementById('rec-mode-setting-label');
   if(lbl) lbl.textContent = isStt ? 'STT' : (isClova ? 'CLOVA' : 'Whisper');
+
+  // ★ v2.90: "업로드" 라벨에 현재 방식 표시 — 실시간 STT는 파일 업로드 자동추출을
+  // 지원하지 않으므로(CLOVA로 대체 처리됨) CLOVA로 표기
+  const uploadLbl = document.getElementById('upload-row-label');
+  if(uploadLbl) uploadLbl.innerHTML = isApi ? '📁 업로드<br><span style="font-size:10px;color:#10a37f;font-weight:600;">(Whisper)</span>' : '📁 업로드<br><span style="font-size:10px;color:#03c75a;font-weight:600;">(CLOVA)</span>';
 
   // 버튼 하이라이트
   const accent = 'var(--accent)', accentGlow = 'var(--accent-glow)';

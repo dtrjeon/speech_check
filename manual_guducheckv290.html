@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>전문 구두점검 — 사용설명서</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f7fc;--surface:#ffffff;--surface2:#eef1f8;
+  --border:#d4d9e8;--border2:#c2c9dd;
+  --text:#1a1f2e;--text-muted:#4a5270;--text-dim:#8892aa;
+  --green:#1e7e44;--green-bg:rgba(30,126,68,.09);--green-border:rgba(30,126,68,.28);
+  --red:#c0392b;--red-bg:rgba(192,57,43,.09);--red-border:rgba(192,57,43,.26);
+  --amber:#b7770d;--amber-bg:rgba(183,119,13,.09);--amber-border:rgba(183,119,13,.28);
+  --blue:#1a56b0;--blue-bg:rgba(26,86,176,.09);--blue-border:rgba(26,86,176,.26);
+  --accent:#5046cc;--accent-glow:rgba(80,70,204,.12);
+  --clova:#007a50;--clova-bg:rgba(0,122,80,.09);--clova-border:rgba(0,122,80,.28);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100%;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-weight:300;line-height:1.7;-webkit-font-smoothing:antialiased;}
+.page{box-shadow:none;}
+.page{max-width:520px;margin:0 auto;padding:24px 16px 64px;}
+.app-tag{display:inline-block;font-size:10px;letter-spacing:.12em;color:var(--accent);border:1px solid var(--accent-glow);background:var(--accent-glow);padding:3px 10px;border-radius:20px;margin-bottom:12px;text-transform:uppercase;}
+h1{font-size:22px;font-weight:700;line-height:1.2;margin-bottom:6px;}
+.ver{font-size:12px;color:var(--text-dim);margin-bottom:20px;}
+.toc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:28px;}
+.toc-title{font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;}
+.toc a{display:block;font-size:13px;color:var(--text-muted);text-decoration:none;padding:4px 0;border-bottom:1px solid var(--border);}
+.toc a:last-child{border-bottom:none;}
+.toc a:hover{color:var(--accent);}
+.toc-num{display:inline-block;width:24px;font-size:11px;color:var(--text-dim);}
+.section{margin-bottom:32px;}
+.sec-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+h2{font-size:17px;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+h3{font-size:14px;font-weight:500;color:var(--text);margin:18px 0 8px;}
+p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+.card-title{font-size:11px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;}
+.steps{list-style:none;counter-reset:step;}
+.steps li{counter-increment:step;display:flex;gap:12px;margin-bottom:14px;align-items:flex-start;}
+.steps li::before{content:counter(step);flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px;box-shadow:0 2px 6px rgba(80,70,204,.25);}
+.steps li p{margin:0;font-size:13px;color:var(--text-muted);line-height:1.7;}
+.badge{display:inline-block;border-radius:5px;padding:1px 8px;font-size:11px;font-weight:500;margin:1px 2px;}
+.b-ok{background:rgba(255,255,255,.07);color:var(--text);border:1px solid rgba(255,255,255,.12);}
+.b-miss{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+.b-extra{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);}
+.b-sub{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border);}
+.info-box{border-radius:10px;padding:12px 14px;font-size:13px;margin-bottom:12px;line-height:1.7;}
+.info-warn{background:var(--amber-bg);border:1px solid var(--amber-border);color:var(--amber);}
+.info-ok{background:var(--green-bg);border:1px solid var(--green-border);color:var(--green);}
+.info-clova{background:var(--clova-bg);border:1px solid var(--clova-border);color:var(--clova);}
+.info-blue{background:var(--blue-bg);border:1px solid var(--blue-border);color:var(--blue);}
+.info-red{background:var(--red-bg);border:1px solid var(--red-border);color:var(--red);}
+.ch-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
+.ch-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
+.ch-num{font-size:10px;color:var(--text-dim);margin-bottom:2px;}
+.ch-name{font-size:14px;font-weight:500;color:var(--text);}
+.kv{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px;}
+.kv td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+.kv td:first-child{color:var(--text-dim);white-space:nowrap;min-width:90px;}
+.kv td:last-child{color:var(--text-muted);}
+.divider{border:none;border-top:1px solid var(--border);margin:24px 0;}
+.btn-ex{display:inline-flex;align-items:center;gap:5px;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:500;border:1px solid;margin:2px;}
+.btn-ex.accent{border-color:var(--accent);background:var(--accent-glow);color:var(--accent);}
+.btn-ex.green{border-color:var(--green-border);background:var(--green-bg);color:var(--green);}
+.btn-ex.red{border-color:var(--red-border);background:var(--red-bg);color:var(--red);}
+.btn-ex.clova{border-color:var(--clova-border);background:var(--clova-bg);color:var(--clova);}
+.btn-ex.muted{border-color:var(--border2);background:var(--surface2);color:var(--text-muted);}
+.btn-ex.amber{border-color:var(--amber-border);background:var(--amber-bg);color:var(--amber);}
+.skin-row{display:flex;gap:8px;margin-bottom:10px;}
+.skin-swatch{flex:1;border-radius:8px;padding:10px;text-align:center;font-size:12px;border:1px solid;}
+.s-dark{background:#0e0f11;color:#e8eaf0;border-color:#2a2d35;}
+.s-warm{background:#faf8f5;color:#1a1a1a;border-color:rgba(120,80,20,.2);}
+.s-light{background:#f0f3f8;color:#1a1f2e;border-color:rgba(26,58,176,.15);}
+.checklist{list-style:none;}
+.checklist li{display:flex;gap:8px;font-size:13px;color:var(--text-muted);padding:5px 0;border-bottom:1px solid var(--border);}
+.checklist li:last-child{border-bottom:none;}
+.checklist li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0;}
+.act-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.act-row:last-child{border-bottom:none;}
+.act-badge{display:inline-block;border-radius:4px;padding:1px 8px;font-size:11px;font-weight:500;white-space:nowrap;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="app-tag">전도폭발훈련 · 전문 구두점검</div>
+  <h1>전문 구두점검<br>사용설명서</h1>
+  <div class="ver">v2.94 (2026.07.31) &nbsp;·&nbsp; 지구촌교회 JUST EE (훈련생 배포판)</div>
+
+  <div class="toc">
+    <div class="toc-title">목차</div>
+    <a href="#s1"><span class="toc-num">1</span>앱 개요 및 화면 구성</a>
+    <a href="#s2"><span class="toc-num">2</span>로그인 · 로그아웃</a>
+    <a href="#s3"><span class="toc-num">3</span>챕터 선택</a>
+    <a href="#s4"><span class="toc-num">4</span>원본 텍스트 확인</a>
+    <a href="#s5"><span class="toc-num">5</span>음성 입력 (자동: Whisper·CLOVA)</a>
+    <a href="#s6"><span class="toc-num">6</span>텍스트 파일 불러오기</a>
+    <a href="#s6b"><span class="toc-num">7</span>업로드 파일 자동 추출 · STT 오인식 교정</a>
+    <a href="#s7"><span class="toc-num">8</span>비교 분석 실행</a>
+    <a href="#s8"><span class="toc-num">9</span>결과 화면 보는 법</a>
+    <a href="#s-audio"><span class="toc-num">10</span>오디오 플레이어</a>
+    <a href="#s9"><span class="toc-num">11</span>미리보기 · 프린트 출력</a>
+    <a href="#s10"><span class="toc-num">12</span>스킨(화면 테마) 변경</a>
+    <a href="#s11"><span class="toc-num">13</span>홈화면 설치 (PWA)</a>
+    <a href="#s13"><span class="toc-num">14</span>자주 묻는 질문 (FAQ)</a>
+  </div>
+
+  <!-- ── 1. 개요 ── -->
+  <div class="section" id="s1">
+    <div class="sec-label">Section 01</div>
+    <h2>앱 개요 및 화면 구성</h2>
+    <p>전도폭발(EE) 훈련생이 복음 제시 대사를 <strong>소리 내어 연습</strong>하고, 녹음된 음성과 원본 텍스트를 <strong>단어 단위로 비교</strong>하여 암기 정확도를 점검하는 도구입니다.</p>
+
+    <div class="card">
+      <div class="card-title">화면 구성</div>
+      <table class="kv">
+        <tr><td>사용자 바</td><td>로그인 이름·반·단계 표시, 로그아웃 버튼</td></tr>
+        <tr><td>① 챕터 선택</td><td>암기할 장(章)을 1개 이상 선택</td></tr>
+        <tr><td>② 원본 텍스트</td><td>선택된 챕터의 정답 대사 자동 로드</td></tr>
+        <tr><td>③ 음성 입력</td><td>STT 또는 텍스트 파일 불러오기로 녹음 텍스트 입력</td></tr>
+        <tr><td>④ 비교 분석</td><td>원본과 녹음 텍스트를 단어 단위로 비교</td></tr>
+        <tr><td>⑤ 결과 패널</td><td>일치율·누락·추가·대체 단어 색상 표시</td></tr>
+      </table>
+    </div>
+
+    <div class="info-box info-blue">
+      💡 우측 상단 <strong>🟢 온라인 연결</strong> 표시로 인터넷 연결 상태를 확인할 수 있습니다.<br>
+      우측 하단 <strong>🌙</strong> 버튼으로 화면 테마를 변경합니다.
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 2. 로그인 ── -->
+  <div class="section" id="s2">
+    <div class="sec-label">Section 02</div>
+    <h2>로그인 · 로그아웃</h2>
+    <p>앱을 열면 로그인 화면이 표시됩니다. <strong>관리자(2단계 교사)에게 발급받은 이름과 비밀번호</strong>를 입력해야 사용할 수 있습니다.</p>
+
+    <ul class="steps">
+      <li><p>이름 입력 후 <strong>엔터</strong> → 비밀번호 칸으로 이동합니다.</p></li>
+      <li><p>비밀번호 입력 후 <strong>로그인</strong> 버튼을 탭하거나 엔터를 누릅니다.</p></li>
+      <li><p>성공하면 상단 사용자 바에 <strong>이름 · 반 · 단계</strong>가 표시됩니다.</p></li>
+    </ul>
+
+    <div class="info-box info-ok">
+      ✅ 로그인 정보는 <strong>브라우저 세션 동안</strong> 유지됩니다. 브라우저를 완전히 닫으면 자동 로그아웃됩니다.
+    </div>
+
+    <div class="info-box info-warn">
+      ⚠ 비밀번호는 2단계 교사에게 문의해주세요.
+    </div>
+
+    <h3>로그아웃</h3>
+    <p>상단 사용자 바 오른쪽 <span class="btn-ex muted">로그아웃</span> 버튼을 탭하면 즉시 로그아웃됩니다.</p>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 3. 챕터 선택 ── -->
+  <div class="section" id="s3">
+    <div class="sec-label">Section 03</div>
+    <h2>챕터 선택</h2>
+
+    <div class="ch-grid">
+      <div class="ch-item"><div class="ch-num">1장</div><div class="ch-name">서론(아니요)</div></div>
+      <div class="ch-item"><div class="ch-num">2장</div><div class="ch-name">은혜</div></div>
+      <div class="ch-item"><div class="ch-num">3장</div><div class="ch-name">인간</div></div>
+      <div class="ch-item"><div class="ch-num">4장</div><div class="ch-name">하나님</div></div>
+      <div class="ch-item"><div class="ch-num">5장</div><div class="ch-name">그리스도</div></div>
+      <div class="ch-item"><div class="ch-num">6장</div><div class="ch-name">믿음</div></div>
+      <div class="ch-item"><div class="ch-num">7장</div><div class="ch-name">결신</div></div>
+      <div class="ch-item"><div class="ch-num">8장</div><div class="ch-name">즉석양육</div></div>
+    </div>
+
+    <ul class="steps">
+      <li><p>상단 <span class="btn-ex accent">단일 선택</span> / <span class="btn-ex muted">복수 선택</span> 버튼으로 먼저 모드를 고릅니다. <strong>단일 선택</strong>은 챕터 1개만, <strong>복수 선택</strong>은 여러 챕터를 동시에 고를 수 있습니다. (이때 음성인식 방식도 <strong>단일→Whisper / 복수→CLOVA</strong>로 자동 전환됩니다 — Section 05 참고)</p></li>
+      <li><p>원하는 챕터 카드를 <strong>탭</strong>하면 선택됩니다. 복수 선택 모드에서는 카드 우측 상단에 선택 순서가 표시됩니다.</p></li>
+      <li><p>복수 선택 시 <strong>선택한 순서대로</strong> 원본 텍스트가 이어집니다.</p></li>
+      <li><p>선택된 챕터 아래 <strong>암기개요 미리보기</strong> 박스가 나타납니다.</p></li>
+    </ul>
+
+    <div class="info-box info-warn">
+      ⚠ <strong>챕터를 선택하지 않으면 녹음이 시작되지 않습니다.</strong> "● 녹음 시작"을 눌러도 "먼저 녹음할 챕터를 클릭해서 선택해 주세요" 안내가 뜹니다 — 원본이 있어야 비교 분석이 가능하기 때문입니다.
+    </div>
+
+    <div class="info-box info-blue">
+      💡 암기개요에서 각 줄을 탭하면 <em>필수 암기(흰색)</em>와 <em>참고(회색)</em>로 토글할 수 있습니다. <strong>저장</strong> 버튼으로 설정을 보존하세요.
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 4. 원본 텍스트 ── -->
+  <div class="section" id="s4">
+    <div class="sec-label">Section 04</div>
+    <h2>원본 텍스트 확인</h2>
+    <p>챕터를 선택하면 원본 텍스트 카드에 정답 대사가 자동으로 채워집니다.</p>
+
+    <div class="card">
+      <div class="card-title">카드 조작 버튼</div>
+      <table class="kv">
+        <tr><td>접기/펼치기</td><td>헤더 오른쪽 버튼으로 텍스트 영역을 숨기거나 표시</td></tr>
+        <tr><td>전체보기</td><td>↗ 아이콘 → "챕터 원본" 전체화면 모달로 크게 표시. 모달 상단 <strong>가- / 가+</strong> 버튼으로 글자 크기 조절(설정은 기기에 저장되어 다음에도 유지됨)</td></tr>
+        <tr><td>글자 크기</td><td><strong>가%</strong> 버튼 반복 탭 → 100%~150% 5%씩 증가</td></tr>
+      </table>
+    </div>
+
+    <div class="info-ok info-box">
+      ✅ 성경 구절(<code>[SKIP]...[/SKIP]</code>)은 비교 분석 시 자동 제외되며, 삭제된 자리에는 공백 1칸이 유지됩니다.
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 5. STT ── -->
+  <div class="section" id="s5">
+    <div class="sec-label">Section 05</div>
+    <h2>음성 입력 (자동으로 CLOVA · Whisper 사용)</h2>
+
+    <div class="info-box info-ok">
+      ✅ 이 앱은 음성인식 방식을 <strong>따로 선택할 필요가 없습니다.</strong> Section 03에서 고른 <strong>단일/복수 선택</strong>에 따라 아래처럼 자동으로 정해집니다.
+    </div>
+
+    <div class="card">
+      <div class="card-title">💡 구두점검 범위에 따라 자동 결정</div>
+      <table class="kv">
+        <tr><td>단일 선택</td><td>챕터 1개만 점검 → <strong>🤖 Whisper</strong> 사용</td></tr>
+        <tr><td>복수 선택</td><td>여러 챕터 함께 점검 → <strong>🟢 CLOVA</strong> 사용</td></tr>
+      </table>
+      <p style="font-size:12px;color:var(--text-dim);margin-top:4px;">지금 어떤 방식이 적용됐는지는 <strong>📁 업로드</strong> 글자 아래 작게 "(Whisper)" 또는 "(CLOVA)"로 표시됩니다.</p>
+    </div>
+
+    <div class="info-box info-warn">
+      ⚠ <strong>CLOVA API, Whisper API는 사용 시간당 비용이 발생합니다.</strong> 꼭 필요한 만큼만 녹음·변환해 주세요.<br>(2단계 교사 비용처리)
+    </div>
+
+    <div class="card">
+      <div class="card-title">📱 기기별 호환성 비교</div>
+      <table class="kv" style="width:100%;">
+        <tr>
+          <td style="min-width:auto;"></td>
+          <td style="text-align:center;font-weight:600;color:var(--text);">🤖 갤럭시</td>
+          <td style="text-align:center;font-weight:600;color:var(--text);">🍎 아이폰</td>
+        </tr>
+        <tr>
+          <td><span style="color:var(--clova);font-weight:500;">🟢 CLOVA</span></td>
+          <td style="text-align:center;"><span style="color:var(--green);font-weight:600;">✓</span></td>
+          <td style="text-align:center;"><span style="color:var(--green);font-weight:600;">✓</span></td>
+        </tr>
+        <tr>
+          <td><span style="color:#10a37f;font-weight:500;">🤖 Whisper</span></td>
+          <td style="text-align:center;"><span style="color:var(--green);font-weight:600;">✓</span></td>
+          <td style="text-align:center;"><span style="color:var(--green);font-weight:600;">✓</span></td>
+        </tr>
+        <tr>
+          <td>📱 텍스트 파일 불러오기</td>
+          <td style="text-align:center;"><span style="color:var(--green);font-weight:600;">✓</span></td>
+          <td style="text-align:center;"><span style="color:var(--green);font-weight:600;">✓</span></td>
+        </tr>
+      </table>
+      <p style="font-size:12px;color:var(--text-dim);margin-top:4px;">CLOVA·Whisper 둘 다 녹음 후 서버로 보내 변환하는 방식이라 갤럭시·아이폰 상관없이 동일하게 사용 가능합니다.</p>
+    </div>
+
+    <h3>녹음 방법 (공통)</h3>
+    <ul class="steps">
+      <li><p><span class="btn-ex accent">🎤 마이크 권한 허용</span> 버튼을 눌러 마이크 접근을 허용합니다.</p></li>
+      <li><p><span class="btn-ex red">● 녹음 시작</span> 버튼을 누르고 복음 대사를 또렷하게 읽습니다.</p></li>
+      <li><p>읽기가 끝나면 <span class="btn-ex red">■ 녹음 중지</span>를 누릅니다.</p></li>
+      <li><p>자동으로 서버에 전송되어 텍스트로 변환됩니다 (CLOVA는 곧바로, Whisper는 <strong>텍스트 추출</strong> 버튼을 한 번 더 눌러야 할 수 있습니다).</p></li>
+      <li><p><span class="btn-ex green">저장</span> 버튼으로 녹음(음성+텍스트)을 저장합니다. 저장된 파일은 기기 다운로드 폴더에서 확인할 수 있습니다.</p></li>
+    </ul>
+
+    <div class="info-box info-warn">
+      ⚠ 인터넷 연결이 필요하며, 변환에 수 초~수십 초가 걸릴 수 있습니다.
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 6. 텍스트 파일 불러오기 ── -->
+  <div class="section" id="s6">
+    <div class="sec-label">Section 06</div>
+    <h2>텍스트 파일 불러오기</h2>
+
+    <div class="info-box info-clova">
+      📱 이미 다른 방법으로 변환해둔 텍스트를 파일로 불러오거나 직접 붙여넣는 기능입니다.<br>네이버 <strong>클로바노트</strong> 앱(무료)으로 녹음·변환하면, 아이폰에서도 이 방법으로 고품질 텍스트를 가져올 수 있습니다.
+    </div>
+
+    <div class="card">
+      <div class="card-title">방법 A — 파일 저장 후 불러오기</div>
+      <ul class="steps">
+        <li><p>클로바노트 등 외부 앱 → 녹음 → 변환 완료 → <strong>공유 → .txt 저장</strong></p></li>
+        <li><p>이 앱 → <strong>텍스트 파일 불러오기</strong> 탭 → <span class="btn-ex clova">📂 파일 불러오기</span></p></li>
+        <li><p><span class="btn-ex clova">녹음 텍스트로 적용하기</span></p></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">방법 B — 직접 붙여넣기</div>
+      <ul class="steps">
+        <li><p>클로바노트 등 외부 앱 → 녹음 완료 → <strong>전체 선택 → 복사</strong></p></li>
+        <li><p>이 앱 → <strong>텍스트 파일 불러오기</strong> 탭 텍스트 칸 → <strong>길게 탭 → 붙여넣기</strong></p></li>
+        <li><p><span class="btn-ex clova">녹음 텍스트로 적용하기</span></p></li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 6-1. 업로드 자동 추출 / STT 오인식 교정 ── -->
+  <div class="section" id="s6b">
+    <div class="sec-label">Section 07</div>
+    <h2>업로드 파일 자동 추출 · STT 오인식 교정</h2>
+
+    <h3>📂 기존 오디오 파일 업로드 → 자동 추출 → 자동 저장</h3>
+    <p>마이크로 직접 녹음하지 않고, <strong>이미 녹음된 오디오 파일</strong>(다른 앱으로 녹음한 파일 등)을 올려서 바로 텍스트로 변환할 수도 있습니다.</p>
+
+    <ul class="steps">
+      <li><p>마이크 녹음 탭 하단 <strong>📂 업로드</strong> 줄에서 <span class="btn-ex accent">파일 선택</span>을 탭해 오디오 파일을 고릅니다.</p></li>
+      <li><p>파일을 고르면 <strong>자동으로 텍스트 추출</strong>이 시작됩니다(현재 자동 적용된 방식 사용).</p></li>
+      <li><p>추출이 끝나면 <strong>사람이 따로 저장 버튼을 누르지 않아도</strong> 텍스트(.txt) 파일이 곧바로 자동 저장(다운로드)됩니다.</p></li>
+    </ul>
+
+    <div class="info-box info-blue">
+      💡 <strong>"업로드"</strong> 라벨 아래에 지금 어떤 방식으로 처리될지 작게 표시됩니다 — <strong>"업로드 (Whisper)"</strong> 또는 <strong>"업로드 (CLOVA)"</strong>. 파일을 고르기 전에 미리 확인할 수 있습니다.
+    </div>
+
+    <div class="info-box info-ok">
+      ✅ 업로드 흐름은 텍스트만 자동 저장됩니다(음성 파일은 자동 저장 안 함). 상태칸이 <strong>"✓ 추출+저장 완료"</strong>로 바뀌면 정상 처리된 것입니다.
+    </div>
+
+    <div class="info-box info-blue">
+      💡 저장되는 파일명 끝에는 어떤 방식으로 추출했는지 표시됩니다 — CLOVA로 추출: <strong>_c</strong>, Whisper(AI 음성인식)로 추출: <strong>_w</strong> (예: <code>JUSTEE_녹음_260730_0900_c.txt</code>)
+    </div>
+
+    <h3>🔤 STT 오인식 자동 교정 사전</h3>
+    <p>음성인식 특성상 "아니오"↔"아니요", "거져"↔"거저"처럼 특정 단어가 반복적으로 잘못 인식되는 경우가 있습니다. 이런 단어들은 <strong>비교 분석을 실행하는 순간</strong> 자동으로 올바른 표기로 교정된 뒤 비교됩니다.</p>
+
+    <div class="info-box info-blue">
+      💡 저장된 .txt 파일 자체에는 교정 전 원문 그대로 저장됩니다. 화면상 <strong>비교 분석 결과에만</strong> 교정이 적용됩니다.
+    </div>
+
+    <div class="info-box info-warn">
+      ⚠ 이 교정 사전은 앱 관리자가 관리합니다. 반복적으로 같은 단어가 오류로 잡힌다면 관리자에게 문의해 교정 사전에 추가를 요청하세요.
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 7. 비교 분석 ── -->
+  <div class="section" id="s7">
+    <div class="sec-label">Section 08</div>
+    <h2>비교 분석 실행</h2>
+
+    <ul class="steps">
+      <li><p>챕터 선택 → 원본 텍스트 확인 → 녹음 텍스트 입력을 완료합니다.</p></li>
+      <li><p><span class="btn-ex accent">＋ 비교 분석</span> 버튼을 누릅니다.</p></li>
+      <li><p>화면 하단에 <strong>결과 패널</strong>이 펼쳐집니다.</p></li>
+    </ul>
+
+    <div class="info-box info-blue">
+      💡 <span class="btn-ex muted">녹음 지우기</span> 녹음 텍스트만 초기화<br>
+      &nbsp;&nbsp;&nbsp;<span class="btn-ex muted">전체 초기화</span> 원본·녹음·결과 모두 초기화
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 8. 결과 화면 ── -->
+  <div class="section" id="s8">
+    <div class="sec-label">Section 09</div>
+    <h2>결과 화면 보는 법</h2>
+
+    <h3>일치율 점수</h3>
+    <p>결과 패널 상단에 <strong>% 일치율</strong>과 등급이 표시됩니다. 4개 통계 칩으로 전체·일치·누락·추가 단어 수를 확인하세요.</p>
+
+    <h3>색상 범례</h3>
+    <div class="card">
+      <table class="kv">
+        <tr><td><span class="badge b-ok">단어</span></td><td><strong>일치</strong> — 원본과 정확히 일치</td></tr>
+        <tr><td><span class="badge b-miss">단어</span></td><td><strong>누락</strong> — 원본에 있지만 말하지 않음 (취소선)</td></tr>
+        <tr><td><span class="badge b-extra">단어</span></td><td><strong>추가</strong> — 원본에 없는데 말한 단어</td></tr>
+        <tr><td><span class="badge b-sub">단어</span></td><td><strong>대체</strong> — 비슷하지만 다른 단어</td></tr>
+      </table>
+    </div>
+
+    <h3>2단 비교 보기</h3>
+    <p><strong>원본(좌)</strong>과 <strong>내 발화(우)</strong>를 나란히 표시하여 오류 위치를 한눈에 파악할 수 있습니다.</p>
+
+    <h3>A4 미리보기 사용 예시</h3>
+    <p>아래는 실제 A4 미리보기 화면입니다. 좌측은 <strong>원본</strong>, 우측은 <strong>내 발화</strong>를 단어 단위로 비교한 결과입니다.</p>
+
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="background:#111;color:#eee;font-size:11px;font-weight:500;padding:8px 14px;letter-spacing:.05em;">📄 A4 미리보기 — 2단 비교 예시</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;font-size:12px;line-height:1.9;color:var(--text-muted);">
+        <!-- 헤더 -->
+        <div style="background:var(--surface2);padding:8px 12px;border-bottom:1px solid var(--border);font-weight:500;color:var(--text-dim);font-size:11px;letter-spacing:.06em;">원본</div>
+        <div style="background:var(--surface2);padding:8px 12px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);font-weight:500;color:var(--text-dim);font-size:11px;letter-spacing:.06em;">내 발화</div>
+        <!-- 행 4 -->
+        <div style="padding:10px 12px;border-bottom:1px solid var(--border);display:flex;gap:6px;align-items:flex-start;">
+          <span style="color:var(--red);font-weight:700;font-size:13px;flex-shrink:0;">4</span>
+          <span>행위에서 난 것이 아니니 이는 누구든지 자랑하지 못하게 <span style="text-decoration:line-through;color:var(--red-border);">—</span> 함이라 라고 말씀하십니다</span>
+        </div>
+        <div style="padding:10px 12px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);display:flex;gap:6px;align-items:flex-start;">
+          <span style="color:var(--red);font-weight:700;font-size:13px;flex-shrink:0;">4</span>
+          <span>행위에서 난 것이 아니니 이는 누구든지 자랑하지 못하게 <span class="badge b-sub" style="font-size:11px;">하려</span> 함이라 라고 말씀하십니다</span>
+        </div>
+        <!-- 행 5 -->
+        <div style="padding:10px 12px;border-bottom:1px solid var(--border);display:flex;gap:6px;align-items:flex-start;">
+          <span style="color:var(--red);font-weight:700;font-size:13px;flex-shrink:0;">5</span>
+          <span>사실 우리가 살면서 생명과 관계되는 가장 중요한 것은 <span class="badge b-miss" style="font-size:11px;">값없이</span> — 다 선물로 받았어요</span>
+        </div>
+        <div style="padding:10px 12px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);display:flex;gap:6px;align-items:flex-start;">
+          <span style="color:var(--red);font-weight:700;font-size:13px;flex-shrink:0;">5</span>
+          <span>사실 우리가 살면서 생명과 관계되는 가장 중요한 것은 <span class="badge b-sub" style="font-size:11px;">값</span> <span class="badge b-sub" style="font-size:11px;">없이</span> 다 선물로 받았어요</span>
+        </div>
+        <!-- 행 6 -->
+        <div style="padding:10px 12px;display:flex;gap:6px;align-items:flex-start;">
+          <span style="color:var(--text-dim);font-weight:500;font-size:13px;flex-shrink:0;">6</span>
+          <span style="color:var(--text-dim);">예를 들면 밝은 햇빛 공기 물 등은 값없이 다 선물로 거저 받았습니다</span>
+        </div>
+        <div style="padding:10px 12px;border-left:1px solid var(--border);display:flex;gap:6px;align-items:flex-start;">
+          <span style="color:var(--text-dim);font-weight:500;font-size:13px;flex-shrink:0;">6</span>
+          <span style="color:var(--text-dim);">예를 들면 밝은 햇빛 공기 물 등은 값없이 다 선물로 거저 받았습니다</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:8px;">
+      <div class="card-title">읽는 법</div>
+      <table class="kv">
+        <tr><td><span style="color:var(--red);font-weight:700;">빨간 번호</span></td><td>오류가 있는 문장 번호</td></tr>
+        <tr><td><span style="color:var(--text-dim);">회색 번호</span></td><td>정확히 일치하는 문장</td></tr>
+        <tr><td><span class="badge b-sub">하려</span></td><td>대체 단어 — 원본과 다르게 말한 단어 (보라색)</td></tr>
+        <tr><td><span class="badge b-miss" style="text-decoration:line-through;">값없이</span></td><td>누락 단어 — 말하지 않은 단어 (빨간색 취소선)</td></tr>
+        <tr><td><span style="text-decoration:line-through;color:var(--border2);">—</span></td><td>원본의 해당 위치 (발화에서 누락)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 오디오 플레이어 ── -->
+  <div class="section" id="s-audio">
+    <div class="sec-label">Section 10</div>
+    <h2>오디오 플레이어</h2>
+    <p>챕터를 선택하면 해당 챕터의 <strong>전문 낭독 오디오</strong>가 자동으로 로드됩니다. 오디오를 들으며 원본 텍스트와 함께 연습할 수 있습니다.</p>
+
+    <div class="card">
+      <div class="card-title">플레이어 구성</div>
+      <table class="kv">
+        <tr><td>🎧 챕터명</td><td>현재 로드된 챕터 이름 표시</td></tr>
+        <tr><td>▶ 재생 버튼</td><td>오디오 재생 / 일시정지</td></tr>
+        <tr><td>진행 바</td><td>현재 재생 위치 표시 및 탭으로 이동 가능</td></tr>
+        <tr><td><span class="btn-ex accent">ON</span> / <span class="btn-ex red">OFF</span></td><td>오디오 사용 여부 토글 — OFF 시 오디오 숨김</td></tr>
+      </table>
+    </div>
+
+    <div class="info-box info-blue">
+      💡 오디오 재생 중 암기개요 미리보기 패널에서 <strong>현재 낭독 중인 라인이 자동 하이라이트</strong>됩니다.
+    </div>
+
+    <div class="info-box info-ok">
+      ✅ <strong>단일 챕터 선택</strong> 시에만 오디오 플레이어가 표시됩니다. 복수 챕터 선택 시 플레이어는 숨겨집니다.
+    </div>
+
+    <div class="card">
+      <div class="card-title">챕터별 오디오 현황</div>
+      <div class="ch-grid">
+        <div class="ch-item"><div class="ch-num">1장</div><div class="ch-name">서론(아니요) ✅</div></div>
+        <div class="ch-item"><div class="ch-num">2장</div><div class="ch-name">은혜 ✅</div></div>
+        <div class="ch-item"><div class="ch-num">3장</div><div class="ch-name">인간 ✅</div></div>
+        <div class="ch-item"><div class="ch-num">4장</div><div class="ch-name">하나님 ✅</div></div>
+        <div class="ch-item"><div class="ch-num">5장</div><div class="ch-name">그리스도 ✅</div></div>
+        <div class="ch-item"><div class="ch-num">6장</div><div class="ch-name">믿음 ✅</div></div>
+        <div class="ch-item"><div class="ch-num">7장</div><div class="ch-name">결신 ✅</div></div>
+        <div class="ch-item"><div class="ch-num">8장</div><div class="ch-name">즉석양육 ✅</div></div>
+        <div class="ch-item"><div class="ch-num">9장</div><div class="ch-name">암기개요 —</div></div>
+        <div class="ch-item"><div class="ch-num">10장</div><div class="ch-name">요약 복음 ✅</div></div>
+      </div>
+    </div>
+
+    <div class="info-box info-warn">
+      ⚠ 오디오는 인터넷 연결 상태에서만 재생됩니다. 오프라인 환경에서는 재생이 되지 않습니다.
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 9. 프린트 ── -->
+  <div class="section" id="s9">
+    <div class="sec-label">Section 11</div>
+    <h2>미리보기 · 프린트 출력</h2>
+    <p>비교 분석 완료 후 아래 버튼이 활성화됩니다.</p>
+
+    <div class="card">
+      <table class="kv">
+        <tr><td><span class="btn-ex accent">👁 미리보기</span></td><td>A4 인쇄본을 화면에서 먼저 확인. 모달 상단 🖨️로 바로 출력</td></tr>
+        <tr><td><span class="btn-ex muted">🖨️ 프린트</span></td><td>브라우저 인쇄 대화상자 바로 실행. 출력일시·일치율 자동 삽입</td></tr>
+      </table>
+    </div>
+
+    <div class="info-box info-warn">
+      ⚠ Chrome: 인쇄 설정 → 더보기 → <strong>배경 그래픽 체크</strong>해야 색상이 정상 출력됩니다.
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 10. 스킨 ── -->
+  <div class="section" id="s10">
+    <div class="sec-label">Section 12</div>
+    <h2>스킨(화면 테마) 변경</h2>
+    <p>화면 우측 하단 원형 버튼을 탭할 때마다 순환됩니다. 선택한 테마는 다음 방문 시에도 유지됩니다.</p>
+
+    <div class="skin-row">
+      <div class="skin-swatch s-dark">🌙<br>다크<br>(기본)</div>
+      <div class="skin-swatch s-warm">☀️<br>웜 화이트</div>
+      <div class="skin-swatch s-light">💙<br>라이트</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 11. PWA ── -->
+  <div class="section" id="s11">
+    <div class="sec-label">Section 13</div>
+    <h2>홈화면 설치 (PWA)</h2>
+    <p>앱을 스마트폰 홈화면에 설치하면 일반 앱처럼 아이콘으로 실행할 수 있습니다.</p>
+
+    <div style="text-align:center;margin:14px 0;">
+      <img src="data:image/png;base64,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" alt="전문 구두점검 앱 아이콘" style="width:76px;height:76px;border-radius:18px;box-shadow:0 4px 16px rgba(0,0,0,.25);">
+      <p style="font-size:11px;color:var(--text-dim);margin-top:8px;">설치하면 홈 화면에 이 아이콘이 생깁니다</p>
+    </div>
+
+    <div class="info-box info-warn">
+      ⚠ <strong>카카오톡 등 메신저로 받은 링크</strong>를 눌러서 열었다면, 그 화면(카카오톡 인앱 브라우저)에서는 <strong>홈 화면 추가가 되지 않습니다.</strong> 아래 방법으로 먼저 진짜 브라우저(Safari/Chrome/삼성 인터넷)로 옮긴 뒤, 그 다음 카드의 설치 방법을 따라하세요.
+    </div>
+
+    <div class="card">
+      <div class="card-title">💬 카카오톡(인앱 브라우저)에서 열었을 때</div>
+      <ul class="steps">
+        <li><p>카카오톡에서 링크를 눌러 열립니다.</p></li>
+        <li><p>화면 <strong>오른쪽 하단(또는 우측 상단) ⋮ 메뉴</strong> 버튼을 탭합니다.</p></li>
+        <li><p>메뉴에서 <strong>"링크 복사"</strong>를 탭합니다. (또는 더 간단하게 <strong>"다른 브라우저로 열기"</strong>를 탭하면 아래 과정 없이 바로 기본 브라우저로 열립니다.)</p></li>
+        <li><p>"링크 복사"를 선택했다면, <strong>Safari(아이폰)</strong> 또는 <strong>Chrome/삼성 인터넷(안드로이드)</strong> 앱을 열고 주소창에 <strong>붙여넣기</strong> 한 뒤 이동합니다.</p></li>
+        <li><p>이제 아래 해당 기기의 카드를 보고 <strong>"홈 화면에 추가"</strong>를 진행합니다.</p></li>
+      </ul>
+      <img src="data:image/jpeg;base64,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" alt="카카오톡 인앱 브라우저 메뉴에서 링크 복사 선택 화면" style="width:100%;max-width:280px;display:block;margin:12px auto 4px;border-radius:12px;border:1px solid var(--border);">
+      <p style="font-size:11px;color:var(--text-dim);text-align:center;margin-top:4px;">⋮ 메뉴를 탭하면 뜨는 화면 — "링크 복사"를 선택하세요</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🍎 아이폰 — Safari</div>
+      <ul class="steps">
+        <li><p>Safari에서 앱 주소를 엽니다.</p></li>
+        <li><p>하단 가운데 <strong>공유 버튼 (□↑)</strong>을 탭합니다.</p></li>
+        <li><p><strong>"홈 화면에 추가"</strong>를 선택합니다.</p></li>
+        <li><p>이름 확인 후 <strong>추가</strong>를 탭합니다.</p></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🤖 안드로이드 갤럭시 — Chrome</div>
+      <ul class="steps">
+        <li><p>Chrome에서 앱 주소를 엽니다.</p></li>
+        <li><p>우측 상단 <strong>⋮ 메뉴</strong>를 탭합니다.</p></li>
+        <li><p><strong>"홈 화면에 추가"</strong> 또는 <strong>"앱 설치"</strong>를 선택합니다.</p></li>
+        <li><p><strong>추가</strong>를 탭합니다.</p></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📱 갤럭시 — 삼성 인터넷(Samsung Internet)</div>
+      <ul class="steps">
+        <li><p>삼성 인터넷 브라우저에서 앱 주소를 엽니다.</p></li>
+        <li><p>하단(또는 상단) <strong>≡ 메뉴</strong> 버튼을 탭합니다.</p></li>
+        <li><p><strong>"현재 페이지 추가"</strong> 탭 → <strong>"홈 화면"</strong>을 선택합니다.</p></li>
+        <li><p>이름 확인 후 <strong>추가</strong>를 탭합니다.</p></li>
+      </ul>
+    </div>
+
+    <div class="info-box info-blue">
+      💡 갤럭시 기본 브라우저가 <strong>Chrome인지 삼성 인터넷인지</strong>에 따라 메뉴 위치가 다릅니다. 잘 모르겠으면 아이콘 모양으로 구분하세요 — 두 방법 중 맞는 쪽을 따라하시면 됩니다.
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 13. FAQ ── -->
+  <div class="section" id="s13">
+    <div class="sec-label">Section 14</div>
+    <h2>자주 묻는 질문 (FAQ)</h2>
+
+    <h3>Q. 아이폰에서 녹음이 안 됩니다</h3>
+    <p>이 앱은 아이폰에서도 문제없이 작동합니다 — CLOVA·Whisper는 iOS 제한과 무관하게 자동으로 사용됩니다. 그래도 안 되면 <strong>텍스트 파일 불러오기</strong> 탭을 이용하세요.</p>
+
+    <h3>Q. 비밀번호를 모릅니다</h3>
+    <p>2단계 교사(관리자)에게 문의하세요. 관리자는 Google Sheets <code>user_list</code> 시트에서 직접 변경할 수 있습니다.</p>
+
+    <h3>Q. 여러 챕터를 한 번에 점검하려면?</h3>
+    <p>상단에서 <strong>"복수 선택"</strong> 모드로 바꾼 뒤 챕터 카드를 순서대로 탭하세요. 선택한 순서대로 원본 텍스트가 이어집니다.</p>
+
+    <h3>Q. 성경 구절이 틀렸다고 표시됩니다</h3>
+    <p>앱 원본 텍스트의 성경 구절은 <code>[SKIP]</code> 태그로 자동 제외됩니다. 직접 입력한 텍스트에는 동일하게 태그를 추가하거나 해당 구절을 삭제하세요.</p>
+
+    <h3>Q. 분석 결과를 파일로 저장하려면?</h3>
+    <p>프린트 출력 시 브라우저 인쇄 대화상자에서 <strong>"PDF로 저장"</strong>을 선택하면 됩니다.</p>
+
+    <h3>Q. 암기개요 설정이 초기화됩니다</h3>
+    <p>암기개요 변경 후 반드시 <strong>저장</strong> 버튼을 눌러야 브라우저에 보존됩니다.</p>
+
+    <h3>Q. 오디오 파일을 업로드했는데 텍스트가 저장이 안 됩니다</h3>
+    <p>업로드 흐름은 추출이 끝나면 자동으로 텍스트(.txt)가 저장됩니다. 상태칸이 "✓ 추출+저장 완료"로 바뀌는지 확인하세요. 계속 "추출 중..."에 머문다면 인터넷 연결을 확인하고 다시 시도해 주세요.</p>
+
+    <h3>Q. 화면을 확대(핀치줌)하면 글자가 화면 밖으로 잘려서 안 보입니다</h3>
+    <p>손가락으로 화면 전체를 확대하는 대신, "챕터 원본" 전체보기 모달 안의 <strong>가- / 가+</strong> 버튼을 사용하세요. 박스 폭은 그대로 유지한 채 글자만 커져서 줄바꿈이 유지됩니다.</p>
+
+    <hr class="divider">
+
+    <h3>전체 사용 흐름</h3>
+    <ul class="checklist">
+      <li>로그인 (이름 + 비밀번호)</li>
+      <li>챕터 선택 (1개 이상)</li>
+      <li>원본 텍스트 확인 (자동 로드)</li>
+      <li>구두점검 범위 선택 (단일/복수 → Whisper/CLOVA 자동 결정) 또는 텍스트 파일 불러오기</li>
+      <li>복음 대사 낭독 및 텍스트 저장</li>
+      <li>비교 분석 버튼 실행</li>
+      <li>색상 강조로 오류 확인</li>
+      <li>(필요 시) 미리보기 · 프린트 출력</li>
+      <li>사용 종료 시 로그아웃</li>
+    </ul>
+  </div>
+
+  <div style="text-align:center;font-size:11px;color:var(--text-dim);margin-top:32px;">
+    전도폭발훈련 전문 구두점검 사용설명서<br>
+    지구촌교회 JUST EE · 2026.07.31 최종판
+  </div>
+
+</div>
+</body>
+</html>
