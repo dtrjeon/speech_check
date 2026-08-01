@@ -174,6 +174,8 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
       <div class="ch-item"><div class="ch-num">6장</div><div class="ch-name">믿음</div></div>
       <div class="ch-item"><div class="ch-num">7장</div><div class="ch-name">결신</div></div>
       <div class="ch-item"><div class="ch-num">8장</div><div class="ch-name">즉석양육</div></div>
+      <div class="ch-item"><div class="ch-num">9장</div><div class="ch-name">암기개요</div></div>
+      <div class="ch-item"><div class="ch-num">10장</div><div class="ch-name">요약 복음</div></div>
     </div>
 
     <ul class="steps">
@@ -267,11 +269,11 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
 
     <h3>녹음 방법 (공통)</h3>
     <ul class="steps">
-      <li><p><span class="btn-ex accent">🎤 마이크 권한 허용</span> 버튼을 눌러 마이크 접근을 허용합니다.</p></li>
-      <li><p><span class="btn-ex red">● 녹음 시작</span> 버튼을 누르고 복음 대사를 또렷하게 읽습니다.</p></li>
-      <li><p>읽기가 끝나면 <span class="btn-ex red">■ 녹음 중지</span>를 누릅니다.</p></li>
+      <li><p><span class="btn-ex accent">🔒 허용</span> 버튼을 눌러 마이크 접근을 허용합니다.</p></li>
+      <li><p>검은 <span class="btn-ex red">●</span> 아이콘을 누르면 녹음이 시작됩니다(빨간색으로 바뀜). 복음 대사를 또렷하게 읽습니다.</p></li>
+      <li><p>읽기가 끝나면 빨간 <span class="btn-ex red">●</span> 아이콘을 다시 눌러 녹음을 중지합니다.</p></li>
       <li><p>자동으로 서버에 전송되어 텍스트로 변환됩니다 (CLOVA는 곧바로, Whisper는 <strong>텍스트 추출</strong> 버튼을 한 번 더 눌러야 할 수 있습니다).</p></li>
-      <li><p><span class="btn-ex green">저장</span> 버튼으로 녹음(음성+텍스트)을 저장합니다. 저장된 파일은 기기 다운로드 폴더에서 확인할 수 있습니다.</p></li>
+      <li><p><span class="btn-ex green">📥</span> 아이콘을 눌러 녹음(음성+텍스트)을 저장합니다. 저장된 파일은 기기 다운로드 폴더에서 확인할 수 있습니다.</p></li>
     </ul>
 
     <div class="info-box info-warn">
@@ -291,20 +293,16 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
     </div>
 
     <div class="card">
-      <div class="card-title">방법 A — 파일 저장 후 불러오기</div>
+      <div class="card-title">텍스트 파일 불러오기 방법</div>
       <ul class="steps">
-        <li><p>클로바노트 등 외부 앱 → 녹음 → 변환 완료 → <strong>공유 → .txt 저장</strong></p></li>
-        <li><p>이 앱 → <strong>텍스트 파일 불러오기</strong> 탭 → <span class="btn-ex clova">📂 파일 불러오기</span></p></li>
-        <li><p><span class="btn-ex clova">녹음 텍스트로 적용하기</span></p></li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <div class="card-title">방법 B — 직접 붙여넣기</div>
-      <ul class="steps">
-        <li><p>클로바노트 등 외부 앱 → 녹음 완료 → <strong>전체 선택 → 복사</strong></p></li>
-        <li><p>이 앱 → <strong>텍스트 파일 불러오기</strong> 탭 텍스트 칸 → <strong>길게 탭 → 붙여넣기</strong></p></li>
-        <li><p><span class="btn-ex clova">녹음 텍스트로 적용하기</span></p></li>
+        <li><p>클로바노트 등 외부 앱에서 <strong>녹음 → 텍스트 변환</strong>을 마칩니다.</p></li>
+        <li>
+          <p><strong>방법 A (파일)</strong> — 공유 → .txt 저장 → 이 앱 → <strong>텍스트 파일 불러오기</strong> 탭 → <span class="btn-ex clova">📂 파일 불러오기 (.txt)</span></p>
+        </li>
+        <li>
+          <p><strong>방법 B (복사)</strong> — 전체 선택 → 복사 → 이 앱 텍스트 칸에 <strong>길게 탭 → 붙여넣기</strong></p>
+        </li>
+        <li><p>어느 방법이든 <span class="btn-ex clova">녹음 텍스트로 적용하기</span> 버튼을 누르면 끝입니다.</p></li>
       </ul>
     </div>
   </div>
@@ -326,7 +324,7 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
     </ul>
 
     <div class="info-box info-blue">
-      💡 <strong>"업로드"</strong> 라벨 아래에 지금 어떤 방식으로 처리될지 작게 표시됩니다 — <strong>"업로드 (Whisper)"</strong> 또는 <strong>"업로드 (CLOVA)"</strong>. 파일을 고르기 전에 미리 확인할 수 있습니다.
+      💡 <strong>"업로드"</strong> 글자 아래 작은 글씨로 지금 어떤 방식으로 처리될지 표시됩니다 — <strong>"(Whisper)"</strong> 또는 <strong>"(CLOVA)"</strong>. 파일을 고르기 전에 미리 확인할 수 있습니다.
     </div>
 
     <div class="info-box info-ok">
@@ -363,8 +361,10 @@ p{font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.75;}
     </ul>
 
     <div class="info-box info-blue">
-      💡 <span class="btn-ex muted">녹음 지우기</span> 녹음 텍스트만 초기화<br>
-      &nbsp;&nbsp;&nbsp;<span class="btn-ex muted">전체 초기화</span> 원본·녹음·결과 모두 초기화
+      <table class="kv" style="margin:0;">
+        <tr><td>💡 <span class="btn-ex muted">녹음 지우기</span></td><td>녹음 텍스트만 초기화</td></tr>
+        <tr><td><span class="btn-ex muted">전체 초기화</span></td><td>원본·녹음·결과 모두 초기화</td></tr>
+      </table>
     </div>
   </div>
 
