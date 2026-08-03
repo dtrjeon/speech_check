@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <!--
-  index_speech.html 변경 이력 (v3.00 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index_speech.html 변경 이력 (v3.03 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+
+  v3.03 (2026-08-01) - STT 방식 안내 박스의 흐름 끝에 "→ 비교결과(PDF/프린트)" 단계 추가
+    (기존엔 "→ 비교분석"에서 끝났음).
+
+  v3.02 (2026-08-01) - STT 방식별 사용법 안내("OpenAI Whisper 방식 ① 권한 허용 → ..." 등)를
+    하단 상태바에서 "마이크 녹음" 박스 위 별도 안내 박스로 이동. 단일/복수 선택에 따라
+    Whisper/CLOVA가 자동 전환될 때마다 이 박스 내용도 함께 갱신됨. 하단 상태바는 짧은
+    한 줄 메시지("Whisper 방식으로 준비되었습니다" 등)만 표시하도록 정리.
+
+  v3.01 (2026-08-01) - [버그 수정] "비교결과 (PDF)"와 "비교결과 (프린트)"가 항상 똑같은 A4
+    2단 비교 스타일로만 출력되던 문제 수정. v2.60에서 beforeprint 시점에 무조건 미리보기
+    스타일을 덮어씌우도록 바꾼 게 원인 — "비교결과 (프린트)"로 직접 인쇄할 때는 이 덮어쓰기를
+    건너뛰도록 printIntent 플래그를 추가해, 다시 단어별 목록 리포트 스타일로 나오게 복구.
+    브라우저 자체 인쇄 메뉴 등 버튼을 안 거친 인쇄는 기존처럼 미리보기 스타일 유지.
 
   v3.00 (2026-08-01) - 챕터 선택 카드(.chapter-btn) 높이를 약 10% 축소
     (padding 14/12→12/11, min-height 64px→58px).
@@ -1438,7 +1452,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검(2단계)</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v3.00 (2026.08.01)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v3.03 (2026.08.01)</span></p>
 
   </div>
 
@@ -1653,6 +1667,12 @@ html.skin-light .fulltext-body{color:var(--text);}
     <div class="fulltext-body" id="chapter-expand-body" style="font-size:15px;line-height:2;"></div>
   </div>
 
+  <!-- ── STT 방식 안내 (마이크 녹음 박스 위) ── -->
+  <!-- ★ v3.02: 하단 status-bar에 있던 방식별 사용법 안내를 이 위치로 이동.
+       applyRecMode()가 호출될 때마다(단일/복수 선택 자동전환 포함) 아래 내용이
+       현재 방식(Whisper/CLOVA/실시간 STT)에 맞게 자동으로 갱신됨. -->
+  <div class="clova-guide" id="rec-mode-guide" style="white-space:pre-line;"></div>
+
   <!-- ── 입력방식 탭 카드 ── -->
   <div class="input-mode-card">
     <div class="input-mode-tabs">
@@ -1864,6 +1884,10 @@ let altPairs = {};
 let audioMime = '';
 let audioExt  = 'webm';
 let lastPreviewData = null;
+// ★ v3.01: "비교결과 (프린트)" 버튼으로 직접 인쇄할 때는 항상 단어별 목록 리포트
+// 스타일이 나오도록, 어느 버튼으로 인쇄를 시작했는지 기록해두는 플래그.
+// 'report' = btn-print(직접 인쇄)로 시작, 그 외(모달의 🖨️/브라우저 자체 인쇄 메뉴 등)는 미리보기 스타일.
+let printIntent = 'auto';
 // ★ v2.42: 개인별 Whisper API 키 저장 방식은 폐기됨 (공유 키 방식으로 전환, GAS 서버에서 처리)
 
 /* ════════════ 인증 · 로그 ════════════ */
@@ -3733,10 +3757,20 @@ function applyRecMode(newMode){
     uploadCell.closest('.rec-row').style.display = isStt ? 'none' : '';
   }
 
-  // 상태 메시지
-  if(isStt)   setStatus('실시간 STT 방식\n① 권한 → ② 녹음 → 💾 음성 저장(필수) → 비교분석');
-  if(isClova) setStatus('CLOVA Speech 방식\n① 권한 허용 → ② 녹음 → 중지 시 자동 텍스트 추출 → 비교분석\nⓐ 파일업로드 → 자동 텍스트추출 → 비교분석');
-  if(isApi)   setStatus('OpenAI Whisper 방식\n① 권한 허용 → ② 녹음 → 중지 시 자동 텍스트 추출 → 비교분석\nⓐ 파일업로드 → 자동 텍스트추출 → 비교분석');
+  // 상태 메시지 (마이크 녹음 박스 위 안내 박스 + 하단 상태바)
+  const guideBox = document.getElementById('rec-mode-guide');
+  if(isStt){
+    if(guideBox) guideBox.textContent = '실시간 STT 방식\n① 권한 → ② 녹음 → 💾 음성 저장(필수) → 비교분석 → 비교결과(PDF/프린트)';
+    setStatus('실시간 STT 방식으로 준비되었습니다.');
+  }
+  if(isClova){
+    if(guideBox) guideBox.textContent = 'CLOVA Speech 방식\n① 권한 허용 → ② 녹음 → 중지 시 자동 텍스트 추출 → 비교분석 → 비교결과(PDF/프린트)\nⓐ 파일업로드 → 자동 텍스트추출 → 비교분석 → 비교결과(PDF/프린트)';
+    setStatus('CLOVA 방식으로 준비되었습니다.');
+  }
+  if(isApi){
+    if(guideBox) guideBox.textContent = 'OpenAI Whisper 방식\n① 권한 허용 → ② 녹음 → 중지 시 자동 텍스트 추출 → 비교분석 → 비교결과(PDF/프린트)\nⓐ 파일업로드 → 자동 텍스트추출 → 비교분석 → 비교결과(PDF/프린트)';
+    setStatus('Whisper 방식으로 준비되었습니다.');
+  }
 
   // CLOVA / Whisper 추출 버튼 활성화 여부
   const b2clova = document.getElementById('btn-clova-transcribe2');
@@ -4351,7 +4385,7 @@ function restorePrintStyle(origBg, origColor) {
 // 결과(lastPreviewData)만 있으면 인쇄 직전에 항상 미리보기 내용을 새로 채워 넣고
 // 미리보기 스타일로 통일 — 어떤 경로로 인쇄하든 항상 같은(예쁜) 결과가 나옴.
 window.addEventListener('beforeprint', function(){
-  if(lastPreviewData){
+  if(printIntent !== 'report' && lastPreviewData){
     document.getElementById('preview-a4-content').innerHTML = buildPreviewHTML(lastPreviewData);
     document.body.classList.add('print-mode-preview');
   } else {
@@ -4360,6 +4394,7 @@ window.addEventListener('beforeprint', function(){
 });
 
 document.getElementById('preview-print-btn').addEventListener('click', function(){
+  printIntent = 'preview';
   const modal = document.getElementById('preview-modal');
   const origBg = document.body.style.background;
   const origColor = document.body.style.color;
@@ -4373,6 +4408,7 @@ document.getElementById('preview-print-btn').addEventListener('click', function(
       modal.classList.remove('open');
       document.body.style.overflow = '';
       disablePreviewZoom();
+      printIntent = 'auto';
       window.removeEventListener('afterprint', handler);
     };
     window.addEventListener('afterprint', handler);
@@ -4391,6 +4427,7 @@ document.getElementById('preview-modal').addEventListener('click', function(e){
 
 /* ════════════ 프린트 버튼 ════════════ */
 document.getElementById('btn-print').addEventListener('click', function(){
+  printIntent = 'report';
   // 머리글 정보 채우기
   const chInfo = selected.length > 0
     ? selected.map(id=>{ const c=CHAPTERS.find(x=>x.id===id); return c?c.num+' '+c.title:''; }).filter(Boolean).join(' + ')
@@ -4415,6 +4452,7 @@ document.getElementById('btn-print').addEventListener('click', function(){
   applyPrintStyle();
   const handler2 = () => {
     restorePrintStyle(origBg2, origColor2);
+    printIntent = 'auto';
     window.removeEventListener('afterprint', handler2);
   };
   window.addEventListener('afterprint', handler2);
