@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <!--
-  index_speech.html 변경 이력 (v2.99 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index_speech.html 변경 이력 (v3.00 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+
+  v3.00 (2026-08-01) - 챕터 선택 카드(.chapter-btn) 높이를 약 10% 축소
+    (padding 14/12→12/11, min-height 64px→58px).
 
   v2.99 (2026-08-01) - 버튼명 "비교결과 (프린트 출력)" → "비교결과 (프린트)"로 축약.
 
@@ -275,7 +278,7 @@ h1{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.2;}
 .mode-btn{flex:1;padding:10px 0;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text-muted);font-family:'Noto Sans KR',sans-serif;font-size:13px;cursor:pointer;text-align:center;min-height:44px;touch-action:manipulation;}
 .mode-btn.active{background:var(--accent-glow);border-color:var(--accent);color:var(--accent);font-weight:500;}
 .chapters-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;}
-.chapter-btn{position:relative;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px 12px 12px;cursor:pointer;text-align:left;user-select:none;min-height:64px;touch-action:manipulation;width:100%;}
+.chapter-btn{position:relative;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:12px 12px 11px;cursor:pointer;text-align:left;user-select:none;min-height:58px;touch-action:manipulation;width:100%;}
 .chapter-btn.selected{border-color:var(--accent);background:var(--accent-glow);}
 .ch-num{font-size:10px;color:var(--text-dim);margin-bottom:3px;}
 .chapter-btn.selected .ch-num{color:var(--accent);}
@@ -1435,7 +1438,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검(2단계)</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v2.99 (2026.08.01)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v3.00 (2026.08.01)</span></p>
 
   </div>
 
