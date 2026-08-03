@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <!--
-  index_speech.html 변경 이력 (v3.08 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index_speech.html 변경 이력 (v3.09 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+
+  v3.09 (2026-08-01) - 안내 박스에서 ①②ⓐ 등 원형 번호를 전부 제거 — 실제 버튼에는
+    "ⓐ 파일 선택"만 찍혀 있고 ①②는 화면에 없어서 문구와 버튼이 안 맞았음(ⓐ도 일관성
+    위해 함께 제거). 순수 화살표 흐름 문구로 단순화.
 
   v3.08 (2026-08-01) - 안내 박스 흐름에 누락돼 있던 "0. 챕터 선택(필수)" 단계 추가.
     챕터를 먼저 선택하지 않으면 v2.88부터 녹음 자체가 시작되지 않는데, 흐름 안내에는
@@ -1485,7 +1489,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검(2단계)</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v3.08 (2026.08.01)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v3.09 (2026.08.01)</span></p>
 
   </div>
 
@@ -3809,15 +3813,15 @@ function applyRecMode(newMode){
   // 상태 메시지 (마이크 녹음 박스 위 안내 박스 + 하단 상태바)
   const guideBox = document.getElementById('rec-mode-guide');
   if(isStt){
-    if(guideBox) guideBox.textContent = '실시간 STT 방식\n0. 챕터 선택(필수) → ① 권한 → ② 녹음 → 💾 음성 저장(필수) → 비교분석 → 비교결과(PDF/프린트)';
+    if(guideBox) guideBox.textContent = '실시간 STT 방식\n챕터 선택(필수) → 권한 허용 → 녹음 → 음성 저장(필수) → 비교분석 → 비교결과(PDF/프린트)';
     setStatus('실시간 STT 방식으로 준비되었습니다.');
   }
   if(isClova){
-    if(guideBox) guideBox.textContent = 'CLOVA Speech 방식\n0. 챕터 선택(필수) → ① 권한 허용 → ② 녹음 → 중지 시 자동 텍스트 추출 → 비교분석 → 비교결과(PDF/프린트)\nⓐ 파일업로드 → 자동 텍스트/오디오 추출 → 비교분석 → 비교결과(PDF/프린트)';
+    if(guideBox) guideBox.textContent = 'CLOVA Speech 방식\n챕터 선택(필수) → 권한 허용 → 녹음 → 중지 시 자동 텍스트 추출 → 비교분석 → 비교결과(PDF/프린트)\n또는 파일업로드 → 자동 텍스트/오디오 추출 → 비교분석 → 비교결과(PDF/프린트)';
     setStatus('CLOVA 방식으로 준비되었습니다.');
   }
   if(isApi){
-    if(guideBox) guideBox.textContent = 'OpenAI Whisper 방식\n0. 챕터 선택(필수) → ① 권한 허용 → ② 녹음 → 중지 시 자동 텍스트 추출 → 비교분석 → 비교결과(PDF/프린트)\nⓐ 파일업로드 → 자동 텍스트/오디오 추출 → 비교분석 → 비교결과(PDF/프린트)';
+    if(guideBox) guideBox.textContent = 'OpenAI Whisper 방식\n챕터 선택(필수) → 권한 허용 → 녹음 → 중지 시 자동 텍스트 추출 → 비교분석 → 비교결과(PDF/프린트)\n또는 파일업로드 → 자동 텍스트/오디오 추출 → 비교분석 → 비교결과(PDF/프린트)';
     setStatus('Whisper 방식으로 준비되었습니다.');
   }
 
