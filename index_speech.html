@@ -1,6 +1,29 @@
 <!DOCTYPE html>
 <!--
-  index_speech.html 변경 이력 (v3.03 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index_speech.html 변경 이력 (v3.08 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+
+  v3.08 (2026-08-01) - 안내 박스 흐름에 누락돼 있던 "0. 챕터 선택(필수)" 단계 추가.
+    챕터를 먼저 선택하지 않으면 v2.88부터 녹음 자체가 시작되지 않는데, 흐름 안내에는
+    이 전제조건이 빠진 채 "① 권한 허용"부터 시작하고 있었음.
+
+  v3.07 (2026-08-01) - v3.06에서 Whisper 자동추출 버그를 고쳐서 "저장→재업로드" 우회가
+    더 이상 필요 없어짐에 따라, 안내 박스 문구를 다시 간단한 형태로 원복
+    ("① 권한 허용 → ② 녹음 → 중지 시 자동 텍스트 추출 → 비교분석 → 비교결과(PDF/프린트)" +
+    "ⓐ 파일업로드 → 자동 텍스트/오디오 추출 → 비교분석 → 비교결과(PDF/프린트)" 두 줄).
+
+  v3.06 (2026-08-01) - [버그 수정] 마이크로 직접 녹음 시 Whisper 모드는 녹음 중지 후 자동
+    추출이 되지 않고, 화면에 없는(display:none) 버튼을 누르라는 안내만 뜨는 막다른 길이었음.
+    CLOVA는 이미 자동 추출되고 있었는데 Whisper만 누락돼 있던 것 — 동일하게 자동 추출
+    트리거하도록 수정. 이제 두 방식 다 녹음 중지 즉시 자동으로 텍스트가 추출됨.
+
+  v3.05 (2026-08-01) - CLOVA/Whisper 안내 박스의 두 줄(녹음 흐름 / 업로드 흐름)을 한 줄로
+    통합: "① 권한 허용 → 녹음 → 저장 → 저장된 파일업로드 → 자동 텍스트/오디오 추출 →
+    비교분석 → 비교결과(PDF/프린트)".
+
+  v3.04 (2026-08-01) - 업로드 자동추출+저장이 끝나면 "파일 선택" 버튼을 화면 중앙으로
+    스크롤하고 잠깐 반짝이게(pulse) 해서, 다음 파일도 한 번의 탭으로 바로 이어 업로드할
+    수 있도록 유도. 브라우저 보안 정책상 파일 선택창 자체를 코드로 자동으로 열 수는
+    없어서(사용자 제스처 필수) 완전 자동화 대신 이 방식으로 대체.
 
   v3.03 (2026-08-01) - STT 방식 안내 박스의 흐름 끝에 "→ 비교결과(PDF/프린트)" 단계 추가
     (기존엔 "→ 비교분석"에서 끝났음).
@@ -1228,6 +1251,16 @@ html.skin-warm .btn-fontsize:hover{border-color:#5b4fcf;color:#5b4fcf;}
 }
 .rec-row-btn.blue{ border-color:var(--accent); background:var(--accent-glow); color:var(--accent); }
 .rec-row-btn.green{ border-color:#03c75a; background:rgba(3,199,90,.10); color:#03c75a; }
+/* ★ v3.04: 업로드 자동저장 완료 직후 "다음 파일 선택" 버튼을 눈에 띄게 강조 —
+   브라우저 정책상 파일 선택창을 코드로 자동으로 열 수는 없어서(사용자 제스처 필요),
+   대신 버튼을 스크롤해서 보여주고 잠깐 반짝이게 해 한 번의 탭으로 바로 이어가게 함. */
+.rec-row-btn.next-pulse{
+  animation: nextFilePulse 1s ease-in-out 3;
+}
+@keyframes nextFilePulse{
+  0%, 100% { box-shadow: 0 0 0 0 rgba(124,111,232,.55); }
+  50% { box-shadow: 0 0 0 8px rgba(124,111,232,0); }
+}
 .rec-row-btn.ready{ border-color:var(--green); background:rgba(56,161,105,.12); color:var(--green); }
 .rec-row-btn.recording{
   border-color:var(--red); background:rgba(220,53,69,.15); color:var(--red);
@@ -1452,7 +1485,7 @@ html.skin-light .fulltext-body{color:var(--text);}
 
   <div class="header">
     <h1>전문 구두 점검(2단계)</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v3.03 (2026.08.01)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v3.08 (2026.08.01)</span></p>
 
   </div>
 
@@ -1715,7 +1748,7 @@ html.skin-light .fulltext-body{color:var(--text);}
         <div class="rec-row">
           <span class="rec-row-label" id="upload-row-label">📁 업로드</span>
           <div class="rec-row-btns">
-            <label for="audio-file-input" class="rec-row-btn blue" style="cursor:pointer;">
+            <label for="audio-file-input" id="next-file-btn" class="rec-row-btn blue" style="cursor:pointer;">
               ⓐ 파일 선택
             </label>
             <input type="file" id="audio-file-input" accept="audio/*" style="position:fixed;top:-100px;left:-100px;width:1px;height:1px;opacity:0;">
@@ -2951,13 +2984,16 @@ function _startMediaRecorder(){
       const btn = document.getElementById('btn-save-audio');
       btn.innerHTML = '<span id="save-icon" style="font-size:22px;line-height:1;">💾</span>';
       btn.disabled=false; btn.classList.add('ready');
-      // 패널 내 ④ 버튼 활성화
+      // ★ v3.06: [버그 수정] Whisper 모드는 녹음 중지 후 자동 추출이 안 되고,
+      // 화면에 없는(display:none) 버튼을 누르라는 안내만 뜨는 막다른 길이었음.
+      // CLOVA와 동일하게 자동으로 텍스트 추출을 트리거하도록 수정.
       if(recMode==='api'){
         const wb2 = document.getElementById('btn-whisper-transcribe2');
         if(wb2) wb2.disabled = false;
-        setStatus('음성 녹음 완료 ✓ — ④ 텍스트 추출(Whisper) 버튼을 누르세요');
-        const wnumEl = document.getElementById('whisper-btn-num');
-        if(wnumEl) wnumEl.textContent = '③';
+        setStatus('녹음 완료 ✓ — Whisper 텍스트 추출 중...');
+        setTimeout(() => {
+          document.getElementById('btn-whisper-transcribe2').click();
+        }, 300);
       }
       if(recMode==='clova'){
         // 녹음 중지 시 자동으로 CLOVA 텍스트 추출
@@ -3025,6 +3061,19 @@ function saveTxtFile(ts, text){
   document.body.appendChild(a); a.click();
   document.body.removeChild(a); URL.revokeObjectURL(url);
   return true;
+}
+
+// ★ v3.04: 업로드 자동저장 완료 직후 "다음 파일 선택" 버튼을 화면으로 스크롤하고
+// 잠깐 반짝이게 해서, 한 번의 탭으로 다음 파일 선택을 바로 이어갈 수 있게 유도.
+// (브라우저 보안 정책상 파일 선택창 자체를 코드로 자동으로 열 수는 없음)
+function highlightNextFileButton(){
+  const btn = document.getElementById('next-file-btn');
+  if(!btn) return;
+  btn.scrollIntoView({ behavior:'smooth', block:'center' });
+  btn.classList.remove('next-pulse');
+  void btn.offsetWidth; // 애니메이션 재시작을 위한 강제 리플로우
+  btn.classList.add('next-pulse');
+  setTimeout(() => btn.classList.remove('next-pulse'), 3200);
 }
 
 /* ════════════ 음성 저장 ════════════ */
@@ -3760,15 +3809,15 @@ function applyRecMode(newMode){
   // 상태 메시지 (마이크 녹음 박스 위 안내 박스 + 하단 상태바)
   const guideBox = document.getElementById('rec-mode-guide');
   if(isStt){
-    if(guideBox) guideBox.textContent = '실시간 STT 방식\n① 권한 → ② 녹음 → 💾 음성 저장(필수) → 비교분석 → 비교결과(PDF/프린트)';
+    if(guideBox) guideBox.textContent = '실시간 STT 방식\n0. 챕터 선택(필수) → ① 권한 → ② 녹음 → 💾 음성 저장(필수) → 비교분석 → 비교결과(PDF/프린트)';
     setStatus('실시간 STT 방식으로 준비되었습니다.');
   }
   if(isClova){
-    if(guideBox) guideBox.textContent = 'CLOVA Speech 방식\n① 권한 허용 → ② 녹음 → 중지 시 자동 텍스트 추출 → 비교분석 → 비교결과(PDF/프린트)\nⓐ 파일업로드 → 자동 텍스트추출 → 비교분석 → 비교결과(PDF/프린트)';
+    if(guideBox) guideBox.textContent = 'CLOVA Speech 방식\n0. 챕터 선택(필수) → ① 권한 허용 → ② 녹음 → 중지 시 자동 텍스트 추출 → 비교분석 → 비교결과(PDF/프린트)\nⓐ 파일업로드 → 자동 텍스트/오디오 추출 → 비교분석 → 비교결과(PDF/프린트)';
     setStatus('CLOVA 방식으로 준비되었습니다.');
   }
   if(isApi){
-    if(guideBox) guideBox.textContent = 'OpenAI Whisper 방식\n① 권한 허용 → ② 녹음 → 중지 시 자동 텍스트 추출 → 비교분석 → 비교결과(PDF/프린트)\nⓐ 파일업로드 → 자동 텍스트추출 → 비교분석 → 비교결과(PDF/프린트)';
+    if(guideBox) guideBox.textContent = 'OpenAI Whisper 방식\n0. 챕터 선택(필수) → ① 권한 허용 → ② 녹음 → 중지 시 자동 텍스트 추출 → 비교분석 → 비교결과(PDF/프린트)\nⓐ 파일업로드 → 자동 텍스트/오디오 추출 → 비교분석 → 비교결과(PDF/프린트)';
     setStatus('Whisper 방식으로 준비되었습니다.');
   }
 
@@ -3949,8 +3998,9 @@ document.getElementById('btn-clova-transcribe2').addEventListener('click', async
         const nameElDoneC = statusCellDoneC.querySelector('#clova-file-name');
         if(nameElDoneC) nameElDoneC.textContent = savedOk ? '✓ 추출+저장 완료' : '✓ 추출 완료';
       }
-      showBanner('✓ 업로드 → 텍스트 추출 → <strong>텍스트 저장</strong>까지 자동 완료!' + (gasVer ? ' <span style="font-size:11px;opacity:.7">' + gasVer + '</span>' : '') + '<br>아래 <strong>비교 분석</strong> 버튼을 누르세요.', 'ok');
+      showBanner('✓ 업로드 → 텍스트 추출 → <strong>텍스트 저장</strong>까지 자동 완료!' + (gasVer ? ' <span style="font-size:11px;opacity:.7">' + gasVer + '</span>' : '') + '<br>아래 <strong>비교 분석</strong> 버튼을 누르거나, 이어서 다른 파일을 업로드하세요.', 'ok');
       setStatus('CLOVA 변환 및 텍스트 저장 완료 ✓ — 비교 분석 버튼을 누르세요');
+      setTimeout(highlightNextFileButton, 900);
     } else {
       showBanner('✓ CLOVA 텍스트 추출 완료!' + (gasVer ? ' <span style="font-size:11px;opacity:.7">' + gasVer + '</span>' : '') + '<br>아래 <strong>비교 분석</strong> 버튼을 누르세요.', 'ok');
       setStatus('CLOVA 변환 완료 ✓ — 비교 분석 버튼을 누르세요');
@@ -4207,8 +4257,9 @@ document.getElementById('btn-whisper-transcribe2')?.addEventListener('click', as
         const nameElDoneW2 = statusCellDoneW.querySelector('#clova-file-name');
         if(nameElDoneW2) nameElDoneW2.textContent = savedOk ? '✓ 추출+저장 완료' : '✓ 추출 완료';
       }
-      showBanner('✓ 업로드 → 텍스트 추출 → <strong>텍스트 저장</strong>까지 자동 완료!<br>아래 <strong>비교 분석</strong> 버튼을 누르세요.', 'ok');
+      showBanner('✓ 업로드 → 텍스트 추출 → <strong>텍스트 저장</strong>까지 자동 완료!<br>아래 <strong>비교 분석</strong> 버튼을 누르거나, 이어서 다른 파일을 업로드하세요.', 'ok');
       setStatus('Whisper 변환 및 텍스트 저장 완료 ✓ — 비교 분석 버튼을 누르세요');
+      setTimeout(highlightNextFileButton, 900);
     } else {
       showBanner('✓ Whisper 텍스트 추출 완료!<br>아래 <strong>비교 분석</strong> 버튼을 누르세요.', 'ok');
       setStatus('Whisper 변환 완료 ✓ — 비교 분석 버튼을 누르세요');
