@@ -10,6 +10,14 @@
     챕터를 먼저 선택하지 않으면 v2.88부터 녹음 자체가 시작되지 않는데, 흐름 안내에는
     이 전제조건이 빠진 채 "① 권한 허용"부터 시작하고 있었음.
 
+  v3.08 (2026-08-05) - [버그 수정] 긴 오디오(수십 분) 업로드 시 CLOVA 추출에서 "Failed to
+    fetch"가 나던 문제 수정. Whisper는 v2.75~2.79에서 이미 같은 문제(base64 전체를 한 번에
+    fetch로 보내면 모바일 네트워크에서 끊김)를 겪고 "4MB 초과 시 청크 분할 업로드 + 비동기
+    폴링"으로 고쳤는데, CLOVA 쪽은 그 수정이 빠져 있었음. CLOVA도 동일한 방식으로 전환
+    (act=clova_chunk/clova_finish/clova_status). ⚠ 이 패치는 GAS(Code.gs, 로그인/사용로그
+    담당 프로젝트) 쪽에도 handleClovaChunk/handleClovaFinish/handleClovaStatus/
+    processClovaJob 추가가 함께 필요함 — 별도로 전달한 Code.gs 패치 참고.
+
   v3.07 (2026-08-01) - v3.06에서 Whisper 자동추출 버그를 고쳐서 "저장→재업로드" 우회가
     더 이상 필요 없어짐에 따라, 안내 박스 문구를 다시 간단한 형태로 원복
     ("① 권한 허용 → ② 녹음 → 중지 시 자동 텍스트 추출 → 비교분석 → 비교결과(PDF/프린트)" +
@@ -3931,56 +3939,145 @@ document.getElementById('btn-clova-transcribe2').addEventListener('click', async
   document.getElementById('clova-btn-label2').textContent = '변환 중...';
   statusEl.textContent = '🟢 CLOVA AI가 음성을 분석하고 있습니다... (최대 1분 소요)';
 
+  // ★ v3.06: 긴 오디오(수십 분)를 base64로 통째로 한 번에 보내면 모바일 네트워크에서
+  // 전송이 끊겨 "Failed to fetch"가 나던 문제가 있었음(Whisper가 v2.75~2.79에서 이미
+  // 겪고 고친 것과 동일한 원인). Whisper와 동일하게 4MB 넘는 파일은 조각내서 순차
+  // 업로드하고, GAS가 조립한 뒤 백그라운드 트리거로 CLOVA를 호출하도록 변경
+  // (GAS 쪽에 clova_chunk/clova_finish/clova_status 액션 추가가 함께 필요함).
+  const CHUNK_THRESHOLD = 4 * 1024 * 1024; // 4MB
+  const CHUNK_SIZE = 2 * 1024 * 1024;      // 조각당 2MB(원본 기준)
+
+  function blobSliceToBase64(blob, start, end){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob.slice(start, end));
+    });
+  }
+
+  async function pollClovaStatus(uploadId){
+    const POLL_INTERVAL = 3000;
+    const MAX_WAIT_MS = 5 * 60 * 1000;
+    const startedAt = Date.now();
+    let dots = 0;
+    while(true){
+      if(Date.now() - startedAt > MAX_WAIT_MS){
+        throw new Error('처리 시간이 너무 오래 걸립니다. 잠시 후 다시 시도해 주세요.');
+      }
+      await new Promise(r => setTimeout(r, POLL_INTERVAL));
+      dots = (dots + 1) % 4;
+      statusEl.textContent = '🟢 CLOVA AI가 음성을 분석하고 있습니다' + '.'.repeat(dots) + ' (긴 파일은 시간이 더 걸릴 수 있어요)';
+      let sRes;
+      try {
+        sRes = await fetch(clovaGasUrl + '?act=clova_status&uploadId=' + encodeURIComponent(uploadId), { cache: 'no-store' });
+      } catch(netErr) { continue; } // 짧은 폴링 요청 하나 실패는 무시하고 계속 재시도
+      if(!sRes.ok) continue;
+      let sData;
+      try { sData = await sRes.json(); } catch(e) { continue; }
+      if(sData.status === 'done'){ return sData; }
+      if(sData.status === 'error'){ throw new Error(sData.message || '변환 중 오류가 발생했습니다.'); }
+      // 'processing' 또는 'unknown'(아직 등록 반영 전)이면 계속 대기
+    }
+  }
+
   try {
     const ext = audioExt || 'webm';
     const mimeMap = { m4a:'audio/mpeg', mp3:'audio/mpeg', webm:'audio/webm', ogg:'audio/ogg', wav:'audio/wav', flac:'audio/flac', aac:'audio/aac' };
     const mime = mimeMap[ext] || 'audio/mpeg';
+    const nameArgs = {
+      name: currentUser ? currentUser.name : '',
+      cls: currentUser ? currentUser.cls : '',
+      stage: currentUser ? currentUser.stage : '',
+    };
 
-    // audioBlob → base64
-    const base64Audio = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(',')[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(audioBlob);
-    });
+    let data;
 
-    // GAS로 전송 (text/plain으로 CORS preflight 우회, body는 JSON 문자열)
-    const response = await fetch(clovaGasUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ audio: base64Audio, mime, ext })
-    });
+    if(audioBlob.size <= CHUNK_THRESHOLD){
+      // ── 짧은 파일: 기존처럼 한 번에 전송 ──
+      const base64Audio = await blobSliceToBase64(audioBlob, 0, audioBlob.size);
+      const response = await fetch(clovaGasUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ audio: base64Audio, mime, ext, ...nameArgs })
+      });
+      if(!response.ok) throw new Error('GAS 요청 실패: ' + response.status);
+      const raw = await response.json();
+      if(raw.error) throw new Error('GAS 오류: ' + raw.error);
+      // 폴링: COMPLETED, OBS 결과파일: SUCCEEDED
+      const okResults = ['COMPLETED', 'SUCCEEDED'];
+      if(raw.result && !okResults.includes(raw.result)) {
+        throw new Error('CLOVA 변환 실패: ' + raw.result + (raw.message ? ' — ' + raw.message : ''));
+      }
+      // CLOVA Speech 응답 파싱: { result:'COMPLETED', segments:[{textEdited:'...', text:'...'},...], text:'...' }
+      let text = '';
+      if(raw.segments && raw.segments.length > 0) {
+        text = raw.segments.map(s => s.textEdited || s.text || '').join(' ').trim();
+      }
+      if(!text && raw.text) text = raw.text.trim();
+      if(!text){
+        const dump = JSON.stringify(raw).slice(0, 300);
+        throw new Error('텍스트 변환 결과가 없습니다.\n응답: ' + dump);
+      }
+      data = { text, gas_version: raw.gas_version || '' };
+    } else {
+      // ── 긴 파일: 조각내서 순차 업로드 후 완성본 처리 요청(비동기 폴링) ──
+      const total = Math.ceil(audioBlob.size / CHUNK_SIZE);
+      const uploadId = Date.now() + '_' + Math.random().toString(36).slice(2, 8);
 
-    if(!response.ok) throw new Error('GAS 요청 실패: ' + response.status);
+      for(let i = 0; i < total; i++){
+        const start = i * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, audioBlob.size);
+        const chunkB64 = await blobSliceToBase64(audioBlob, start, end);
 
-    const data = await response.json();
+        const MAX_CHUNK_RETRIES = 3;
+        let lastErr = null;
+        let chunkOk = false;
+        for(let attempt = 1; attempt <= MAX_CHUNK_RETRIES; attempt++){
+          statusEl.textContent = '🟢 업로드 중... (' + (i+1) + '/' + total + ')'
+            + (attempt > 1 ? ' — 재시도 ' + attempt + '/' + MAX_CHUNK_RETRIES : '');
+          try{
+            const cRes = await fetch(clovaGasUrl + '?act=clova_chunk', {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' },
+              body: JSON.stringify({ uploadId, index: i, total, chunk: chunkB64 })
+            });
+            if(!cRes.ok) throw new Error('HTTP ' + cRes.status);
+            const cData = await cRes.json();
+            if(cData.error) throw new Error(cData.error);
+            chunkOk = true;
+            break;
+          }catch(chunkErr){
+            lastErr = chunkErr;
+            if(attempt < MAX_CHUNK_RETRIES) await new Promise(r => setTimeout(r, 1500));
+          }
+        }
+        if(!chunkOk){
+          throw new Error('업로드 실패 (' + (i+1) + '/' + total + '번째 조각, ' + MAX_CHUNK_RETRIES + '번 재시도 후 포기): '
+            + (lastErr ? lastErr.message : ''));
+        }
+      }
 
-    // GAS 레벨 오류
-    if(data.error) throw new Error('GAS 오류: ' + data.error);
+      statusEl.textContent = '🟢 업로드 완료 — CLOVA AI가 음성을 분석하고 있습니다... (긴 파일은 시간이 더 걸릴 수 있어요)';
+      const fRes = await fetch(clovaGasUrl + '?act=clova_finish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ uploadId, mime, ext, total, totalBytes: audioBlob.size, ...nameArgs })
+      });
+      if(!fRes.ok) throw new Error('GAS 요청 실패: ' + fRes.status);
+      const fData = await fRes.json();
+      if(fData.error) throw new Error(fData.error);
 
-    // CLOVA result 확인
-    // 폴링: COMPLETED, OBS 결과파일: SUCCEEDED
-    const okResults = ['COMPLETED', 'SUCCEEDED'];
-    if(data.result && !okResults.includes(data.result)) {
-      throw new Error('CLOVA 변환 실패: ' + data.result + (data.message ? ' — ' + data.message : ''));
+      // clova_finish는 처리 시작만 알리고 즉시 응답한다(비동기).
+      // 완료될 때까지 clova_status를 폴링해서 실제 결과를 받아온다.
+      const sData = await pollClovaStatus(fData.uploadId);
+      if(sData.error) throw new Error(sData.error);
+      if(!sData.text){ throw new Error('텍스트 변환 결과가 없습니다.'); }
+      data = sData;
     }
 
-    // CLOVA Speech 응답 파싱
-    // 정상: { result:'COMPLETED', segments:[{textEdited:'...', text:'...'},...], text:'...' }
-    let text = '';
-    if(data.segments && data.segments.length > 0) {
-      text = data.segments.map(s => s.textEdited || s.text || '').join(' ').trim();
-    }
-    if(!text && data.text) {
-      text = data.text.trim();
-    }
-    if(!text){
-      const dump = JSON.stringify(data).slice(0, 300);
-      throw new Error('텍스트 변환 결과가 없습니다.\n응답: ' + dump);
-    }
-
-    transcript = numToKor(text);
-    recordedText = numToKor(text);
+    transcript = numToKor(data.text);
+    recordedText = numToKor(data.text);
     sttSourceSuffix = '_c';
     updateRecordedPreview();
     const saveBtn = document.getElementById('btn-save-audio');
@@ -3990,7 +4087,7 @@ document.getElementById('btn-clova-transcribe2').addEventListener('click', async
     }
 
     const gasVer = data.gas_version || '';
-    statusEl.textContent = '✓ 변환 완료! ' + text.length + '자' + (gasVer ? '  [' + gasVer + ']' : '');
+    statusEl.textContent = '✓ 변환 완료! ' + data.text.length + '자' + (gasVer ? '  [' + gasVer + ']' : '');
 
     // ★ v2.83: 업로드(기존 오디오 파일) → 자동추출 흐름이면 CLOVA도 Whisper와 동일하게
     // 추출 완료 즉시 텍스트(.txt)를 자동 저장한다.
@@ -4009,7 +4106,7 @@ document.getElementById('btn-clova-transcribe2').addEventListener('click', async
       showBanner('✓ CLOVA 텍스트 추출 완료!' + (gasVer ? ' <span style="font-size:11px;opacity:.7">' + gasVer + '</span>' : '') + '<br>아래 <strong>비교 분석</strong> 버튼을 누르세요.', 'ok');
       setStatus('CLOVA 변환 완료 ✓ — 비교 분석 버튼을 누르세요');
     }
-    sendLog('clova_done', { durationSec:Math.round((Date.now()-_clovaT0)/1000), charCount:text.length, fileSizeKB:audioBlob?Math.round(audioBlob.size/1024):0, ext:audioExt||'webm' });
+    sendLog('clova_done', { durationSec:Math.round((Date.now()-_clovaT0)/1000), charCount:data.text.length, fileSizeKB:audioBlob?Math.round(audioBlob.size/1024):0, ext:audioExt||'webm' });
     setTimeout(loadMyClovaUsage, 1500); // 방금 기록된 사용시간이 반영되도록 잠시 후 새로고침
 
   } catch(e) {
