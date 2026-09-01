@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <!--
-  index_speech-2.html — 간소화판 (2026-09-01)
-  로그인, 마이크 녹음, STT(CLOVA/Whisper), 비교분석, 프린트/PDF 미리보기 기능을
-  모두 제거하고 [원본 챕터 선택 + 원문 뷰어(녹음대상/제외 표시, 확대보기, 글자크기)
-  + 오디오 재생] 기능만 남긴 버전입니다. 스킨 전환(다크/웜화이트/라이트)과
-  PWA 설치 배너·서비스워커는 그대로 유지했습니다.
-  이전 버전(로그인/녹음/STT/비교분석 전체 포함)의 상세 변경 이력은
+  index-audio.html — 간소화판 (2026-09-01)
+  로그인, STT(CLOVA/Whisper), 비교분석, 프린트/PDF 미리보기 기능을 제거하고
+  [원본 챕터 선택 + 원문 뷰어(녹음대상/제외 표시, 확대보기, 글자크기)
+  + 오디오 재생 + 내 목소리 녹음/저장(다운로드)] 기능만 남긴 버전입니다.
+  스킨 전환(다크/웜화이트/라이트)과 PWA 설치 배너·서비스워커는 그대로 유지했습니다.
+  녹음은 텍스트 변환(STT)이나 원문 비교 없이, 녹음한 음성을 바로 들어보고
+  기기에 파일로 저장(다운로드)하는 것까지만 지원합니다.
+  이전 버전(로그인/STT/비교분석 전체 포함)의 상세 변경 이력은
   index_speech.html 또는 GitHub 커밋 로그 참고.
 -->
 <html lang="ko">
@@ -342,6 +344,36 @@ html.skin-light .outline-line-only{color:#1565c0;}
   -webkit-overflow-scrolling:touch;
 }
 
+/* ══ 내 목소리 녹음 ══ */
+.rec-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:16px;margin:16px 0;
+}
+.rec-row{display:flex;align-items:center;gap:14px;}
+.rec-main-btn{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface2);border:1px solid var(--border2);border-radius:24px;
+  padding:10px 18px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:600;
+  color:var(--text);cursor:pointer;touch-action:manipulation;
+}
+.rec-main-btn.recording{border-color:var(--red-border);background:var(--red-bg);color:var(--red);}
+.rec-dot{width:10px;height:10px;border-radius:50%;background:var(--text-muted);flex:none;}
+.rec-main-btn.recording .rec-dot{background:var(--red);animation:rec-blink 1s infinite;}
+@keyframes rec-blink{0%,100%{opacity:1;}50%{opacity:.25;}}
+.rec-timer{font-size:13px;color:var(--text-muted);font-variant-numeric:tabular-nums;}
+.rec-status{margin-top:10px;font-size:12px;color:var(--text-muted);line-height:1.5;}
+.rec-preview{margin-top:12px;}
+.rec-preview audio{width:100%;height:36px;}
+.rec-preview-btns{display:flex;gap:8px;margin-top:10px;}
+.rec-save-btn,.rec-redo-btn{
+  flex:1;background:transparent;border:1px solid var(--border2);border-radius:8px;
+  padding:9px 0;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;
+  color:var(--text-muted);cursor:pointer;touch-action:manipulation;
+}
+.rec-save-btn{border-color:var(--accent);color:var(--accent);}
+.rec-save-btn:hover{background:var(--accent-glow);}
+.rec-redo-btn:hover{border-color:var(--text-muted);color:var(--text);}
+
 /* ══ 라이트 스킨 오버라이드 (유지 요소) ══ */
 html.skin-light body{background:var(--bg);}
 html.skin-light h1{color:#1a1f2e;}
@@ -375,6 +407,9 @@ html.skin-light .fulltext-modal{background:var(--bg);}
 html.skin-light .fulltext-toolbar{background:var(--surface2);border-color:var(--border);}
 html.skin-light .fulltext-close-btn{background:var(--surface);border-color:var(--border2);color:var(--text-muted);}
 html.skin-light .fulltext-body{color:var(--text);}
+html.skin-light .rec-card{background:#fff;border-color:rgba(26,58,176,.14);}
+html.skin-light .rec-main-btn{background:#f4f6fb;border-color:rgba(26,58,176,.18);}
+html.skin-light .rec-save-btn{border-color:#1a3ab0;color:#1a3ab0;}
 
 /* ══ 웜 화이트 스킨 오버라이드 (유지 요소) ══ */
 html.skin-warm body{background:var(--bg);}
@@ -400,6 +435,9 @@ html.skin-warm .legend-rec{color:#1a1a1a;}
 html.skin-warm .legend-skip{color:#b0a898;}
 html.skin-warm .ch-fontsize-btn{border-color:rgba(91,79,207,.2);color:#7060b0;}
 html.skin-warm .ch-fontsize-btn:hover{border-color:#5b4fcf;color:#5b4fcf;}
+html.skin-warm .rec-card{background:#fff;border-color:rgba(120,80,20,.12);}
+html.skin-warm .rec-main-btn{background:#f5f2ee;border-color:rgba(120,80,20,.16);}
+html.skin-warm .rec-save-btn{border-color:#5b4fcf;color:#5b4fcf;}
 
 /* 데스크탑에서 모바일 규격으로 표시 */
 @media (min-width: 520px) {
@@ -502,6 +540,26 @@ html.skin-warm .ch-fontsize-btn:hover{border-color:#5b4fcf;color:#5b4fcf;}
 
   <!-- 호환성 유지용(화면에 보이지 않음): 원문 녹음대상 텍스트를 담아두는 데이터 보관용 필드 -->
   <textarea id="original" style="display:none;" aria-hidden="true"></textarea>
+
+  <!-- ══ 내 목소리 녹음 ══ -->
+  <div class="rec-card">
+    <div class="slabel">내 목소리 녹음</div>
+    <div class="rec-row">
+      <button class="rec-main-btn" id="rec-main-btn">
+        <span class="rec-dot" id="rec-dot"></span>
+        <span id="rec-main-label">녹음 시작</span>
+      </button>
+      <span class="rec-timer" id="rec-timer">00:00</span>
+    </div>
+    <p class="rec-status" id="rec-status">버튼을 누르면 마이크 권한을 요청합니다.</p>
+    <div class="rec-preview" id="rec-preview" style="display:none;">
+      <audio id="rec-audio-el" controls></audio>
+      <div class="rec-preview-btns">
+        <button class="rec-save-btn" id="rec-save-btn">💾 저장(다운로드)</button>
+        <button class="rec-redo-btn" id="rec-redo-btn">↺ 다시 녹음</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ══ 챕터 확대 모달 ══ -->
   <div class="fulltext-modal" id="chapter-expand-modal" role="dialog" aria-modal="true">
@@ -1335,6 +1393,110 @@ function _numKor(num){
     var next = SKINS[(idx + 1) % SKINS.length];
     localStorage.setItem(STORAGE_KEY, next);
     applyTheme(next);
+  });
+})();
+
+/* ════════════ 내 목소리 녹음 ════════════ */
+(function(){
+  const mainBtn   = document.getElementById('rec-main-btn');
+  const mainLabel = document.getElementById('rec-main-label');
+  const timerEl   = document.getElementById('rec-timer');
+  const statusEl  = document.getElementById('rec-status');
+  const previewEl = document.getElementById('rec-preview');
+  const audioEl   = document.getElementById('rec-audio-el');
+  const saveBtn   = document.getElementById('rec-save-btn');
+  const redoBtn   = document.getElementById('rec-redo-btn');
+  if(!mainBtn) return;
+
+  let stream = null, recorder = null, chunks = [], blob = null;
+  let mime = '', ext = 'webm';
+  let isRecording = false, timerId = null, startedAt = 0;
+
+  function fmtTimer(sec){
+    const m = Math.floor(sec/60).toString().padStart(2,'0');
+    const s = Math.floor(sec%60).toString().padStart(2,'0');
+    return m+':'+s;
+  }
+
+  function pickMime(){
+    const candidates = [
+      { mime:'audio/mp4;codecs=mp4a.40.2', ext:'m4a' },
+      { mime:'audio/webm;codecs=opus',     ext:'webm' },
+      { mime:'audio/webm',                 ext:'webm' },
+      { mime:'audio/ogg;codecs=opus',      ext:'ogg' },
+    ];
+    return candidates.find(c => { try{ return MediaRecorder.isTypeSupported(c.mime); }catch(e){ return false; } });
+  }
+
+  async function startRec(){
+    try{
+      if(!stream || !stream.active){
+        stream = await navigator.mediaDevices.getUserMedia({audio:true});
+      }
+    }catch(e){
+      statusEl.textContent = '⚠ 마이크 권한을 허용해 주세요.';
+      return;
+    }
+    chunks = []; blob = null;
+    const picked = pickMime();
+    const opts = { audioBitsPerSecond: 128000 };
+    if(picked){ opts.mimeType = picked.mime; mime = picked.mime; ext = picked.ext; }
+    try{ recorder = new MediaRecorder(stream, opts); }
+    catch(e){ recorder = new MediaRecorder(stream); mime=''; ext='webm'; }
+
+    recorder.ondataavailable = e => { if(e.data.size>0) chunks.push(e.data); };
+    recorder.onstop = () => {
+      blob = new Blob(chunks, {type: mime || 'audio/webm'});
+      audioEl.src = URL.createObjectURL(blob);
+      previewEl.style.display = '';
+      statusEl.textContent = '녹음 완료 — 들어보고 저장하거나 다시 녹음할 수 있어요.';
+    };
+    recorder.start();
+
+    isRecording = true;
+    mainBtn.classList.add('recording');
+    mainLabel.textContent = '녹음 중지';
+    previewEl.style.display = 'none';
+    statusEl.textContent = '● 녹음 중...';
+    startedAt = Date.now();
+    timerEl.textContent = '00:00';
+    timerId = setInterval(() => {
+      timerEl.textContent = fmtTimer((Date.now()-startedAt)/1000);
+    }, 250);
+  }
+
+  function stopRec(){
+    isRecording = false;
+    mainBtn.classList.remove('recording');
+    mainLabel.textContent = '녹음 시작';
+    if(timerId){ clearInterval(timerId); timerId = null; }
+    if(recorder && recorder.state !== 'inactive') recorder.stop();
+  }
+
+  mainBtn.addEventListener('click', () => { isRecording ? stopRec() : startRec(); });
+
+  saveBtn.addEventListener('click', () => {
+    if(!blob) return;
+    const now = new Date();
+    const ts = (now.getFullYear()+'').slice(2)
+      + (now.getMonth()+1).toString().padStart(2,'0')
+      + now.getDate().toString().padStart(2,'0') + '_'
+      + now.getHours().toString().padStart(2,'0')
+      + now.getMinutes().toString().padStart(2,'0');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = '녹음_' + ts + '.' + ext;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    statusEl.textContent = '✓ 저장 완료 (녹음_' + ts + '.' + ext + ')';
+  });
+
+  redoBtn.addEventListener('click', () => {
+    blob = null;
+    previewEl.style.display = 'none';
+    statusEl.textContent = '버튼을 누르면 새로 녹음합니다.';
+    startRec();
   });
 })();
 
