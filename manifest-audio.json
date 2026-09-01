@@ -1,0 +1,24 @@
+{
+  "name": "전폭 챕터 오디오",
+  "short_name": "챕터오디오",
+  "description": "전도폭발훈련 챕터 원문 및 오디오 듣기",
+  "start_url": "./index-audio.html",
+  "display": "standalone",
+  "background_color": "#0e0f11",
+  "theme_color": "#0e0f11",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "icon-audio-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-audio-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
