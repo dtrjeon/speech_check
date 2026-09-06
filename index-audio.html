@@ -365,6 +365,20 @@ html.skin-light .outline-line-only{color:#1565c0;}
 .rec-preview{margin-top:12px;}
 .rec-preview audio{width:100%;height:36px;}
 .rec-preview-btns{display:flex;gap:8px;margin-top:10px;}
+.rec-folder-btn{
+  display:none;align-items:center;gap:6px;margin-top:8px;
+  background:var(--surface2);border:1px dashed var(--border2);border-radius:8px;
+  padding:8px 10px;font-family:'Noto Sans KR',sans-serif;font-size:12px;color:var(--text-muted);
+  cursor:pointer;touch-action:manipulation;width:100%;text-align:left;
+}
+.rec-folder-btn.show{display:flex;}
+.rec-folder-btn:hover{border-color:var(--accent);color:var(--accent);}
+.rec-folder-tip{
+  display:none;margin-top:6px;font-size:12px;color:var(--text-muted);
+  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  padding:10px 12px;line-height:1.7;
+}
+.rec-folder-tip.show{display:block;}
 .rec-save-btn,.rec-redo-btn{
   flex:1;background:transparent;border:1px solid var(--border2);border-radius:8px;
   padding:9px 0;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;
@@ -588,6 +602,10 @@ html.skin-warm .rec-save-btn{border-color:#5b4fcf;color:#5b4fcf;}
         <button class="rec-save-btn" id="rec-save-btn">💾 저장(다운로드)</button>
         <button class="rec-redo-btn" id="rec-redo-btn">↺ 다시 녹음</button>
       </div>
+      <!-- 저장 완료 후에만 표시: 실제 OS 폴더를 여는 것은 브라우저 보안 정책상 불가능하므로,
+           기기별 저장 위치 안내 + (PC는) 다운로드 목록 열기 단축키를 보여줌 -->
+      <button class="rec-folder-btn" id="rec-folder-btn">📂 폴더 열기(저장 위치 안내)</button>
+      <div class="rec-folder-tip" id="rec-folder-tip"></div>
     </div>
   </div>
 
@@ -1436,7 +1454,33 @@ function _numKor(num){
   const audioEl   = document.getElementById('rec-audio-el');
   const saveBtn   = document.getElementById('rec-save-btn');
   const redoBtn   = document.getElementById('rec-redo-btn');
+  const folderBtn = document.getElementById('rec-folder-btn');
+  const folderTip = document.getElementById('rec-folder-tip');
   if(!mainBtn) return;
+
+  // 실제 OS 파일탐색기/앱을 여는 것은 브라우저 보안 정책상 웹페이지에서 불가능함.
+  // 대신 기기/브라우저를 감지해 "어디서 찾으면 되는지" 안내 문구를 보여줌.
+  function folderTipText(){
+    const ua = navigator.userAgent || '';
+    if(/android/i.test(ua)){
+      return '📂 <b>내 파일</b>(또는 <b>파일 관리자</b>) 앱 → <b>Download(다운로드)</b> 폴더에서 확인할 수 있어요.';
+    }
+    if(/iphone|ipad|ipod/i.test(ua)){
+      return '📂 <b>파일</b> 앱 → <b>다운로드</b> 폴더에서 확인할 수 있어요. (사파리가 저장 위치를 물었다면 그때 선택한 위치)';
+    }
+    if(/mac/i.test(ua) && !/mobile/i.test(ua)){
+      return '📂 Finder → <b>다운로드</b> 폴더에서 확인할 수 있어요.<br>Chrome이라면 <b>⌘+Shift+J</b>, Safari라면 우측 상단 다운로드 아이콘을 누르면 목록이 바로 열려요.';
+    }
+    if(/windows/i.test(ua)){
+      return '📂 파일 탐색기 → <b>다운로드</b> 폴더에서 확인할 수 있어요.<br>Chrome/Edge라면 <b>Ctrl+J</b> 를 누르면 다운로드 목록이 바로 열려요.';
+    }
+    return '📂 브라우저의 <b>다운로드(Download)</b> 폴더에서 확인할 수 있어요.';
+  }
+
+  folderBtn.addEventListener('click', () => {
+    folderTip.innerHTML = folderTipText();
+    folderTip.classList.toggle('show');
+  });
 
   let stream = null, recorder = null, chunks = [], blob = null;
   let mime = '', ext = 'webm';
@@ -1487,6 +1531,8 @@ function _numKor(num){
     mainBtn.classList.add('recording');
     mainLabel.textContent = '녹음 중지';
     previewEl.style.display = 'none';
+    folderBtn.classList.remove('show');
+    folderTip.classList.remove('show');
     statusEl.textContent = '● 녹음 중...';
     startedAt = Date.now();
     timerEl.textContent = '00:00';
@@ -1522,11 +1568,15 @@ function _numKor(num){
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     statusEl.textContent = '✓ 저장 완료 (녹음_' + ts + '.' + ext + ')';
+    folderBtn.classList.add('show');
+    folderTip.classList.remove('show');
   });
 
   redoBtn.addEventListener('click', () => {
     blob = null;
     previewEl.style.display = 'none';
+    folderBtn.classList.remove('show');
+    folderTip.classList.remove('show');
     statusEl.textContent = '버튼을 누르면 새로 녹음합니다.';
     startRec();
   });
