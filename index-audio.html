@@ -439,6 +439,17 @@ html.skin-warm .rec-card{background:#fff;border-color:rgba(120,80,20,.12);}
 html.skin-warm .rec-main-btn{background:#f5f2ee;border-color:rgba(120,80,20,.16);}
 html.skin-warm .rec-save-btn{border-color:#5b4fcf;color:#5b4fcf;}
 
+/* ══ 홈 화면에 아이콘 추가하기 (펼치기/접기) ══ */
+.addicon-card{background:var(--surface);border:1.5px solid var(--border);border-left:4px solid var(--accent);border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.addicon-card summary{list-style:none;cursor:pointer;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:15px;font-weight:700;color:var(--text);touch-action:manipulation;}
+.addicon-card summary::-webkit-details-marker{display:none;}
+.addicon-summary-title{display:flex;align-items:center;gap:8px;}
+.addicon-arrow{font-size:12px;color:var(--text-muted);transition:transform .2s ease;flex-shrink:0;}
+.addicon-card[open] .addicon-arrow{transform:rotate(180deg);}
+.addicon-body{padding:0 14px 14px;font-size:13px;color:var(--text-muted);line-height:1.9;border-top:1px solid var(--border);}
+.addicon-body p{padding-top:12px;}
+.addicon-body b{color:var(--text);font-weight:600;}
+
 /* 데스크탑에서 모바일 규격으로 표시 */
 @media (min-width: 520px) {
   body {
@@ -477,6 +488,18 @@ html.skin-warm .rec-save-btn{border-color:#5b4fcf;color:#5b4fcf;}
     <h1>전문 구두 점검(2단계)</h1>
     <p class="subtitle">전도폭발훈련</p>
   </div>
+
+  <!-- ══ 홈 화면에 아이콘 추가하기 (펼치기/접기, 기본 접힘) ══ -->
+  <details class="addicon-card">
+    <summary>
+      <span class="addicon-summary-title">📱 홈 화면에 아이콘 추가하기</span>
+      <span class="addicon-arrow">▾</span>
+    </summary>
+    <div class="addicon-body">
+      <p><b>iOS(사파리)</b> : 공유 버튼 → "홈 화면에 추가"를 누르면 아이콘이 등록됩니다.</p>
+      <p><b>Android(크롬)</b> : 메뉴(⋮) → "홈 화면에 추가"를 누르면 동일하게 아이콘이 등록됩니다.</p>
+    </div>
+  </details>
 
   <!-- 챕터 선택 -->
   <div class="chapter-section">
@@ -541,7 +564,14 @@ html.skin-warm .rec-save-btn{border-color:#5b4fcf;color:#5b4fcf;}
   <!-- 호환성 유지용(화면에 보이지 않음): 원문 녹음대상 텍스트를 담아두는 데이터 보관용 필드 -->
   <textarea id="original" style="display:none;" aria-hidden="true"></textarea>
 
-  <!-- ══ 내 목소리 녹음 ══ -->
+  <!--
+    ══ 내 목소리 녹음 ══
+    저장 위치 안내: "저장(다운로드)" 버튼을 누르면 브라우저의 기본 다운로드 경로에 저장됩니다.
+      - Android(크롬)   : 내 파일(파일 관리자) > Download(다운로드) 폴더
+      - iOS(사파리)     : 파일 앱 > 다운로드 폴더 (또는 사파리가 "파일에 저장"으로 위치를 물어볼 수 있음)
+      - PC(크롬/엣지 등) : 사용자 PC의 "다운로드" 폴더
+    서버로 전송되지 않고 기기 로컬에만 저장되며, 파일명은 '녹음_YYMMDD_HHMM.확장자' 형식입니다.
+  -->
   <div class="rec-card">
     <div class="slabel">내 목소리 녹음</div>
     <div class="rec-row">
@@ -1476,6 +1506,8 @@ function _numKor(num){
   mainBtn.addEventListener('click', () => { isRecording ? stopRec() : startRec(); });
 
   saveBtn.addEventListener('click', () => {
+    // 저장 위치: 서버 업로드가 아닌 브라우저의 기본 "다운로드" 경로에 파일로 저장됨
+    // (기기/브라우저마다 Download 폴더 또는 파일 앱의 다운로드함으로 이동)
     if(!blob) return;
     const now = new Date();
     const ts = (now.getFullYear()+'').slice(2)
