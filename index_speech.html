@@ -2053,16 +2053,12 @@ document.getElementById('btn-logout').addEventListener('click', ()=>{ sendLog('l
 let recMode = 'clova'; // 'api' | 'stt' | 'clova' — 기본값: CLOVA (★ v3.10: Whisper 대신 항상 CLOVA 사용)
 const CORRECT_GAS_URL = 'https://script.google.com/macros/s/AKfycby404YrDV4qCQBOqkFv4S9jQz6nOTX_9zdjXKIoKav0C2O3RIdq4Z-gBVpVtk_8bwjbXQ/exec';
 let clovaGasUrl = (function(){
-  try{
-    const saved = localStorage.getItem('clova_gas_url') || '';
-    // ★ v2.42: 예전에 저장된 잘못된 GAS 주소(AKfycbwc9...)가 계속 남아있어 Whisper/CLOVA
-    // 요청이 엉뚱한 곳으로 가던 문제 수정. 옛 주소가 저장돼 있으면 자동으로 올바른 주소로 교체.
-    if(!saved || saved.indexOf('AKfycbwc9') !== -1){
-      try{ localStorage.setItem('clova_gas_url', CORRECT_GAS_URL); }catch(e){}
-      return CORRECT_GAS_URL;
-    }
-    return saved;
-  }catch(e){return CORRECT_GAS_URL;}
+  // ★ v2.43: localStorage에 남아있던 예전 배포 주소가 계속 쓰이다가 재배포 후
+  // 404가 나는 문제 재발 방지. 특정 옛 접두사만 걸러내던 방식 대신, 항상 코드에 박힌
+  // 최신 CORRECT_GAS_URL을 기본값으로 쓰고 캐시를 그 값으로 덮어쓴다.
+  // (설정 화면에서 수동으로 다른 주소를 저장하면 그 세션 동안은 그 값이 우선 적용됨)
+  try{ localStorage.setItem('clova_gas_url', CORRECT_GAS_URL); }catch(e){}
+  return CORRECT_GAS_URL;
 })();
 /* ════════════ 유틸 ════════════ */
 function setStatus(msg){ 
