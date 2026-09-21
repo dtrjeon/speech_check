@@ -3536,7 +3536,10 @@ function compare(){
   const ops = mergeOps(reconcileSpacing(lcsOps(origWords, recWords)));
 
   let correct=0, missing=0, extra=0, sub=0;
-  ops.forEach(o=>{ if(o.t==='ok')correct++; else if(o.t==='miss')missing++; else if(o.t==='extra')extra++; else sub++; });
+  ops.forEach(o=>{
+    const c = o.count || 1; // 띄어쓰기 차이로 여러 원본 단어가 하나의 'ok' 구간으로 합쳐진 경우 대비
+    if(o.t==='ok')correct+=c; else if(o.t==='miss')missing+=c; else if(o.t==='extra')extra+=c; else sub+=c;
+  });
   // 일치율: 원본 단어 기준 정답률에서 과도한 추가 단어에 패널티 부여
   // (추가 단어가 원본의 20% 초과분부터 감점)
   const extraPenalty = Math.max(0, extra - Math.floor(origWords.length * 0.2));
