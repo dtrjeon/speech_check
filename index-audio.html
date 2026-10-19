@@ -14,6 +14,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<script>
+/* 모바일 기본 크기 고정: '데스크톱 사이트' 모드(넓은 가상 화면)여도 모바일 폭으로 보이게 보정 */
+(function(){try{
+  var sw=Math.min(screen.width,screen.height), iw=window.innerWidth;
+  if(matchMedia('(pointer:coarse)').matches && sw<=600 && iw>sw*1.3){ document.documentElement.style.zoom=(iw/sw); }
+}catch(e){}})();
+</script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0e0f11" id="meta-theme-color">
 <title>전폭 챕터 오디오</title>
@@ -475,6 +482,7 @@ html.skin-warm .rec-save-btn{border-color:#5b4fcf;color:#5b4fcf;}
     max-width: 480px !important;
     box-shadow: 0 0 60px rgba(0,0,0,0.6);
   }
+  @media (pointer:coarse){ html body .page, .page{ max-width:none !important; box-shadow:none; } .skin-toggle-btn{ right:16px !important; } }
   .skin-toggle-btn {
     right: calc((100vw - 480px) / 2 + 16px) !important;
   }
