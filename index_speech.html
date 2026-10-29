@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <!--
-  index_speech.html 변경 이력 (v3.13 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index_speech.html 변경 이력 (v3.17 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
 
+  v3.17 (2026-10-30) - PDF 저장(인쇄) 파일명도 ⚙ 설정에서 지정(기본은 텍스트와 동일 형식). 인쇄 시 문서 제목을 파일명으로 바꿔 제안.
   v3.13 (2026-10-29) - {기수} 항목 추가(설정에서 값 입력, 기본 62기). ⚙ 파일 저장 설정 추가: 텍스트/음성 파일명 형식({이름}{챕터}{월일}{날짜}{시각}) 지정, PC 브라우저에서는 저장 폴더 지정(휴대폰은 다운로드 폴더 고정).
   v3.12 (2026-10-29) - 우측 상단(제목 줄)에 🔒 관리자 아이콘 추가(인증되면 🔓). 비밀번호 확인 후 "관리자 페이지 열기"(admin.html) 가능,
     "비밀번호 저장" 체크 시 다음 방문 자동 인증, "인증 해제" 지원. 비밀번호는 코드에 없고 GAS(act=auth, 이름 전태룡)로 서버 확인.
@@ -1540,7 +1541,7 @@ html.skin-light .fulltext-body{color:var(--text);}
   <div class="header" style="position:relative;">
     <button id="btn-admin-open" title="관리자 인증" aria-label="관리자 인증" style="position:absolute;top:0;right:0;width:38px;height:38px;border-radius:50%;background:var(--surface);border:1px solid var(--border2);color:var(--text-muted);font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;">🔒</button>
     <h1 style="padding-right:46px;">전문 구두 점검(2단계)</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v3.13 (2026.10.29)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v3.17 (2026.10.30)</span></p>
 
   </div>
 
@@ -1561,6 +1562,9 @@ html.skin-light .fulltext-body{color:var(--text);}
         <label style="font-size:12px;color:var(--text-muted);">📄 텍스트 파일명 (.txt)</label>
         <input id="fs-txt" type="text" style="width:100%;box-sizing:border-box;margin:4px 0 4px;padding:10px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);font-size:14px;">
         <div id="fs-txt-prev" style="font-size:11px;color:var(--accent);margin-bottom:12px;"></div>
+        <label style="font-size:12px;color:var(--text-muted);">🖨 PDF 파일명 (.pdf, 인쇄→PDF 저장 시 제안되는 이름)</label>
+        <input id="fs-pdf" type="text" style="width:100%;box-sizing:border-box;margin:4px 0 4px;padding:10px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);font-size:14px;">
+        <div id="fs-pdf-prev" style="font-size:11px;color:var(--accent);margin-bottom:12px;"></div>
         <label style="font-size:12px;color:var(--text-muted);">🎙 음성 파일명 (.m4a 등)</label>
         <input id="fs-aud" type="text" style="width:100%;box-sizing:border-box;margin:4px 0 4px;padding:10px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);font-size:14px;">
         <div id="fs-aud-prev" style="font-size:11px;color:var(--accent);margin-bottom:14px;"></div>
@@ -3151,7 +3155,7 @@ const DEFAULT_TPL = '{이름}_{챕터}_{월일}';
 function loadFileCfg(){
   let c = {};
   try{ c = JSON.parse(localStorage.getItem(FILECFG_KEY)||'{}') || {}; }catch(e){}
-  return { txtTpl: c.txtTpl || DEFAULT_TPL, audTpl: c.audTpl || DEFAULT_TPL, useDir: !!c.useDir, gisu: (c.gisu==null ? '62기' : c.gisu) };
+  return { txtTpl: c.txtTpl || DEFAULT_TPL, audTpl: c.audTpl || DEFAULT_TPL, pdfTpl: c.pdfTpl || DEFAULT_TPL, useDir: !!c.useDir, gisu: (c.gisu==null ? '62기' : c.gisu) };
 }
 function saveFileCfg(c){ try{ localStorage.setItem(FILECFG_KEY, JSON.stringify(c)); }catch(e){} }
 function buildFileBase(tpl){
@@ -3168,6 +3172,7 @@ function buildFileBase(tpl){
   return out || (nm + '_' + map['챕터'] + '_' + map['월일']);
 }
 function makeTimestamp(){ return buildFileBase(loadFileCfg().txtTpl); }   // 텍스트 파일 기본명
+function makePdfBase(){ return buildFileBase(loadFileCfg().pdfTpl); }   // PDF 저장 시 기본 파일명
 function makeAudioBase(){ return buildFileBase(loadFileCfg().audTpl); }   // 음성 파일 기본명
 
 // 저장 폴더 핸들(데스크톱 Chrome/Edge 등 File System Access 지원 브라우저 한정) — IndexedDB에 보관
@@ -4666,6 +4671,14 @@ function restorePrintStyle(origBg, origColor) {
 // 리포트 스타일로 빠지는 문제가 있었음. 이제 모달이 열려있는지와 무관하게, 비교 분석
 // 결과(lastPreviewData)만 있으면 인쇄 직전에 항상 미리보기 내용을 새로 채워 넣고
 // 미리보기 스타일로 통일 — 어떤 경로로 인쇄하든 항상 같은(예쁜) 결과가 나옴.
+// ★ v3.17: PDF로 저장할 때 제안되는 파일명을 설정(파일명 형식)대로 — 브라우저는 문서 제목(title)을 기본 파일명으로 사용
+let _origDocTitle = null;
+window.addEventListener('beforeprint', function(){
+  try{ if(_origDocTitle === null) _origDocTitle = document.title; document.title = makePdfBase(); }catch(e){}
+});
+window.addEventListener('afterprint', function(){
+  if(_origDocTitle !== null){ document.title = _origDocTitle; _origDocTitle = null; }
+});
 window.addEventListener('beforeprint', function(){
   if(printIntent !== 'report' && lastPreviewData){
     document.getElementById('preview-a4-content').innerHTML = buildPreviewHTML(lastPreviewData);
@@ -4990,6 +5003,7 @@ if('serviceWorker' in navigator){
   let pendingDirCleared = false;
   function prev(){
     $('fs-txt-prev').textContent = '예: ' + buildFileBase($('fs-txt').value) + '.txt';
+    $('fs-pdf-prev').textContent = '예: ' + buildFileBase($('fs-pdf').value) + '.pdf';
     $('fs-aud-prev').textContent = '예: ' + buildFileBase($('fs-aud').value) + '.m4a';
   }
   async function renderDir(){
@@ -5010,7 +5024,7 @@ if('serviceWorker' in navigator){
   }
   function open(){
     const c = loadFileCfg();
-    $('fs-txt').value = c.txtTpl; $('fs-aud').value = c.audTpl; $('fs-gisu').value = c.gisu;
+    $('fs-txt').value = c.txtTpl; $('fs-aud').value = c.audTpl; $('fs-pdf').value = c.pdfTpl; $('fs-gisu').value = c.gisu;
     prev(); renderDir();
     $('file-setting-modal').style.display = 'flex';
   }
@@ -5019,12 +5033,14 @@ if('serviceWorker' in navigator){
   $('fs-gisu').addEventListener('input', function(){ const c=loadFileCfg(); c.gisu=this.value; saveFileCfg(c); prev(); });
   $('fs-txt').addEventListener('input', prev);
   $('fs-aud').addEventListener('input', prev);
-  $('fs-reset').addEventListener('click', ()=>{ $('fs-txt').value = DEFAULT_TPL; $('fs-aud').value = DEFAULT_TPL; $('fs-gisu').value = '62기'; prev(); });
+  $('fs-pdf').addEventListener('input', prev);
+  $('fs-reset').addEventListener('click', ()=>{ $('fs-txt').value = DEFAULT_TPL; $('fs-aud').value = DEFAULT_TPL; $('fs-pdf').value = DEFAULT_TPL; $('fs-gisu').value = '62기'; prev(); });
   $('fs-save').addEventListener('click', ()=>{
     const c = loadFileCfg();
     c.txtTpl = $('fs-txt').value.trim() || DEFAULT_TPL;
     c.audTpl = $('fs-aud').value.trim() || DEFAULT_TPL;
     c.gisu = $('fs-gisu').value.trim();
+    c.pdfTpl = $('fs-pdf').value.trim() || DEFAULT_TPL;
     saveFileCfg(c);
     $('file-setting-modal').style.display = 'none';
     try{ showBanner('✓ 파일 저장 설정이 저장되었습니다.', 'ok'); }catch(e){}
