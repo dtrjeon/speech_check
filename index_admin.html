@@ -665,10 +665,27 @@ function usageChapterLabel(chapterField){
   }).filter(Boolean).join(', ');
 }
 
+// ★ 사용기간은 매월 1일~말일(달력 기준)로 집계. 선택한 월(yyyy-MM), 기본값은 이번 달(KST), 'all'은 전체.
+let usageMonth = null;
+const _MON = {Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+function normUsageTs(ts){
+  const s = String(ts||'');
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s;                       // 'yyyy-MM-dd HH:mm:ss'
+  const m = s.match(/^\w{3} (\w{3}) (\d{2}) (\d{4}) (\d{2}:\d{2}:\d{2})/);   // JS Date.toString() 형식
+  if(m && _MON[m[1]]) return m[3]+'-'+String(_MON[m[1]]).padStart(2,'0')+'-'+m[2]+' '+m[4];
+  return s;
+}
+function currentMonthKST(){ return new Date(Date.now()+9*3600*1000).toISOString().slice(0,7); }
+function monthRangeLabel(ym){
+  const [y,mo] = ym.split('-').map(Number);
+  const last = new Date(y, mo, 0).getDate();
+  return mo+'/1 ~ '+mo+'/'+last;
+}
+
 function renderUsageTab(nameFilter=''){
-  const rows = allRows.filter(r => r['액션']==='clova_done' || r['액션']==='clova_extract' || r['액션']==='whisper_done')
+  const allUsage = allRows.filter(r => r['액션']==='clova_done' || r['액션']==='clova_extract' || r['액션']==='whisper_done')
     .map(r => ({
-      ts: r['타임스탬프(KST)']||'',
+      ts: normUsageTs(r['타임스탬프(KST)']||''),
       name: r['이름']||'',
       chapter: usageChapterLabel(r['챕터']),
       sec: Number(r['소요시간(초)']||0),
@@ -677,11 +694,18 @@ function renderUsageTab(nameFilter=''){
     .filter(r => !nameFilter || r.name.includes(nameFilter))
     .sort((a,b) => b.ts.localeCompare(a.ts));
 
+  if(!usageMonth) usageMonth = currentMonthKST();
+  const monthSet = new Set(allUsage.map(r => r.ts.slice(0,7)).filter(x => /^\d{4}-\d{2}$/.test(x)));
+  monthSet.add(currentMonthKST());
+  const monthList = Array.from(monthSet).sort().reverse();
+  if(usageMonth !== 'all' && !monthSet.has(usageMonth)) usageMonth = currentMonthKST();
+  const rows = usageMonth === 'all' ? allUsage : allUsage.filter(r => r.ts.slice(0,7) === usageMonth);
+
   const summaryEl = document.getElementById('usage-summary-area');
   const tableEl   = document.getElementById('usage-table-area');
   if(!summaryEl || !tableEl) return;
 
-  if(!rows.length){
+  if(!allUsage.length){
     summaryEl.innerHTML = '';
     tableEl.innerHTML = '<div class="empty">CLOVA/Whisper 사용 기록이 없습니다.</div>';
     return;
@@ -689,19 +713,15 @@ function renderUsageTab(nameFilter=''){
 
   // 월별 / 일별 합계 집계
   const byMonth = {}, byDay = {};
-  rows.forEach(r => {
-    const day = r.ts.slice(0,10);       // yyyy-MM-dd
-    const month = r.ts.slice(0,7);      // yyyy-MM
-    byMonth[month] = (byMonth[month]||0) + r.sec;
-    byDay[day]     = (byDay[day]||0)   + r.sec;
-  });
+  allUsage.forEach(r => { const month = r.ts.slice(0,7); byMonth[month] = (byMonth[month]||0) + r.sec; });
+  rows.forEach(r => { const day = r.ts.slice(0,10); byDay[day] = (byDay[day]||0) + r.sec; });
 
   const totalSec = rows.reduce((s,r)=>s+r.sec,0);
   const fmtMin = sec => (sec/60).toFixed(1) + '분';
 
   const monthRows = Object.keys(byMonth).sort().reverse()
-    .map(m => `<tr><td>${m}</td><td>${fmtMin(byMonth[m])}</td></tr>`).join('');
-  const dayRows = Object.keys(byDay).sort().reverse().slice(0, 14)
+    .map(m => `<tr style="${m===usageMonth?'color:var(--clova);font-weight:700;':''}"><td>${m}</td><td style="text-align:right;">${fmtMin(byMonth[m])}</td></tr>`).join('');
+  const dayRows = Object.keys(byDay).sort().reverse().slice(0, usageMonth==='all' ? 14 : 31)
     .map(d => `<tr><td>${d}</td><td>${fmtMin(byDay[d])}</td></tr>`).join('');
 
   // ★ Whisper 개인별 사용시간 집계 (관리자가 개인별로 청구할 때 참고용)
@@ -714,16 +734,23 @@ function renderUsageTab(nameFilter=''){
     .map(n => `<tr><td>${n}</td><td style="text-align:right;">${fmtMin(whisperByPerson[n])}</td></tr>`).join('');
   const whisperPersonBlock = whisperNames.length ? `
     <div style="margin-bottom:14px;">
-      <div class="slabel" style="margin-bottom:6px;">🤖 Whisper 개인별 사용시간 (청구용)</div>
+      <div class="slabel" style="margin-bottom:6px;">🤖 Whisper 개인별 사용시간 (청구용) — ${periodLabel}</div>
       <table style="width:100%;border-collapse:collapse;font-size:12px;">
         <tr style="color:var(--text-dim);"><th style="text-align:left;padding:4px 0;">성명</th><th style="text-align:right;padding:4px 0;">사용시간</th></tr>
         ${whisperPersonRows}
       </table>
     </div>` : '';
 
+  const periodLabel = usageMonth === 'all' ? '전체 기간' : (usageMonth + ' (' + monthRangeLabel(usageMonth) + ')');
+  const monthOpts = ['<option value="all"'+(usageMonth==='all'?' selected':'')+'>전체 기간</option>']
+    .concat(monthList.map(m => '<option value="'+m+'"'+(m===usageMonth?' selected':'')+'>'+m+' ('+monthRangeLabel(m)+')</option>')).join('');
   summaryEl.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+      <span class="slabel" style="margin:0;">📅 사용기간 (매월 1일~말일)</span>
+      <select id="usage-month-select" style="flex:1;min-width:0;padding:7px 8px;border-radius:8px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font-size:13px;">${monthOpts}</select>
+    </div>
     <div class="summary-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
-      <div class="sum-card"><div class="sum-lbl">전체 누적</div><div class="sum-val" style="color:var(--clova);">${fmtMin(totalSec)}</div></div>
+      <div class="sum-card"><div class="sum-lbl">${periodLabel} 사용량</div><div class="sum-val" style="color:var(--clova);">${fmtMin(totalSec)}</div></div>
       <div class="sum-card"><div class="sum-lbl">처리 건수</div><div class="sum-val">${rows.length}</div><div class="sum-sub">건</div></div>
     </div>
     ${whisperPersonBlock}
@@ -736,7 +763,7 @@ function renderUsageTab(nameFilter=''){
         </table>
       </div>
       <div style="flex:1;min-width:140px;">
-        <div class="slabel" style="margin-bottom:6px;">일별 합계 (최근 14일)</div>
+        <div class="slabel" style="margin-bottom:6px;">일별 합계 (${usageMonth==='all'?'최근 14일':'선택 월'})</div>
         <table style="width:100%;border-collapse:collapse;font-size:12px;">
           <tr style="color:var(--text-dim);"><th style="text-align:left;padding:4px 0;">날짜</th><th style="text-align:right;padding:4px 0;">합계</th></tr>
           ${dayRows}
@@ -744,6 +771,12 @@ function renderUsageTab(nameFilter=''){
       </div>
     </div>
   `;
+
+  const sel = document.getElementById('usage-month-select');
+  if(sel) sel.addEventListener('change', function(){
+    usageMonth = this.value;
+    renderUsageTab((document.getElementById('usage-search')||{}).value ? document.getElementById('usage-search').value.trim() : '');
+  });
 
   const MONTH_MAP = {Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
   const fmtTs = ts => {
@@ -758,7 +791,7 @@ function renderUsageTab(nameFilter=''){
   };
 
   tableEl.innerHTML = `
-    <div class="slabel" style="margin-bottom:6px;">상세 내역 (${rows.length}건)</div>
+    <div class="slabel" style="margin-bottom:6px;">상세 내역 — ${periodLabel} (${rows.length}건)</div>${rows.length?'':'<div class="empty">이 기간의 사용 기록이 없습니다.</div>'}
     <table style="width:100%;border-collapse:collapse;font-size:12px;">
       <tr style="color:var(--text-dim);border-bottom:1px solid var(--border);">
         <th style="text-align:left;padding:6px 4px;">일시</th>
