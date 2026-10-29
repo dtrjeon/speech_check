@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
   index_admin.html(구 admin.html, 관리자 로그 대시보드) 변경 이력
+  v3.13 (2026-10-30) - 버전 통일(index_speech.html v3.13과 동일). 이전 v3.7~v3.12 변경: 서버 로그/사용량 초기화(🗑), 사용시간 탭 달력 월 기준 집계 등.
   v3.6 (2026-07-17) - "사용시간" 탭에 Whisper 사용 내역(whisper_done)도 포함. 상세 내역에 "엔진"(CLOVA/Whisper) 열 추가, Whisper는 공유 키를 관리자가 결제하고 개인별로 청구하는 구조라 "Whisper 개인별 사용시간" 요약 표를 추가해 정산에 바로 활용 가능하도록 함.
   v3.5 (2026-07-17) - "일시" 표시가 여전히 "Wed Jul 15 2026 23:54:24 GMT+0900 (한국 표준시)"처럼 길게 나오던 문제 수정. 시트에서 넘어온 타임스탬프가 실제로는 JS Date.toString() 형식이라 이전 정규식이 매칭되지 않았음 — 이 형식도 인식해 "7/15 23:54"로 축약하도록 보강.
   v3.4 (2026-07-17) - "사용시간" 탭 상세 내역의 "일시" 표시를 "Fri Jul 17 2026" 같은 긴 형식 대신 "7/17 13:00" 형식으로 변경.
@@ -372,7 +373,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 <script>
 
 /* ── 버전 정보 (파일 상단 변경이력 주석과 함께 갱신) ── */
-const ADMIN_VERSION = 'v3.3 (2026-07-16)';
+const ADMIN_VERSION = 'v3.13 (2026-10-30)';
 document.addEventListener('DOMContentLoaded', () => {
   const sub = document.querySelector('.page-sub');
   if (sub) sub.textContent = sub.textContent + ' · ' + ADMIN_VERSION;
