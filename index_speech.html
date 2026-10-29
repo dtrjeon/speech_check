@@ -2000,11 +2000,12 @@ function loadMyClovaUsage(){
   if(!AUTH_GAS_URL || !currentUser) return;
   const engine = recMode === 'api' ? 'whisper' : 'clova';
   const label  = recMode === 'api' ? '🤖 Whisper ' : '🟢 CLOVA ';
-  fetch(AUTH_GAS_URL + '?act=usage_personal&engine=' + engine + '&name=' + encodeURIComponent(currentUser.name) + '&_=' + Date.now(), { cache: 'no-store' })
+  fetch(AUTH_GAS_URL + '?act=usage_personal&engine=' + engine + '&name=' + encodeURIComponent(currentUser.name) + '&month=cur&_=' + Date.now(), { cache: 'no-store' })
     .then(r => r.json())
     .then(d => {
       const el = document.getElementById('clova-usage-badge');
-      if(el && d && d.ok) el.textContent = label + fmtSec(d.totalSec);
+      // 서버가 month 를 돌려주면(매월 1일~말일 기준 집계 지원) '이달', 아니면 기존처럼 누적으로 표시
+      if(el && d && d.ok) el.textContent = label + (d.month ? '이달 ' : '') + fmtSec(d.totalSec);
     })
     .catch(()=>{});
 }

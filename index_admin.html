@@ -883,7 +883,7 @@ document.getElementById('btn-reset').addEventListener('click', async function(){
     if(!data.ok){ showErr(data.message||'초기화 실패 (서버에 reset_logs 기능이 없을 수 있습니다)'); return; }
     allRows = [];
     await loadLogs();
-    alert('초기화 완료 (삭제 ' + (data.deleted!=null?data.deleted:'?') + '건). 백업 CSV는 다운로드 폴더에 저장되었습니다.');
+    alert('초기화 완료 (삭제 ' + (data.deleted!=null?data.deleted:'?') + '건). 백업 CSV는 다운로드 폴더에' + (data.backups && data.backups.length ? ', 전체 백업은 구글시트(' + data.backups.join(', ') + ')에' : '') + ' 저장되었습니다.');
   }catch(e){ showErr('서버 연결 오류: '+e.message); }
   finally{ btn.disabled = false; }
 });
