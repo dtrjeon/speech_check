@@ -4763,6 +4763,8 @@ document.getElementById('btn-print').addEventListener('click', function(){
     try{
       if(await verify(pw)){
         try{ sessionStorage.setItem(OK_KEY,'1'); }catch(e){}
+        // admin.html이 같은 계정으로 바로 조회되도록 전달(admin.html 자체 저장 방식과 동일: localStorage admin_cred)
+        try{ localStorage.setItem('admin_cred', JSON.stringify({name: ADMIN_NAME, pw})); }catch(e){}
         try{ if($('admin-save').checked) localStorage.setItem(KEY, pw); else localStorage.removeItem(KEY); }catch(e){}
         show(true);
       } else { $('admin-err').textContent = '비밀번호가 맞지 않습니다.'; }
@@ -4775,7 +4777,7 @@ document.getElementById('btn-print').addEventListener('click', function(){
     let ok = false; try{ ok = sessionStorage.getItem(OK_KEY) === '1'; }catch(e){}
     let saved = null; try{ saved = localStorage.getItem(KEY); }catch(e){}
     if(!ok && saved){
-      try{ if(await verify(saved)){ try{ sessionStorage.setItem(OK_KEY,'1'); }catch(e){} } else { try{ localStorage.removeItem(KEY); }catch(e){} } }catch(e){}
+      try{ if(await verify(saved)){ try{ sessionStorage.setItem(OK_KEY,'1'); localStorage.setItem('admin_cred', JSON.stringify({name: ADMIN_NAME, pw: saved})); }catch(e){} } else { try{ localStorage.removeItem(KEY); }catch(e){} } }catch(e){}
     }
     open();
   });
@@ -4784,7 +4786,7 @@ document.getElementById('btn-print').addEventListener('click', function(){
   $('admin-cancel').addEventListener('click', close);
   $('admin-close').addEventListener('click', close);
   $('admin-logout').addEventListener('click', function(){
-    try{ sessionStorage.removeItem(OK_KEY); localStorage.removeItem(KEY); }catch(e){}
+    try{ sessionStorage.removeItem(OK_KEY); localStorage.removeItem(KEY); localStorage.removeItem('admin_cred'); }catch(e){}
     show(false); $('admin-save').checked = false;
   });
   $('admin-modal').addEventListener('click', function(e){ if(e.target === this) close(); });
