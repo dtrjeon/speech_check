@@ -78,7 +78,7 @@
     "비교결과 (프린트 출력)". 기능(window.print() 호출)은 동일 — 이름만 더 명확하게 변경.
 
   v2.95 (2026-08-01) - 훈련생 배포판 기본 스킨을 다크 → 라이트로 변경(theme-color 메타태그도
-    함께 맞춤). 관리자판(index_admin.html)은 변경 없음.
+    함께 맞춤). 관리자판(index_speech_total.html)은 변경 없음.
   ※ v2.93부터 index.html(관리자/전체기능판)과 index_speech.html(훈련생 배포판)이 분리됨.
   아래 이력은 분리 시점(v2.92)까지는 공통이며, 이후로는 index_speech.html 전용 변경만 기록.
 
@@ -1456,8 +1456,8 @@ html.skin-light .fulltext-body{color:var(--text);}
       </div>
     </div>
     <div id="admin-m-done" style="display:none;margin-top:16px;">
-      <a href="index_admin.html" style="display:block;padding:13px;background:#2b4fc4;color:#fff;border-radius:12px;font-size:14px;font-weight:600;text-decoration:none;">🛠 관리자 페이지 열기</a>
-      <a href="admin.html" style="display:block;margin-top:8px;padding:11px;background:#f0f3fb;color:#1a3ab0;border:1px solid #c9d0e6;border-radius:12px;font-size:13px;font-weight:500;text-decoration:none;">📊 사용 로그 대시보드</a>
+      <a href="index_admin.html" style="display:block;padding:13px;background:#2b4fc4;color:#fff;border-radius:12px;font-size:14px;font-weight:600;text-decoration:none;">📊 관리자 페이지 열기</a>
+      <a href="index_speech_total.html" style="display:block;margin-top:8px;padding:11px;background:#f0f3fb;color:#1a3ab0;border:1px solid #c9d0e6;border-radius:12px;font-size:13px;font-weight:500;text-decoration:none;">🛠 전체기능판 열기</a>
       <button id="admin-logout" style="width:100%;margin-top:8px;padding:12px;border:1px solid #e3c4c4;background:#fff;color:#b22;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;">🔒 인증 해제</button>
       <button id="admin-close" style="width:100%;margin-top:8px;padding:12px;border:1px solid #ddd;background:#f4f4f4;border-radius:12px;font-size:14px;cursor:pointer;">닫기</button>
     </div>
@@ -1517,7 +1517,7 @@ html.skin-light .fulltext-body{color:var(--text);}
           <div id="setting-dropdown-stt-items"></div>
           <!-- 관리자 전용 -->
           <div id="setting-dropdown-admin" style="display:none;border-top:1px solid var(--border);">
-            <a href="admin.html" style="display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:13px;color:var(--accent);text-decoration:none;font-weight:500;">
+            <a href="index_admin.html" style="display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:13px;color:var(--accent);text-decoration:none;font-weight:500;">
               📊 <span>관리자 대시보드</span>
             </a>
           </div>
@@ -4764,7 +4764,7 @@ document.getElementById('btn-print').addEventListener('click', function(){
     try{
       if(await verify(pw)){
         try{ sessionStorage.setItem(OK_KEY,'1'); }catch(e){}
-        // admin.html이 같은 계정으로 바로 조회되도록 전달(admin.html 자체 저장 방식과 동일: localStorage admin_cred)
+        // index_admin.html이 같은 계정으로 바로 조회되도록 전달(index_admin.html 자체 저장 방식과 동일: localStorage admin_cred)
         try{ localStorage.setItem('admin_cred', JSON.stringify({name: ADMIN_NAME, pw})); }catch(e){}
         try{ if($('admin-save').checked) localStorage.setItem(KEY, pw); else localStorage.removeItem(KEY); }catch(e){}
         show(true);
