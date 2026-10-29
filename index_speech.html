@@ -2,7 +2,7 @@
 <!--
   index_speech.html 변경 이력 (v3.13 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
 
-  v3.13 (2026-10-29) - ⚙ 파일 저장 설정 추가: 텍스트/음성 파일명 형식({이름}{챕터}{월일}{날짜}{시각}) 지정, PC 브라우저에서는 저장 폴더 지정(휴대폰은 다운로드 폴더 고정).
+  v3.13 (2026-10-29) - {기수} 항목 추가(설정에서 값 입력, 기본 62기). ⚙ 파일 저장 설정 추가: 텍스트/음성 파일명 형식({이름}{챕터}{월일}{날짜}{시각}) 지정, PC 브라우저에서는 저장 폴더 지정(휴대폰은 다운로드 폴더 고정).
   v3.12 (2026-10-29) - 우측 상단(제목 줄)에 🔒 관리자 아이콘 추가(인증되면 🔓). 비밀번호 확인 후 "관리자 페이지 열기"(admin.html) 가능,
     "비밀번호 저장" 체크 시 다음 방문 자동 인증, "인증 해제" 지원. 비밀번호는 코드에 없고 GAS(act=auth, 이름 전태룡)로 서버 확인.
 
@@ -1554,8 +1554,10 @@ html.skin-light .fulltext-body{color:var(--text);}
       </div>
       <div style="padding:14px 16px;">
         <div style="font-size:11px;color:var(--text-muted);line-height:1.7;margin-bottom:12px;">
-          사용 가능한 항목: <b>{이름}</b> <b>{챕터}</b> <b>{월일}</b>(1029) <b>{날짜}</b>(20261029) <b>{시각}</b>(2351)
+          사용 가능한 항목: <b>{이름}</b> <b>{기수}</b>(62기) <b>{챕터}</b> <b>{월일}</b>(1029) <b>{날짜}</b>(20261029) <b>{시각}</b>(2351)
         </div>
+        <label style="font-size:12px;color:var(--text-muted);">🏷 기수 ({기수}에 들어갈 값)</label>
+        <input id="fs-gisu" type="text" placeholder="62기" style="width:100%;box-sizing:border-box;margin:4px 0 12px;padding:10px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);font-size:14px;">
         <label style="font-size:12px;color:var(--text-muted);">📄 텍스트 파일명 (.txt)</label>
         <input id="fs-txt" type="text" style="width:100%;box-sizing:border-box;margin:4px 0 4px;padding:10px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);font-size:14px;">
         <div id="fs-txt-prev" style="font-size:11px;color:var(--accent);margin-bottom:12px;"></div>
@@ -3149,14 +3151,14 @@ const DEFAULT_TPL = '{이름}_{챕터}_{월일}';
 function loadFileCfg(){
   let c = {};
   try{ c = JSON.parse(localStorage.getItem(FILECFG_KEY)||'{}') || {}; }catch(e){}
-  return { txtTpl: c.txtTpl || DEFAULT_TPL, audTpl: c.audTpl || DEFAULT_TPL, useDir: !!c.useDir };
+  return { txtTpl: c.txtTpl || DEFAULT_TPL, audTpl: c.audTpl || DEFAULT_TPL, useDir: !!c.useDir, gisu: (c.gisu==null ? '62기' : c.gisu) };
 }
 function saveFileCfg(c){ try{ localStorage.setItem(FILECFG_KEY, JSON.stringify(c)); }catch(e){} }
 function buildFileBase(tpl){
   const now = new Date(), p2 = n => String(n).padStart(2,'0');
   const nm = safeFilePart(currentUser && currentUser.name) || '이름없음';
   const map = {
-    '이름': nm, '챕터': chapterFileLabel(),
+    '이름': nm, '챕터': chapterFileLabel(), '기수': safeFilePart(loadFileCfg().gisu),
     '월일': p2(now.getMonth()+1) + p2(now.getDate()),
     '날짜': now.getFullYear() + p2(now.getMonth()+1) + p2(now.getDate()),
     '시각': p2(now.getHours()) + p2(now.getMinutes())
@@ -5008,19 +5010,21 @@ if('serviceWorker' in navigator){
   }
   function open(){
     const c = loadFileCfg();
-    $('fs-txt').value = c.txtTpl; $('fs-aud').value = c.audTpl;
+    $('fs-txt').value = c.txtTpl; $('fs-aud').value = c.audTpl; $('fs-gisu').value = c.gisu;
     prev(); renderDir();
     $('file-setting-modal').style.display = 'flex';
   }
   $('btn-file-setting').addEventListener('click', open);
   $('fs-close').addEventListener('click', ()=>{ $('file-setting-modal').style.display='none'; });
+  $('fs-gisu').addEventListener('input', function(){ const c=loadFileCfg(); c.gisu=this.value; saveFileCfg(c); prev(); });
   $('fs-txt').addEventListener('input', prev);
   $('fs-aud').addEventListener('input', prev);
-  $('fs-reset').addEventListener('click', ()=>{ $('fs-txt').value = DEFAULT_TPL; $('fs-aud').value = DEFAULT_TPL; prev(); });
+  $('fs-reset').addEventListener('click', ()=>{ $('fs-txt').value = DEFAULT_TPL; $('fs-aud').value = DEFAULT_TPL; $('fs-gisu').value = '62기'; prev(); });
   $('fs-save').addEventListener('click', ()=>{
     const c = loadFileCfg();
     c.txtTpl = $('fs-txt').value.trim() || DEFAULT_TPL;
     c.audTpl = $('fs-aud').value.trim() || DEFAULT_TPL;
+    c.gisu = $('fs-gisu').value.trim();
     saveFileCfg(c);
     $('file-setting-modal').style.display = 'none';
     try{ showBanner('✓ 파일 저장 설정이 저장되었습니다.', 'ok'); }catch(e){}
