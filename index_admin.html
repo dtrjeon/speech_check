@@ -254,6 +254,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
       <div id="clova-usage-badge" style="background:rgba(0,0,0,.35);border:1px solid var(--border2);color:#7CFFB2;font-size:10px;font-weight:600;padding:4px 9px;border-radius:12px;font-family:sans-serif;letter-spacing:.2px;white-space:nowrap;">CLOVA 누적 --</div>
       <button class="icon-btn" id="btn-theme" title="테마 변경">🎨</button>
       <button class="icon-btn" id="btn-refresh">↻ 새로고침</button>
+      <button class="icon-btn" id="btn-reset" title="서버 로그/사용량 전체 삭제" style="color:#f87171;border-color:rgba(248,113,113,.4);">🗑 초기화</button>
     </div>
   </div>
 
@@ -817,6 +818,42 @@ document.querySelectorAll('.filter-btn[data-act]').forEach(btn=>{
 
 document.getElementById('btn-load').addEventListener('click', loadLogs);
 document.getElementById('btn-refresh').addEventListener('click', loadLogs);
+
+/* ── 서버 로그/사용량 초기화 (v: 초기화 기능) ──
+   되돌릴 수 없으므로: ① 현재 조회된 로그를 CSV로 먼저 내려받고 ② "초기화"를 직접 입력해야 실행됨.
+   서버(GAS)에 act=reset_logs 처리가 있어야 동작함. */
+function downloadLogsCsv(rows){
+  if(!rows || !rows.length) return false;
+  const cols = Array.from(rows.reduce((set,r)=>{ Object.keys(r).forEach(k=>set.add(k)); return set; }, new Set()));
+  const esc = v => { v = (v==null?'':String(v)); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; };
+  const csv = '\uFEFF' + [cols.join(',')].concat(rows.map(r=>cols.map(c=>esc(r[c])).join(','))).join('\r\n');
+  const d = new Date(), pad = n => String(n).padStart(2,'0');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+  a.download = '구두점검_로그백업_' + pad(d.getMonth()+1) + pad(d.getDate()) + '_' + pad(d.getHours()) + pad(d.getMinutes()) + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  return true;
+}
+document.getElementById('btn-reset').addEventListener('click', async function(){
+  const name = document.getElementById('admin-name').value.trim();
+  const pw   = document.getElementById('admin-pw').value.trim();
+  if(!name||!pw){ showErr('이름과 비밀번호를 입력하세요.'); return; }
+  if(!allRows.length){ showErr('먼저 조회를 눌러 현재 로그를 불러오세요. (삭제 전에 백업을 받기 위해서입니다)'); return; }
+  if(!confirm('서버의 모든 사용 로그와 CLOVA/Whisper 사용량이 삭제됩니다.\n되돌릴 수 없습니다.\n\n삭제 전에 현재 로그(' + allRows.length + '건)를 CSV로 백업합니다. 계속할까요?')) return;
+  const typed = prompt('정말 삭제하려면 "초기화"라고 입력하세요.');
+  if(typed !== '초기화'){ showErr('입력이 달라 초기화를 취소했습니다.'); return; }
+  downloadLogsCsv(allRows);
+  const btn = this; btn.disabled = true; hideErr();
+  try{
+    const res  = await fetch(GAS_URL+'?act=reset_logs',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({name,pw,scope:'all'})});
+    const data = await res.json();
+    if(!data.ok){ showErr(data.message||'초기화 실패 (서버에 reset_logs 기능이 없을 수 있습니다)'); return; }
+    allRows = [];
+    await loadLogs();
+    alert('초기화 완료 (삭제 ' + (data.deleted!=null?data.deleted:'?') + '건). 백업 CSV는 다운로드 폴더에 저장되었습니다.');
+  }catch(e){ showErr('서버 연결 오류: '+e.message); }
+  finally{ btn.disabled = false; }
+});
 
 /* ── 테마 전환 (다크 / 라이트 / 세피아) ── */
 (function(){
