@@ -2,7 +2,7 @@
 // index_speech_total.html(전체기능판, 구 index.html)과 index_speech.html(훈련생 배포판)은 서로 다른 별도 페이지.
 // PWA 홈 화면 설치는 index_speech.html 기준(manifest.json start_url)이라 이걸 우선 캐시하고,
 // index_speech_total.html도 관리자가 오프라인에서 열 수 있도록 함께 캐시함.
-const CACHE_NAME = 'jee-speech-v3.12';
+const CACHE_NAME = 'jee-speech-v3.13';
 
 // 설치 시 기본 파일 캐시
 self.addEventListener('install', event => {

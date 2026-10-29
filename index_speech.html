@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <!--
-  index_speech.html 변경 이력 (v3.12 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
+  index_speech.html 변경 이력 (v3.13 = 현재 버전. 이전 이력은 요약 — 상세 내용은 GitHub 커밋 로그 참고)
 
+  v3.13 (2026-10-29) - ⚙ 파일 저장 설정 추가: 텍스트/음성 파일명 형식({이름}{챕터}{월일}{날짜}{시각}) 지정, PC 브라우저에서는 저장 폴더 지정(휴대폰은 다운로드 폴더 고정).
   v3.12 (2026-10-29) - 우측 상단(제목 줄)에 🔒 관리자 아이콘 추가(인증되면 🔓). 비밀번호 확인 후 "관리자 페이지 열기"(admin.html) 가능,
     "비밀번호 저장" 체크 시 다음 방문 자동 인증, "인증 해제" 지원. 비밀번호는 코드에 없고 GAS(act=auth, 이름 전태룡)로 서버 확인.
 
@@ -1525,6 +1526,8 @@ html.skin-light .fulltext-body{color:var(--text);}
       </div>
       <!-- CLOVA 누적 사용시간 -->
       <span id="clova-usage-badge" style="flex:0 1 auto;min-width:0;text-align:center;background:rgba(0,0,0,.35);border:1px solid var(--border2);color:#7CFFB2;font-size:10px;font-weight:600;padding:4px 8px;border-radius:12px;font-family:sans-serif;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">CLOVA --</span>
+      <!-- 파일 저장 설정 -->
+      <button id="btn-file-setting" title="파일 저장 설정" aria-label="파일 저장 설정" style="flex:0 0 auto;background:transparent;border:1px solid var(--border2);border-radius:7px;width:32px;height:32px;color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;">⚙</button>
       <!-- 설명서 -->
       <a href="manual_guducheckv290.html" title="설명서" style="flex:0 0 auto;background:transparent;border:1px solid var(--border2);border-radius:7px;width:32px;height:32px;color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;font-size:14px;text-decoration:none;">📖</a>
       <!-- 온라인 상태 -->
@@ -1537,8 +1540,38 @@ html.skin-light .fulltext-body{color:var(--text);}
   <div class="header" style="position:relative;">
     <button id="btn-admin-open" title="관리자 인증" aria-label="관리자 인증" style="position:absolute;top:0;right:0;width:38px;height:38px;border-radius:50%;background:var(--surface);border:1px solid var(--border2);color:var(--text-muted);font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;">🔒</button>
     <h1 style="padding-right:46px;">전문 구두 점검(2단계)</h1>
-    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v3.12 (2026.10.29)</span></p>
+    <p class="subtitle">전도폭발훈련 <span style="font-size:11px;color:var(--text-dim);margin-left:6px;">v3.13 (2026.10.29)</span></p>
 
+  </div>
+
+
+  <!-- 파일 저장 설정 모달 (v3.13) -->
+  <div id="file-setting-modal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100000;align-items:flex-start;justify-content:center;padding:60px 16px 20px;overflow-y:auto;">
+    <div style="background:var(--surface);border-radius:16px;width:100%;max-width:380px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.5);">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--surface2);">
+        <span style="font-size:14px;font-weight:600;color:var(--text);">⚙ 파일 저장 설정</span>
+        <button id="fs-close" style="background:transparent;border:none;cursor:pointer;color:var(--text-muted);font-size:18px;padding:0 4px;">✕</button>
+      </div>
+      <div style="padding:14px 16px;">
+        <div style="font-size:11px;color:var(--text-muted);line-height:1.7;margin-bottom:12px;">
+          사용 가능한 항목: <b>{이름}</b> <b>{챕터}</b> <b>{월일}</b>(1029) <b>{날짜}</b>(20261029) <b>{시각}</b>(2351)
+        </div>
+        <label style="font-size:12px;color:var(--text-muted);">📄 텍스트 파일명 (.txt)</label>
+        <input id="fs-txt" type="text" style="width:100%;box-sizing:border-box;margin:4px 0 4px;padding:10px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);font-size:14px;">
+        <div id="fs-txt-prev" style="font-size:11px;color:var(--accent);margin-bottom:12px;"></div>
+        <label style="font-size:12px;color:var(--text-muted);">🎙 음성 파일명 (.m4a 등)</label>
+        <input id="fs-aud" type="text" style="width:100%;box-sizing:border-box;margin:4px 0 4px;padding:10px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);font-size:14px;">
+        <div id="fs-aud-prev" style="font-size:11px;color:var(--accent);margin-bottom:14px;"></div>
+        <div style="border-top:1px solid var(--border);padding-top:12px;">
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">📂 저장 위치</div>
+          <div id="fs-dir-box"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:16px;">
+          <button id="fs-reset" style="flex:0 0 auto;padding:11px 14px;border:1px solid var(--border2);background:transparent;color:var(--text-muted);border-radius:10px;font-size:13px;cursor:pointer;">기본값</button>
+          <button id="fs-save" style="flex:1;padding:11px;border:none;background:var(--accent);color:#fff;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">저장</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- 녹음 방식 설정 모달 -->
@@ -3110,20 +3143,64 @@ function chapterFileLabel(){
   }).filter(Boolean);
   return labels.length ? labels.join('+') : '직접입력';
 }
-function makeTimestamp(){
-  const now = new Date();
-  const mmdd = (now.getMonth()+1).toString().padStart(2,'0') + now.getDate().toString().padStart(2,'0');
+/* ★ v3.13: 파일명/저장위치 설정 (⚙ 파일 저장 설정) */
+const FILECFG_KEY = 'ee_file_cfg';
+const DEFAULT_TPL = '{이름}_{챕터}_{월일}';
+function loadFileCfg(){
+  let c = {};
+  try{ c = JSON.parse(localStorage.getItem(FILECFG_KEY)||'{}') || {}; }catch(e){}
+  return { txtTpl: c.txtTpl || DEFAULT_TPL, audTpl: c.audTpl || DEFAULT_TPL, useDir: !!c.useDir };
+}
+function saveFileCfg(c){ try{ localStorage.setItem(FILECFG_KEY, JSON.stringify(c)); }catch(e){} }
+function buildFileBase(tpl){
+  const now = new Date(), p2 = n => String(n).padStart(2,'0');
   const nm = safeFilePart(currentUser && currentUser.name) || '이름없음';
-  return nm + '_' + chapterFileLabel() + '_' + mmdd;
+  const map = {
+    '이름': nm, '챕터': chapterFileLabel(),
+    '월일': p2(now.getMonth()+1) + p2(now.getDate()),
+    '날짜': now.getFullYear() + p2(now.getMonth()+1) + p2(now.getDate()),
+    '시각': p2(now.getHours()) + p2(now.getMinutes())
+  };
+  let out = String(tpl || DEFAULT_TPL).replace(/\{([^}]+)\}/g, (m,k) => (k in map) ? map[k] : '');
+  out = out.replace(/[\\/:*?"<>|]+/g,'').trim();
+  return out || (nm + '_' + map['챕터'] + '_' + map['월일']);
+}
+function makeTimestamp(){ return buildFileBase(loadFileCfg().txtTpl); }   // 텍스트 파일 기본명
+function makeAudioBase(){ return buildFileBase(loadFileCfg().audTpl); }   // 음성 파일 기본명
+
+// 저장 폴더 핸들(데스크톱 Chrome/Edge 등 File System Access 지원 브라우저 한정) — IndexedDB에 보관
+const DIR_SUPPORTED = typeof window.showDirectoryPicker === 'function';
+function idbOpen(){ return new Promise((res,rej)=>{ const r=indexedDB.open('ee_file_dir',1); r.onupgradeneeded=()=>r.result.createObjectStore('h'); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+async function idbGetDir(){ try{ const db=await idbOpen(); return await new Promise(res=>{ const q=db.transaction('h').objectStore('h').get('dir'); q.onsuccess=()=>res(q.result||null); q.onerror=()=>res(null); }); }catch(e){ return null; } }
+async function idbSetDir(h){ try{ const db=await idbOpen(); await new Promise((res,rej)=>{ const tx=db.transaction('h','readwrite'); if(h) tx.objectStore('h').put(h,'dir'); else tx.objectStore('h').delete('dir'); tx.oncomplete=res; tx.onerror=()=>rej(tx.error); }); }catch(e){} }
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+// 폴더 지정 시 그 폴더에 저장, 실패/미지정이면 기본 다운로드
+async function writeToDir(blob, filename){
+  const h = await idbGetDir();
+  if(!h) return false;
+  try{
+    if(h.queryPermission && (await h.queryPermission({mode:'readwrite'})) !== 'granted'){
+      if((await h.requestPermission({mode:'readwrite'})) !== 'granted') return false;
+    }
+    const fh = await h.getFileHandle(filename, {create:true});
+    const w = await fh.createWritable(); await w.write(blob); await w.close();
+    return true;
+  }catch(e){ return false; }
+}
+function saveBlobSmart(blob, filename){
+  if(DIR_SUPPORTED && loadFileCfg().useDir){
+    writeToDir(blob, filename).then(ok => { if(!ok) downloadBlob(blob, filename); });
+  } else downloadBlob(blob, filename);
 }
 function saveTxtFile(ts, text){
   if(!text || !text.trim()) return false;
-  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = ts + '.txt';
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a); URL.revokeObjectURL(url);
+  saveBlobSmart(new Blob([text], {type:'text/plain;charset=utf-8'}), ts + '.txt');
   return true;
 }
 
@@ -3144,17 +3221,13 @@ function highlightNextFileButton(){
 document.getElementById('btn-save-audio').addEventListener('click', function(){
   sendLog('stt_save', { recMode, charCount: (transcript.trim()||recordedText.trim()).length });
   const ts = makeTimestamp();
-  const audioFilename = ts + '.' + (audioExt || 'webm');
+  const audioFilename = makeAudioBase() + '.' + (audioExt || 'webm');
   // ★ index_speech.html 전용: 저장 방식 선택 UI를 없앴으므로 항상 "음성+텍스트 저장" 고정
   const saveMode = 'both';
 
   function doSaveAudio(){
     if(!audioBlob){ setStatus('저장할 음성이 없습니다.'); return; }
-    const url = URL.createObjectURL(audioBlob);
-    const a = document.createElement('a');
-    a.href = url; a.download = audioFilename;
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a); URL.revokeObjectURL(url);
+    saveBlobSmart(audioBlob, audioFilename);
   }
   function doSaveText(txt){
     if(!txt){ setStatus('저장할 텍스트가 없습니다.'); return; }
@@ -4906,6 +4979,51 @@ if('serviceWorker' in navigator){
   document.getElementById('pwa-ios-close-btn').addEventListener('click', function(){
     iosBanner.classList.remove('show');
     try{ localStorage.setItem(STORAGE_KEY,'1'); }catch(e){}
+  });
+})();
+
+/* ════════════ 파일 저장 설정 (v3.13) ════════════ */
+(function(){
+  const $ = id => document.getElementById(id);
+  let pendingDirCleared = false;
+  function prev(){
+    $('fs-txt-prev').textContent = '예: ' + buildFileBase($('fs-txt').value) + '.txt';
+    $('fs-aud-prev').textContent = '예: ' + buildFileBase($('fs-aud').value) + '.m4a';
+  }
+  async function renderDir(){
+    const box = $('fs-dir-box'); const cfg = loadFileCfg();
+    if(!DIR_SUPPORTED){
+      box.innerHTML = '<div style="font-size:12px;color:var(--text-muted);line-height:1.7;padding:9px 10px;background:var(--surface2);border-radius:8px;">이 기기(휴대폰 브라우저)에서는 웹앱이 저장 폴더를 직접 지정할 수 없어 <b>기기 다운로드 폴더</b>에 저장됩니다.<br>폴더를 바꾸려면 브라우저 설정 → 다운로드 → <b>저장 위치</b>(또는 "다운로드 전에 위치 확인")를 변경하세요.<br>(PC의 Chrome/Edge에서는 이곳에서 폴더 지정이 가능합니다)</div>';
+      return;
+    }
+    const h = pendingDirCleared ? null : await idbGetDir();
+    box.innerHTML = '<div style="font-size:12px;color:var(--text);margin-bottom:8px;">' + (h ? '선택된 폴더: <b>'+(h.name||'')+'</b>' : '지정 안 함 (기본 다운로드 폴더)') + '</div>'
+      + '<div style="display:flex;gap:8px;"><button id="fs-pick" style="flex:1;padding:9px;border:1px solid var(--border2);background:transparent;color:var(--text);border-radius:8px;font-size:13px;cursor:pointer;">폴더 선택</button>'
+      + (h ? '<button id="fs-unpick" style="padding:9px 12px;border:1px solid var(--border2);background:transparent;color:var(--text-muted);border-radius:8px;font-size:13px;cursor:pointer;">해제</button>' : '') + '</div>';
+    $('fs-pick').onclick = async function(){
+      try{ const dh = await window.showDirectoryPicker({mode:'readwrite'}); await idbSetDir(dh); pendingDirCleared=false; const c=loadFileCfg(); c.useDir=true; saveFileCfg(c); renderDir(); }catch(e){}
+    };
+    const un = $('fs-unpick');
+    if(un) un.onclick = async function(){ await idbSetDir(null); const c=loadFileCfg(); c.useDir=false; saveFileCfg(c); renderDir(); };
+  }
+  function open(){
+    const c = loadFileCfg();
+    $('fs-txt').value = c.txtTpl; $('fs-aud').value = c.audTpl;
+    prev(); renderDir();
+    $('file-setting-modal').style.display = 'flex';
+  }
+  $('btn-file-setting').addEventListener('click', open);
+  $('fs-close').addEventListener('click', ()=>{ $('file-setting-modal').style.display='none'; });
+  $('fs-txt').addEventListener('input', prev);
+  $('fs-aud').addEventListener('input', prev);
+  $('fs-reset').addEventListener('click', ()=>{ $('fs-txt').value = DEFAULT_TPL; $('fs-aud').value = DEFAULT_TPL; prev(); });
+  $('fs-save').addEventListener('click', ()=>{
+    const c = loadFileCfg();
+    c.txtTpl = $('fs-txt').value.trim() || DEFAULT_TPL;
+    c.audTpl = $('fs-aud').value.trim() || DEFAULT_TPL;
+    saveFileCfg(c);
+    $('file-setting-modal').style.display = 'none';
+    try{ showBanner('✓ 파일 저장 설정이 저장되었습니다.', 'ok'); }catch(e){}
   });
 })();
 </script>
